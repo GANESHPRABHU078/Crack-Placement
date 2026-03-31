@@ -1,0 +1,35 @@
+package com.placementos.backend.controller;
+
+import com.placementos.backend.entity.MockInterview;
+import com.placementos.backend.repository.MockInterviewRepository;
+import com.placementos.backend.entity.User;
+import com.placementos.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/interviews/mock")
+@RequiredArgsConstructor
+public class MockInterviewController {
+
+    private final MockInterviewRepository repo;
+    private final UserRepository userRepository;
+
+    @GetMapping("/my-interviews")
+    public ResponseEntity<List<MockInterview>> getMyInterviews(Authentication auth) {
+        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+        return ResponseEntity.ok(repo.findByIntervieweeId(user.getId()));
+    }
+
+    @PostMapping("/schedule")
+    public ResponseEntity<MockInterview> schedule(@RequestBody MockInterview mock, Authentication auth) {
+        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+        mock.setInterviewee(user);
+        mock.setStatus(MockInterview.InterviewStatus.Scheduled);
+        return ResponseEntity.ok(repo.save(mock));
+    }
+}
