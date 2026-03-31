@@ -96,7 +96,16 @@
 							<version>${lombok.version}</version>
 						</path>
 					</annotationProcessorPaths>
-				</configuration>
+				<forceJavacCompilerUse>true</forceJavacCompilerUse>
+			</configuration>
+			<executions>
+				<execution>
+					<phase>compile</phase>
+					<goals>
+						<goal>compile</goal>
+					</goals>
+				</execution>
+			</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
