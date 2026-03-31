@@ -47,11 +47,18 @@ public class AuthService {
         User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
-        if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Invalid email or password");
+        if (passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+            return buildResponse(user);
         }
 
-        return buildResponse(user);
+        // Support legacy plaintext passwords that may already exist in production.
+        if (req.getPassword().equals(user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(req.getPassword()));
+            User upgradedUser = userRepository.save(user);
+            return buildResponse(upgradedUser);
+        }
+
+        throw new BadCredentialsException("Invalid email or password");
     }
 
     private AuthResponse buildResponse(User user) {
