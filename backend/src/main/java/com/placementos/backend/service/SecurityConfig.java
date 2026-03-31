@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // ✅ ADD THIS (MOST IMPORTANT FIX)
+    // ✅ FIX (THIS SOLVES YOUR ERROR)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: crackplacement-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    autoDeploy: false
+    
+    envVars:
+      - key: JAVA_OPTS
+        value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+      - key: PORT
+        value: 8080
+      - key: DB_URL
+        fromDatabase:
+          name: crackplacement-db
+          property: connectionString
+      - key: DB_USERNAME
+        fromDatabase:
+          name: crackplacement-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: crackplacement-db
+          property: password
+      - key: JWT_SECRET
+        sync: false
+      - key: SPRING_DATASOURCE_URL
+        value: ${DB_URL}
+      - key: SPRING_DATASOURCE_USERNAME
+        value: ${DB_USERNAME}
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: ${DB_PASSWORD}
+
+databases:
+  - name: crackplacement-db
+    databaseName: crackplacement
+    user: crackuser
+    plan: starter
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all
