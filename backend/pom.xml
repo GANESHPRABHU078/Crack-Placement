@@ -86,8 +86,6 @@
 				<configuration>
 					<source>17</source>
 					<target>17</target>
-					<encoding>UTF-8</encoding>
-					<forceJavacCompilerUse>true</forceJavacCompilerUse>
 					<compilerArgs>
 						<arg>-parameters</arg>
 					</compilerArgs>
@@ -99,32 +97,6 @@
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-processor-plugin</artifactId>
-				<version>5.1</version>
-				<executions>
-					<execution>
-						<id>process</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>process</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<processors>
-						<processor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor</processor>
-					</processors>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.projectlombok</groupId>
-						<artifactId>lombok</artifactId>
-						<version>${lombok.version}</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
