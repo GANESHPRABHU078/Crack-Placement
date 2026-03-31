@@ -1,0 +1,233 @@
+package com.placementos.backend.controller;
+
+import com.placementos.backend.dto.PracticeProgressUpdateRequest;
+import com.placementos.backend.entity.PracticeProblem;
+import com.placementos.backend.entity.PracticeProgress;
+import com.placementos.backend.entity.PracticeTopic;
+import com.placementos.backend.entity.User;
+import com.placementos.backend.repository.PracticeProblemRepository;
+import com.placementos.backend.repository.PracticeProgressRepository;
+import com.placementos.backend.repository.PracticeTopicRepository;
+import com.placementos.backend.repository.UserRepository;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@RestController
+@RequiredArgsConstructor
+public class PracticeController {
+
+    private final PracticeTopicRepository practiceTopicRepository;
+    private final PracticeProblemRepository practiceProblemRepository;
+    private final PracticeProgressRepository practiceProgressRepository;
+    private final UserRepository userRepository;
+
+    @GetMapping("/api/practice/topics")
+    public ResponseEntity<List<Map<String, Object>>> getTopics() {
+        List<Map<String, Object>> response = practiceTopicRepository.findAllByOrderByDisplayOrderAscNameAsc()
+                .stream()
+                .map(topic -> {
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("id", topic.getId());
+                    item.put("name", topic.getName());
+                    item.put("slug", topic.getSlug());
+                    item.put("description", topic.getDescription());
+                    item.put("iconName", topic.getIconName());
+                    item.put("accentColor", topic.getAccentColor());
+                    item.put("problemCount", practiceProblemRepository.countByTopicId(topic.getId()));
+                    return item;
+                })
+                .toList();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/practice/problems")
+    public ResponseEntity<List<Map<String, Object>>> getProblems(
+            @RequestParam(required = false) String topic,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String platform,
+            @RequestParam(required = false) String search) {
+
+        List<PracticeProblem> problems = topic == null || topic.isBlank()
+                ? practiceProblemRepository.findAllByOrderByDisplayOrderAscTitleAsc()
+                : practiceProblemRepository.findByTopicSlugOrderByDisplayOrderAscTitleAsc(topic);
+
+        List<Map<String, Object>> response = problems.stream()
+                .filter(problem -> difficulty == null || difficulty.isBlank() || problem.getDifficulty().name().equalsIgnoreCase(difficulty))
+                .filter(problem -> platform == null || platform.isBlank() || problem.getPlatform().name().equalsIgnoreCase(platform))
+                .filter(problem -> search == null || search.isBlank() || problem.getTitle().toLowerCase().contains(search.toLowerCase()))
+                .map(this::toProblemResponse)
+                .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/practice-progress")
+    public ResponseEntity<Map<String, Object>> getProgress(Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        List<PracticeProgress> completed = practiceProgressRepository.findByUserIdAndCompletedTrue(user.getId());
+
+        Set<Long> completedProblemIds = completed.stream()
+                .map(progress -> progress.getProblem().getId())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("completedProblemIds", completedProblemIds);
+        response.put("completedCount", completedProblemIds.size());
+        response.put("remainingCount", Math.max(0, practiceProblemRepository.count() - completedProblemIds.size()));
+        response.put("totalProblems", practiceProblemRepository.count());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/practice-insights")
+    public ResponseEntity<Map<String, Object>> getPracticeInsights(Authentication authentication) {
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        List<PracticeTopic> topics = practiceTopicRepository.findAllByOrderByDisplayOrderAscNameAsc();
+        List<PracticeProblem> allProblems = practiceProblemRepository.findAllByOrderByDisplayOrderAscTitleAsc();
+        Set<Long> completedProblemIds = practiceProgressRepository.findByUserIdAndCompletedTrue(user.getId())
+                .stream()
+                .map(progress -> progress.getProblem().getId())
+                .collect(Collectors.toSet());
+
+        List<Map<String, Object>> topicInsights = topics.stream()
+                .map(topic -> buildTopicInsight(topic, allProblems, completedProblemIds))
+                .sorted(Comparator
+                        .comparingDouble((Map<String, Object> insight) -> ((Number) insight.get("completionRate")).doubleValue())
+                        .thenComparing((Map<String, Object> insight) -> ((Number) insight.get("remaining")).intValue(), Comparator.reverseOrder()))
+                .toList();
+
+        Map<String, Object> weakestTopic = topicInsights.isEmpty() ? null : topicInsights.get(0);
+        List<Map<String, Object>> recommendations = weakestTopic == null
+                ? List.of()
+                : allProblems.stream()
+                        .filter(problem -> problem.getTopic().getSlug().equals(weakestTopic.get("slug")))
+                        .filter(problem -> !completedProblemIds.contains(problem.getId()))
+                        .sorted(Comparator
+                                .comparingInt((PracticeProblem problem) -> difficultyWeight(problem.getDifficulty()))
+                                .thenComparing(problem -> Optional.ofNullable(problem.getDisplayOrder()).orElse(Integer.MAX_VALUE))
+                                .thenComparing(PracticeProblem::getTitle))
+                        .limit(5)
+                        .map(this::toProblemResponse)
+                        .toList();
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("generatedAt", LocalDateTime.now());
+        response.put("topicInsights", topicInsights);
+        response.put("weakestTopic", weakestTopic);
+        response.put("recommendedProblems", recommendations);
+        response.put("headline", buildHeadline(weakestTopic, recommendations.size()));
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/api/practice-progress/{problemId}")
+    public ResponseEntity<Map<String, Object>> updateProgress(
+            @PathVariable Long problemId,
+            @Valid @RequestBody PracticeProgressUpdateRequest request,
+            Authentication authentication) {
+
+        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        PracticeProblem problem = practiceProblemRepository.findById(problemId).orElseThrow();
+
+        PracticeProgress progress = practiceProgressRepository.findByUserIdAndProblemId(user.getId(), problemId)
+                .orElseGet(() -> PracticeProgress.builder()
+                        .user(user)
+                        .problem(problem)
+                        .completed(false)
+                        .build());
+
+        progress.setCompleted(request.getCompleted());
+        progress.setCompletedAt(Boolean.TRUE.equals(request.getCompleted()) ? LocalDateTime.now() : null);
+        practiceProgressRepository.save(progress);
+
+        long completedCount = practiceProgressRepository.countByUserIdAndCompletedTrue(user.getId());
+        user.setProblemsSolved((int) completedCount);
+        userRepository.save(user);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("problemId", problemId);
+        response.put("completed", progress.isCompleted());
+        response.put("completedCount", completedCount);
+        response.put("remainingCount", Math.max(0, practiceProblemRepository.count() - completedCount));
+        return ResponseEntity.ok(response);
+    }
+
+    private Map<String, Object> toProblemResponse(PracticeProblem problem) {
+        PracticeTopic topic = problem.getTopic();
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("id", problem.getId());
+        item.put("title", problem.getTitle());
+        item.put("difficulty", problem.getDifficulty().name());
+        item.put("platform", problem.getPlatform().name());
+        item.put("problemUrl", problem.getProblemUrl());
+        item.put("summary", problem.getSummary());
+        item.put("topic", Map.of(
+                "id", topic.getId(),
+                "name", topic.getName(),
+                "slug", topic.getSlug(),
+                "accentColor", topic.getAccentColor(),
+                "iconName", topic.getIconName()
+        ));
+        return item;
+    }
+
+    private Map<String, Object> buildTopicInsight(PracticeTopic topic, List<PracticeProblem> allProblems, Set<Long> completedProblemIds) {
+        List<PracticeProblem> topicProblems = allProblems.stream()
+                .filter(problem -> problem.getTopic().getId().equals(topic.getId()))
+                .toList();
+
+        int total = topicProblems.size();
+        int completed = (int) topicProblems.stream()
+                .filter(problem -> completedProblemIds.contains(problem.getId()))
+                .count();
+        int remaining = Math.max(0, total - completed);
+        double completionRate = total == 0 ? 0 : (completed * 100.0) / total;
+        String status;
+        if (completionRate >= 70) {
+            status = "Strong";
+        } else if (completionRate >= 35) {
+            status = "Improving";
+        } else {
+            status = "Needs Work";
+        }
+
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("id", topic.getId());
+        item.put("name", topic.getName());
+        item.put("slug", topic.getSlug());
+        item.put("accentColor", topic.getAccentColor());
+        item.put("completed", completed);
+        item.put("total", total);
+        item.put("remaining", remaining);
+        item.put("completionRate", Math.round(completionRate * 10.0) / 10.0);
+        item.put("status", status);
+        return item;
+    }
+
+    private int difficultyWeight(PracticeProblem.Difficulty difficulty) {
+        return switch (difficulty) {
+            case Easy -> 1;
+            case Medium -> 2;
+            case Hard -> 3;
+        };
+    }
+
+    private String buildHeadline(Map<String, Object> weakestTopic, int recommendationCount) {
+        if (weakestTopic == null) {
+            return "Start solving problems to unlock topic insights.";
+        }
+
+        String name = Objects.toString(weakestTopic.get("name"), "this topic");
+        int remaining = ((Number) weakestTopic.get("remaining")).intValue();
+        if (remaining == 0) {
+            return "You are in a strong position across tracked topics. Time to raise the bar with harder sets.";
+        }
+
+        return "You are weakest in " + name + " right now. Practice these " + recommendationCount + " problems next.";
+    }
+}
