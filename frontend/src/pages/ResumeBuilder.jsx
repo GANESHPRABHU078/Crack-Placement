@@ -15,7 +15,8 @@ const ResumeBuilder = () => {
     education: [{ school: 'Indian Institute of Technology, Madras', degree: 'Bachelor of Technology in Computer Science', date: 'Aug 2021 - May 2025', location: 'Chennai, TN', gpa: '9.2/10.0' }],
     experience: [{ company: 'Google', role: 'Software Engineering Intern', location: 'Bengaluru, KA', date: 'May 2024 - Aug 2024', desc: '• Engineered a scalable microservices architecture using Spring Boot, reducing API latency by 20%.\n• Collaborated with cross-functional teams to integrate a new Kafka-based messaging queue.\n• Developed and deployed Docker containers to AWS ECS.' }],
     projects: [{ name: 'PlacementOS', tech: 'React, Spring Boot, MySQL', date: 'Jan 2024 - Present', desc: '• Built a comprehensive full-stack platform for placement preparation serving 28,000+ students.\n• Implemented an integrated LeetCode-style code execution engine.\n• Designed an ATS-friendly resume builder and an interactive dashboard track progress.' }],
-    skills: { languages: 'Java, C++, Python, JavaScript, TypeScript', frameworks: 'React, Spring Boot, Node.js, Express', tools: 'Git, Docker, AWS, MySQL, MongoDB' }
+    skills: { languages: 'Java, C++, Python, JavaScript, TypeScript', frameworks: 'React, Spring Boot, Node.js, Express', tools: 'Git, Docker, AWS, MySQL, MongoDB' },
+    customSections: []
   });
 
   const handleChange = (sec, idx, field, val) => {
@@ -303,6 +304,50 @@ const ResumeBuilder = () => {
             </div>
           )}
         </div>
+
+        <div className="card mb24">
+          <div className="card-hdr" style={{ cursor: 'pointer', marginBottom: activeSection === 'custom' ? '16px' : '0' }} onClick={() => toggleSection('custom')}>
+            <div>
+              <div className="card-title">Optional Custom Sections</div>
+              <div style={{ fontSize: '12px', color: 'var(--t3)', marginTop: '4px' }}>Add any extra section title and write whatever content you want in the resume.</div>
+            </div>
+            {activeSection === 'custom' ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </div>
+          {activeSection === 'custom' && (
+            <>
+              {resume.customSections.map((section, i) => (
+                <div key={i} className="mb16" style={{ paddingBottom: '16px', borderBottom: i < resume.customSections.length - 1 ? '1px solid var(--b1)' : 'none' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ fontWeight: '600', fontSize: '13px' }}>Custom Section #{i + 1}</div>
+                    <button className="tc hover-red transition-colors" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => removeItem('customSections', i)}><Trash2 size={14} /></button>
+                  </div>
+                  <div className="field-row mb12">
+                    <div className="field" style={{ gridColumn: 'span 2' }}>
+                      <label>Section Title</label>
+                      <div className="input-wrap">
+                        <input type="text" placeholder="Example: Certifications" value={section.title} onChange={(e) => handleChange('customSections', i, 'title', e.target.value)} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label>Content</label>
+                    <div className="input-wrap">
+                      <textarea
+                        style={{ width: '100%', minHeight: '110px', background: 'var(--bg2)', border: '1px solid var(--b2)', borderRadius: '8px', color: 'var(--t1)', padding: '10px 12px', resize: 'vertical' }}
+                        placeholder={'Write anything you want here.\nUse one line per point if you want bullet-style content.'}
+                        value={section.content}
+                        onChange={(e) => handleChange('customSections', i, 'content', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button className="btn btn-ghost btn-sm fw" onClick={() => addItem('customSections', { title: '', content: '' })}>
+                <Plus size={14} /> Add Optional Section
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* A4 Resume Preview (Right side) */}
@@ -455,6 +500,23 @@ const ResumeBuilder = () => {
               {resume.skills.tools && <div><span style={{ fontWeight: 'bold' }}>Developer Tools:</span> {resume.skills.tools}</div>}
             </div>
           </div>
+
+          {resume.customSections
+            .filter((section) => section.title.trim() || section.content.trim())
+            .map((section, i) => (
+              <div key={`${section.title}-${i}`} style={{ marginBottom: '14px' }}>
+                <h2 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>
+                  {section.title || 'Additional Information'}
+                </h2>
+                <ul style={{ fontSize: '12px', margin: '0', paddingLeft: '18px', listStyleType: 'disc' }}>
+                  {section.content.split('\n').filter(line => line.trim()).map((line, j) => (
+                    <li key={j} style={{ paddingLeft: '2px', marginBottom: '2px' }}>
+                      {line.replace(/^[-â€¢•*]\s*/, '').trim()}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
 
         </div>
       </div>
