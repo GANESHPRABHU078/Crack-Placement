@@ -8,9 +8,6 @@ const baseURL = (import.meta.env.VITE_API_BASE_URL || fallbackBaseURL).replace(/
 
 const apiClient = axios.create({
   baseURL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Request interceptor to add JWT token to headers
