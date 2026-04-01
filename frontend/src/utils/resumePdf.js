@@ -227,6 +227,16 @@ export const downloadResumePdf = (resume) => {
     if (resume.skills.tools) addWrappedText(`Developer Tools: ${resume.skills.tools}`, { size: 10.5, gapAfter: 1 });
   }
 
+  if (Array.isArray(resume.customSections)) {
+    resume.customSections
+      .filter((section) => (section.title || '').trim() || (section.content || '').trim())
+      .forEach((section) => {
+        addSectionTitle(section.title || 'Additional Information');
+        addBulletLines(section.content || '');
+        y -= 4;
+      });
+  }
+
   const blob = buildPdf(pages);
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');

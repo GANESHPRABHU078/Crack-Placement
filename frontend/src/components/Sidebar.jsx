@@ -33,6 +33,7 @@ const Sidebar = () => {
     { label: 'PLACEMENT PREP', type: 'label' },
     { icon: GraduationCap, label: 'Interview Exp', path: '/interviews' },
     { icon: Video, label: 'Mock Interviews', path: '/mock-interviews' },
+    { icon: MessageSquare, label: 'Communication', path: '/communication' },
     { icon: Award, label: 'Course Catalog', path: '/courses' },
     { icon: MessageSquare, label: 'AI Assistant', path: '/ai' },
     { icon: Users, label: 'Community', path: '/community' },
