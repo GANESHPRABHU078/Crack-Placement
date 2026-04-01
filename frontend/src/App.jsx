@@ -18,6 +18,7 @@ import AIAssistant from './pages/AIAssistant';
 import Community from './pages/Community';
 import CourseCatalog from './pages/CourseCatalog';
 import CommunicationLab from './pages/CommunicationLab';
+import About from './pages/About';
 import { motion, AnimatePresence } from 'framer-motion';
 import './index.css';
 
@@ -82,6 +83,7 @@ function App() {
           <Route path="/community" element={<P><Community /></P>} />
           <Route path="/courses" element={<P><CourseCatalog /></P>} />
           <Route path="/communication" element={<P><CommunicationLab /></P>} />
+          <Route path="/about" element={<P><About /></P>} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

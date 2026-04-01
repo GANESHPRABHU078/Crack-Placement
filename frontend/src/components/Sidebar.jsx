@@ -13,7 +13,8 @@ import {
   Users,
   Video,
   Target,
-  Building2
+  Building2,
+  Info
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -37,6 +38,7 @@ const Sidebar = () => {
     { icon: Award, label: 'Course Catalog', path: '/courses' },
     { icon: MessageSquare, label: 'AI Assistant', path: '/ai' },
     { icon: Users, label: 'Community', path: '/community' },
+    { icon: Info, label: 'About', path: '/about' },
   ];
 
   return (
