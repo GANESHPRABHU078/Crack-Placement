@@ -102,7 +102,7 @@ const buildPdf = (pages) => {
   return new Blob([pdf], { type: 'application/pdf' });
 };
 
-export const downloadResumePdf = (resume) => {
+export const downloadResumePdf = (resume, template = 'classic') => {
   const pages = [[]];
   let currentPage = pages[0];
   let y = PAGE_HEIGHT - MARGIN_TOP;
@@ -172,7 +172,15 @@ export const downloadResumePdf = (resume) => {
     });
   };
 
-  addLine(resume.personal.name || 'Your Name', { size: 20, bold: true, x: 170, gapAfter: 8 });
+  const isModern = template === 'modern';
+  const isCompact = template === 'compact';
+
+  addLine(resume.personal.name || 'Your Name', {
+    size: isCompact ? 18 : 20,
+    bold: true,
+    x: isModern || isCompact ? MARGIN_X : 170,
+    gapAfter: 8
+  });
 
   const contactParts = [
     resume.personal.phone,
@@ -182,7 +190,12 @@ export const downloadResumePdf = (resume) => {
   ].filter(Boolean);
 
   if (contactParts.length) {
-    addWrappedText(contactParts.join(' | '), { size: 10.5, x: 100, width: 395, gapAfter: 10 });
+    addWrappedText(contactParts.join(' | '), {
+      size: isCompact ? 9.5 : 10.5,
+      x: isModern || isCompact ? MARGIN_X : 100,
+      width: isModern || isCompact ? PAGE_WIDTH - (MARGIN_X * 2) : 395,
+      gapAfter: 10
+    });
   }
 
   if (resume.education.some((item) => item.school || item.degree)) {
