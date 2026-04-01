@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+const fallbackBaseURL = import.meta.env.PROD
+  ? 'https://crack-placement.onrender.com/api'
+  : 'http://localhost:8080/api';
+
+const baseURL = (import.meta.env.VITE_API_BASE_URL || fallbackBaseURL).replace(/\/+$/, '');
+
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
