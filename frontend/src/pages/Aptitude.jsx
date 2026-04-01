@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { aptitudeService } from '../api/aptitudeService';
 import { Timer, CheckCircle, XCircle, ChevronRight, RefreshCcw, TrendingUp, Award, Zap, BookOpen, Target, Clock } from 'lucide-react';
 
-const topics = [
+const topicCatalog = [
     { id: 'quant', title: 'Quantitative Aptitude', desc: 'Number systems, Algebra, Geometry, Arithmetic, Permutation & Combination', icon: '➗', color: '#f59e0b', problems: 85, difficulty: 'Mixed', avgTime: 2.5, bestScore: 92 },
     { id: 'logical', title: 'Logical Reasoning', desc: 'Puzzles, Blood relations, Syllogisms, Sequences, Series, Coding-Decoding', icon: '🧠', color: '#8b5cf6', problems: 65, difficulty: 'Mixed', avgTime: 3, bestScore: 88 },
     { id: 'verbal', title: 'Verbal Ability', desc: 'RC, Grammar, Vocabulary, Sentence correction, Synonyms-Antonyms', icon: '📝', color: '#10b981', problems: 55, difficulty: 'Easy-Medium', avgTime: 2, bestScore: 95 },
@@ -215,6 +215,8 @@ const allQuestions = {
     }
   ]
 };
+
+const Aptitude = () => {
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedOpt, setSelectedOpt] = useState(null);
@@ -287,7 +289,7 @@ const allQuestions = {
     }
   };
 
-  const topics = [
+  const topicCards = [
     { id: 'quant', title: 'Quantitative Aptitude', desc: 'Number systems, Algebra, Geometry, Arithmetic', icon: '➗', color: 'var(--orange-d)' },
     { id: 'logical', title: 'Logical Reasoning', desc: 'Puzzles, Blood relations, Syllogisms, Sequences', icon: '🧠', color: 'var(--p-d)' },
     { id: 'verbal', title: 'Verbal Ability', desc: 'Reading comprehension, Grammar, Vocabulary', icon: '📝', color: 'var(--easy-d)' },
@@ -343,7 +345,7 @@ const allQuestions = {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))', gap: '16px', marginBottom: 32 }}>
-            {topics.map(topic => (
+            {topicCards.map(topic => (
               <div
                 key={topic.id}
                 style={{
@@ -459,7 +461,7 @@ const allQuestions = {
   if (showResult) {
     const accuracy = Math.round((score.correct / questions.length) * 100);
     const performanceLevel = accuracy >= 80 ? 'Excellent' : accuracy >= 60 ? 'Good' : accuracy >= 40 ? 'Fair' : 'Needs Improvement';
-    const topicTitle = topics.find(t => t.id === selectedTopic)?.title || 'Quiz';
+    const topicTitle = topicCards.find(t => t.id === selectedTopic)?.title || 'Quiz';
     
     return (
       <div className="app-page on" style={{ padding: '0', display: 'flex', justifyContent: 'center' }}>
@@ -563,7 +565,7 @@ const allQuestions = {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <h1 className="section-title" style={{ fontSize: 18, marginBottom: 4 }}>{topics.find(t => t.id === selectedTopic)?.title || 'Quiz'}</h1>
+            <h1 className="section-title" style={{ fontSize: 18, marginBottom: 4 }}>{topicCards.find(t => t.id === selectedTopic)?.title || 'Quiz'}</h1>
             <p style={{ fontSize: 12, color: 'var(--t3)' }}>Question {currentIdx + 1} of {questions.length}</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
