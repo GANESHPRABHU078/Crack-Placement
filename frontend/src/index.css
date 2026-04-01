@@ -2870,6 +2870,7 @@ textarea {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 8px;
+  color: var(--t1);
 }
 
 .practice-topic-desc {
@@ -2892,7 +2893,7 @@ textarea {
   justify-content: space-between;
   gap: 12px;
   font-size: 11px;
-  color: var(--t3);
+  color: var(--t2);
 }
 
 .practice-toolbar {
