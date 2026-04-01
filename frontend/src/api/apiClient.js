@@ -10,11 +10,23 @@ const apiClient = axios.create({
   baseURL,
 });
 
+const protectedPrefixes = [
+  '/practice-progress',
+  '/practice-insights',
+  '/profile',
+  '/roadmap-progress',
+  '/ai',
+  '/interviews'
+];
+
+const shouldAttachAuth = (url = '') =>
+  protectedPrefixes.some((prefix) => url.startsWith(prefix));
+
 // Request interceptor to add JWT token to headers
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+    if (token && shouldAttachAuth(config.url || '')) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
