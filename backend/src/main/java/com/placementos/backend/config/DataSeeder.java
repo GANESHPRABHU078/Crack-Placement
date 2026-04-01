@@ -140,8 +140,16 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedCompanyPrepContent() {
-        Map<String, PracticeTopic> topicsByName = practiceTopicRepository.findAll().stream().collect(Collectors.toMap(PracticeTopic::getName, Function.identity()));
-        Map<String, PracticeProblem> problemsByTitle = practiceProblemRepository.findAll().stream().collect(Collectors.toMap(PracticeProblem::getTitle, Function.identity()));
+        Map<String, PracticeTopic> topicsByName = practiceTopicRepository.findAll().stream().collect(Collectors.toMap(
+                PracticeTopic::getName,
+                Function.identity(),
+                (existing, ignored) -> existing
+        ));
+        Map<String, PracticeProblem> problemsByTitle = practiceProblemRepository.findAll().stream().collect(Collectors.toMap(
+                PracticeProblem::getTitle,
+                Function.identity(),
+                (existing, ignored) -> existing
+        ));
 
         saveCompanyProfile(1, "Amazon", "Medium to Hard", "AMZ", "#f59e0b", 4, 2, 6, 150, "Online assessment, DSA rounds, bar raiser, leadership principles", "Focus on arrays, strings, graphs, and dynamic programming under timed practice.", List.of("Arrays", "Strings", "Graphs", "Dynamic Programming"), List.of("Two Sum / pair-based hash map problem", "Longest substring without repeating characters", "Graph traversal and course schedule patterns"), List.of("Two Sum", "Longest Substring Without Repeating Characters", "Course Schedule", "House Robber"), topicsByName, problemsByTitle);
         saveCompanyProfile(2, "TCS", "Easy to Medium", "TCS", "#2563eb", 3, 1, 2, 90, "Aptitude-heavy screening with implementation-focused coding", "Build comfort with arrays, strings, queue basics, and simple linked list problems.", List.of("Arrays", "Strings", "Queue", "Linked List"), List.of("Array rotation and subarray variants", "String prefix and pattern problems", "Queue basics"), List.of("Two Sum", "Valid Anagram", "Implement Queue using Stacks", "Reverse Linked List"), topicsByName, problemsByTitle);
