@@ -2,12 +2,31 @@ import React, { useRef, useState } from 'react';
 import { Save, Printer, Plus, Trash2, ChevronDown, ChevronUp, Activity, CheckCircle, AlertTriangle, Download } from 'lucide-react';
 import { downloadResumePdf } from '../utils/resumePdf';
 
+const resumeTemplates = [
+  {
+    id: 'classic',
+    name: 'Classic ATS',
+    description: 'Clean, centered, and safe for placements and online applications.'
+  },
+  {
+    id: 'modern',
+    name: 'Modern Pro',
+    description: 'Sharper hierarchy with stronger section styling for standout resumes.'
+  },
+  {
+    id: 'compact',
+    name: 'Compact Edge',
+    description: 'Tighter spacing for users who need to fit more content in one page.'
+  }
+];
+
 const ResumeBuilder = () => {
   const [activeSection, setActiveSection] = useState('personal');
   const [showAts, setShowAts] = useState(false);
   const [atsScore, setAtsScore] = useState(null);
   const [atsFeedback, setAtsFeedback] = useState([]);
   const [downloadMessage, setDownloadMessage] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState('classic');
   const resumePreviewRef = useRef(null);
 
   const [resume, setResume] = useState({
@@ -108,7 +127,7 @@ const ResumeBuilder = () => {
   };
 
   const handleDownloadPdf = () => {
-    downloadResumePdf(resume);
+    downloadResumePdf(resume, selectedTemplate);
     setDownloadMessage('PDF download started.');
   };
 
@@ -156,6 +175,45 @@ const ResumeBuilder = () => {
     setDownloadMessage('Opened a clean print view for the resume.');
   };
 
+  const previewStyles = {
+    classic: {
+      container: { padding: '20mm', fontFamily: '"Times New Roman", Times, serif', lineHeight: '1.2' },
+      headerAlign: 'center',
+      headingColor: '#000',
+      headingBorder: '1px solid #000',
+      headingLetterSpacing: '0.04em',
+      sectionGap: '14px'
+    },
+    modern: {
+      container: { padding: '18mm 18mm 16mm', fontFamily: '"Georgia", serif', lineHeight: '1.35' },
+      headerAlign: 'left',
+      headingColor: '#0f172a',
+      headingBorder: '2px solid #f97316',
+      headingLetterSpacing: '0.06em',
+      sectionGap: '16px'
+    },
+    compact: {
+      container: { padding: '15mm 16mm', fontFamily: '"Arial", sans-serif', lineHeight: '1.15' },
+      headerAlign: 'left',
+      headingColor: '#111827',
+      headingBorder: '1px solid #374151',
+      headingLetterSpacing: '0.03em',
+      sectionGap: '10px'
+    }
+  };
+
+  const previewTheme = previewStyles[selectedTemplate];
+  const headingStyle = {
+    fontSize: '14px',
+    fontWeight: 'bold',
+    borderBottom: previewTheme.headingBorder,
+    paddingBottom: '2px',
+    marginBottom: '8px',
+    textTransform: 'uppercase',
+    color: previewTheme.headingColor,
+    letterSpacing: previewTheme.headingLetterSpacing
+  };
+
   return (
     <div className="app-page on" style={{ display: 'flex', gap: '24px', padding: '24px' }}>
 
@@ -180,6 +238,39 @@ const ResumeBuilder = () => {
             <button className="btn btn-ghost btn-sm">
               <Save size={14} /> Save Data
             </button>
+          </div>
+        </div>
+
+        <div className="card mb16">
+          <div className="card-hdr" style={{ marginBottom: '16px' }}>
+            <div>
+              <div className="card-title">Resume Templates</div>
+              <div className="card-sub">Pick the layout style you want for preview, print, and PDF export.</div>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+            {resumeTemplates.map((template) => {
+              const isActive = selectedTemplate === template.id;
+              return (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => setSelectedTemplate(template.id)}
+                  style={{
+                    textAlign: 'left',
+                    padding: '14px',
+                    borderRadius: '12px',
+                    border: isActive ? '1px solid rgba(249,115,22,0.45)' : '1px solid var(--b1)',
+                    background: isActive ? 'rgba(249,115,22,0.08)' : 'var(--bg2)',
+                    color: 'var(--t1)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <div style={{ fontSize: '13px', fontWeight: 800, marginBottom: '6px' }}>{template.name}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--t3)', lineHeight: 1.5 }}>{template.description}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -403,16 +494,15 @@ const ResumeBuilder = () => {
             minHeight: '297mm',
             background: '#fff',
             color: '#000',
-            padding: '20mm', // ~1 inch margins
-            fontFamily: '"Times New Roman", Times, serif',
+            ...previewTheme.container,
             boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
-            lineHeight: '1.2'
+            borderTop: selectedTemplate === 'modern' ? '6px solid #f97316' : 'none'
           }}
         >
           {/* Header */}
-          <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-            <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 6px 0', letterSpacing: '0.02em' }}>{resume.personal.name}</h1>
-            <div style={{ fontSize: '11px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <div style={{ textAlign: previewTheme.headerAlign, marginBottom: previewTheme.sectionGap }}>
+            <h1 style={{ fontSize: selectedTemplate === 'compact' ? '24px' : '28px', fontWeight: 'bold', margin: '0 0 6px 0', letterSpacing: selectedTemplate === 'modern' ? '0.04em' : '0.02em', color: selectedTemplate === 'modern' ? '#111827' : '#000' }}>{resume.personal.name}</h1>
+            <div style={{ fontSize: selectedTemplate === 'compact' ? '10px' : '11px', display: 'flex', justifyContent: previewTheme.headerAlign === 'center' ? 'center' : 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
               {resume.personal.phone && <span>{resume.personal.phone}</span>}
               {resume.personal.phone && resume.personal.email && <span>|</span>}
               {resume.personal.email && <span>{resume.personal.email}</span>}
@@ -425,8 +515,8 @@ const ResumeBuilder = () => {
 
           {/* Education */}
           {resume.education.length > 0 && (
-            <div style={{ marginBottom: '14px' }}>
-              <h2 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Education</h2>
+            <div style={{ marginBottom: previewTheme.sectionGap }}>
+              <h2 style={headingStyle}>Education</h2>
               {resume.education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: '6px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold' }}>
@@ -445,8 +535,8 @@ const ResumeBuilder = () => {
 
           {/* Experience */}
           {resume.experience.length > 0 && (
-            <div style={{ marginBottom: '14px' }}>
-              <h2 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Experience</h2>
+            <div style={{ marginBottom: previewTheme.sectionGap }}>
+              <h2 style={headingStyle}>Experience</h2>
               {resume.experience.map((exp, i) => (
                 <div key={i} style={{ marginBottom: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold' }}>
@@ -471,8 +561,8 @@ const ResumeBuilder = () => {
 
           {/* Projects */}
           {resume.projects.length > 0 && (
-            <div style={{ marginBottom: '14px' }}>
-              <h2 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Projects</h2>
+            <div style={{ marginBottom: previewTheme.sectionGap }}>
+              <h2 style={headingStyle}>Projects</h2>
               {resume.projects.map((proj, i) => (
                 <div key={i} style={{ marginBottom: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
@@ -492,8 +582,8 @@ const ResumeBuilder = () => {
           )}
 
           {/* Technical Skills */}
-          <div style={{ marginBottom: '14px' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>Technical Skills</h2>
+          <div style={{ marginBottom: previewTheme.sectionGap }}>
+            <h2 style={headingStyle}>Technical Skills</h2>
             <div style={{ fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {resume.skills.languages && <div><span style={{ fontWeight: 'bold' }}>Languages:</span> {resume.skills.languages}</div>}
               {resume.skills.frameworks && <div><span style={{ fontWeight: 'bold' }}>Frameworks:</span> {resume.skills.frameworks}</div>}
@@ -504,8 +594,8 @@ const ResumeBuilder = () => {
           {resume.customSections
             .filter((section) => section.title.trim() || section.content.trim())
             .map((section, i) => (
-              <div key={`${section.title}-${i}`} style={{ marginBottom: '14px' }}>
-                <h2 style={{ fontSize: '14px', fontWeight: 'bold', borderBottom: '1px solid #000', paddingBottom: '2px', marginBottom: '8px', textTransform: 'uppercase' }}>
+              <div key={`${section.title}-${i}`} style={{ marginBottom: previewTheme.sectionGap }}>
+                <h2 style={headingStyle}>
                   {section.title || 'Additional Information'}
                 </h2>
                 <ul style={{ fontSize: '12px', margin: '0', paddingLeft: '18px', listStyleType: 'disc' }}>
