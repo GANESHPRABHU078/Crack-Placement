@@ -4,11 +4,14 @@ import com.placementos.backend.entity.*;
 import com.placementos.backend.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @Configuration
 public class RoadmapContentSeeder implements CommandLineRunner {
+    private static final Logger log = LoggerFactory.getLogger(RoadmapContentSeeder.class);
     private final RoadmapDefinitionRepository roadmapDefinitionRepository;
     private final RoadmapStageRepository roadmapStageRepository;
     private final RoadmapTopicRepository roadmapTopicRepository;
@@ -37,14 +40,16 @@ public class RoadmapContentSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        roadmapTrackResourceRepository.deleteAll();
-        roadmapTopicResourceRepository.deleteAll();
-        roadmapTrackRepository.deleteAll();
-        roadmapTopicRepository.deleteAll();
-        roadmapPlanItemRepository.deleteAll();
-        roadmapStageRepository.deleteAll();
-        roadmapDefinitionRepository.deleteAll();
-        seedRoadmaps();
+        try {
+            if (roadmapDefinitionRepository.count() > 0) {
+                log.info("Roadmap content already exists, skipping reseed.");
+                return;
+            }
+            seedRoadmaps();
+            log.info("Roadmap content seeded successfully.");
+        } catch (Exception exception) {
+            log.error("Roadmap content seeding failed, continuing without blocking startup.", exception);
+        }
     }
 
     private void seedRoadmaps() {
