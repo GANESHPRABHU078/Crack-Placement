@@ -7,6 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/profile")
 public class UserProfileController {
@@ -27,6 +32,36 @@ public class UserProfileController {
         user.setGradYear(profile.getGradYear());
         user.setPrimaryGoal(profile.getPrimaryGoal());
         return ResponseEntity.ok(userRepository.save(user));
+    }
+
+    @PostMapping("/check-in")
+    public ResponseEntity<Map<String, Object>> dailyCheckIn(Authentication auth) {
+        User user = userRepository.findByEmail(auth.getName()).orElseThrow();
+
+        LocalDate today = LocalDate.now();
+        LocalDate lastCheckInDate = user.getLastLogin() == null ? null : user.getLastLogin().toLocalDate();
+
+        boolean alreadyCheckedIn = today.equals(lastCheckInDate);
+        if (!alreadyCheckedIn) {
+            if (lastCheckInDate != null && ChronoUnit.DAYS.between(lastCheckInDate, today) == 1) {
+                user.setCurrentStreak(user.getCurrentStreak() + 1);
+            } else {
+                user.setCurrentStreak(1);
+            }
+
+            user.setBestStreak(Math.max(user.getBestStreak(), user.getCurrentStreak()));
+            user.setXp(user.getXp() + 10);
+            user.setLastLogin(java.time.LocalDateTime.now());
+            userRepository.save(user);
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("alreadyCheckedIn", alreadyCheckedIn);
+        response.put("currentStreak", user.getCurrentStreak());
+        response.put("bestStreak", user.getBestStreak());
+        response.put("xp", user.getXp());
+        response.put("level", user.getLevel());
+        return ResponseEntity.ok(response);
     }
 
     @java.lang.SuppressWarnings("all")
