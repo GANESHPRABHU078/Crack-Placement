@@ -65,7 +65,7 @@ const Dashboard = () => {
   const maxH = Math.max(...weekData);
 
   return (
-    <div className="app-page on" style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 40px' }}>
+    <div className="app-page on" style={{ position: 'relative', padding: '28px 28px 40px' }}>
       <div style={{ position: 'fixed', top: 60, left: 220, width: 400, height: 400, background: 'radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', bottom: 100, right: 80, width: 300, height: 300, background: 'radial-gradient(circle, rgba(168,85,247,0.05) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
