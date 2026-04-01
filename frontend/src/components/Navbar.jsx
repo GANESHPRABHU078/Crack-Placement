@@ -11,6 +11,7 @@ const Navbar = () => {
     { label: 'Practice', path: '/practice' },
     { label: 'Contests', path: '/contests' },
     { label: 'Discuss', path: '/community' },
+    { label: 'About', path: '/about' },
   ];
 
   if (!user) return null;
