@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
-import { Save, Printer, Plus, Trash2, ChevronDown, ChevronUp, Activity, CheckCircle, AlertTriangle } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Save, Printer, Plus, Trash2, ChevronDown, ChevronUp, Activity, CheckCircle, AlertTriangle, Download } from 'lucide-react';
+import { downloadResumePdf } from '../utils/resumePdf';
 
 const ResumeBuilder = () => {
   const [activeSection, setActiveSection] = useState('personal');
   const [showAts, setShowAts] = useState(false);
   const [atsScore, setAtsScore] = useState(null);
   const [atsFeedback, setAtsFeedback] = useState([]);
+  const [downloadMessage, setDownloadMessage] = useState('');
+  const resumePreviewRef = useRef(null);
 
   const [resume, setResume] = useState({
     personal: { name: 'Arjun Kumar', email: 'arjun@college.edu', phone: '+91 98765 43210', linkedin: 'linkedin.com/in/arjunkumar', github: 'github.com/arjuncodes' },
@@ -103,6 +106,55 @@ const ResumeBuilder = () => {
     setShowAts(true);
   };
 
+  const handleDownloadPdf = () => {
+    downloadResumePdf(resume);
+    setDownloadMessage('PDF download started.');
+  };
+
+  const handlePrintResume = () => {
+    const resumeHtml = resumePreviewRef.current?.outerHTML;
+    if (!resumeHtml) return;
+
+    const printWindow = window.open('', '_blank', 'width=900,height=1200');
+    if (!printWindow) {
+      setDownloadMessage('Popup blocked. Please allow popups to print the resume.');
+      return;
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Resume Print Preview</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+              background: #ffffff;
+            }
+            .resume-a4-preview {
+              width: 210mm !important;
+              min-height: 297mm !important;
+              margin: 0 auto !important;
+              box-shadow: none !important;
+            }
+            @page {
+              size: A4;
+              margin: 0;
+            }
+          </style>
+        </head>
+        <body>
+          ${resumeHtml}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    setDownloadMessage('Opened a clean print view for the resume.');
+  };
+
   return (
     <div className="app-page on" style={{ display: 'flex', gap: '24px', padding: '24px' }}>
 
@@ -112,15 +164,19 @@ const ResumeBuilder = () => {
           <div>
             <h1 className="section-title">Resume Builder</h1>
             <p className="section-sub">Create your ATS-friendly tech resume in minutes.</p>
+            {downloadMessage && <p style={{ fontSize: '12px', color: 'var(--orange)', marginTop: '6px' }}>{downloadMessage}</p>}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="btn btn-ghost btn-sm" style={{ color: 'var(--orange)', borderColor: 'var(--orange-d)' }} onClick={calculateAtsScore}>
               <Activity size={14} /> Check ATS Score
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>
-              <Printer size={14} /> Print PDF
+            <button className="btn btn-ghost btn-sm" onClick={handlePrintResume}>
+              <Printer size={14} /> Print Resume
             </button>
-            <button className="btn btn-primary btn-sm">
+            <button className="btn btn-primary btn-sm" onClick={handleDownloadPdf}>
+              <Download size={14} /> Download PDF
+            </button>
+            <button className="btn btn-ghost btn-sm">
               <Save size={14} /> Save Data
             </button>
           </div>
@@ -295,6 +351,7 @@ const ResumeBuilder = () => {
 
         {/* Actual A4 Sheet */}
         <div
+          ref={resumePreviewRef}
           className="resume-a4-preview"
           style={{
             width: '210mm',
