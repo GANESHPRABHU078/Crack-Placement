@@ -46,12 +46,12 @@ const phases = [
 ];
 
 const paths = [
-    { icon: Code2, label: 'SDE Path', sub: '220 problems', color: '#f59e0b', active: true, hours: 200 },
-    { icon: Cpu, label: 'ML Engineer', sub: '150 problems', color: '#8b5cf6', hours: 150 },
-    { icon: Database, label: 'Backend Dev', sub: '180 problems', color: '#3b82f6', hours: 180 },
-    { icon: Shield, label: 'Security Eng', sub: '120 problems', color: '#10b981', hours: 140 },
-    { icon: BarChart2, label: 'Data Analyst', sub: '160 problems', color: '#ef4444', hours: 160 },
-    { icon: Globe, label: 'Full Stack', sub: '200 problems', color: '#ec4899', hours: 190 },
+    { icon: Code2, label: 'SDE Path', color: '#f59e0b', active: true, hours: 200 },
+    { icon: Cpu, label: 'ML Engineer', color: '#8b5cf6', hours: 150 },
+    { icon: Database, label: 'Backend Dev', color: '#3b82f6', hours: 180 },
+    { icon: Shield, label: 'Security Eng', color: '#10b981', hours: 140 },
+    { icon: BarChart2, label: 'Data Analyst', color: '#ef4444', hours: 160 },
+    { icon: Globe, label: 'Full Stack', color: '#ec4899', hours: 190 },
 ];
 
 const Roadmap = () => {
@@ -81,6 +81,10 @@ const Roadmap = () => {
         navigate('/practice');
     };
 
+    const handlePathClick = (pathLabel) => {
+        navigate('/practice');
+    };
+
     return (
         <div className="app-page on" style={{ padding: '28px 28px 48px' }}>
             <div style={{ maxWidth: 1100 }}>
@@ -102,8 +106,10 @@ const Roadmap = () => {
                     {/* Left: learning paths */}
                     <div>
                         <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Learning Paths</div>
-                        {paths.map(({ icon: Icon, label, sub, color, active, hours }) => (
-                            <div key={label} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px', marginBottom: 8, borderRadius: 10, background: active ? `${color}18` : 'var(--bg3)', border: `1px solid ${active ? color + '40' : 'var(--b1)'}`, cursor: 'pointer', transition: 'all 0.15s' }}
+                        {paths.map(({ icon: Icon, label, color, active, hours }) => {
+                            const pathProblems = phases.reduce((acc, p) => acc + p.topics.reduce((a, t) => a + (t.problems || 0), 0), 0);
+                            return (
+                            <button key={label} onClick={() => handlePathClick(label)} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px', marginBottom: 8, borderRadius: 10, background: active ? `${color}18` : 'var(--bg3)', border: `1px solid ${active ? color + '40' : 'var(--b1)'}`, cursor: 'pointer', transition: 'all 0.15s', width: '100%', textAlign: 'left', fontFamily: 'inherit' }}
                                 onMouseOver={e => { if (!active) e.currentTarget.style.background = 'var(--bg4)'; }}
                                 onMouseOut={e => { if (!active) e.currentTarget.style.background = 'var(--bg3)'; }}>
                                 <div style={{ width: 36, height: 36, borderRadius: 9, background: `${color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -111,12 +117,13 @@ const Roadmap = () => {
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontSize: 13, fontWeight: 700, color: active ? color : 'var(--t1)', marginBottom: 2 }}>{label}</div>
-                                    <div style={{ fontSize: 11, color: 'var(--t3)' }}>{sub}</div>
+                                    <div style={{ fontSize: 11, color: 'var(--t3)' }}>{pathProblems} problems</div>
                                     <div style={{ fontSize: 10, color: 'var(--t4)', marginTop: 4 }}>≈ {hours}h</div>
                                 </div>
                                 {active && <ChevronRight size={14} style={{ color, marginTop: 4 }} />}
-                            </div>
-                        ))}
+                            </button>
+                            );
+                        })}
                     </div>
 
                     {/* Right: phase roadmap */}
@@ -239,8 +246,8 @@ const Roadmap = () => {
                             </div>
                             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>Resources</div>
                         </div>
-                        <div style={{ fontSize: 28, fontWeight: 900, color: '#8b5cf6', marginBottom: 4 }}>15+</div>
-                        <div style={{ fontSize: 12, color: 'var(--t3)' }}>Platforms + YouTube</div>
+                        <div style={{ fontSize: 28, fontWeight: 900, color: '#8b5cf6', marginBottom: 4 }}>{new Set(phases.flatMap(p => p.topics.flatMap(t => t.resources || []))).size}+</div>
+                        <div style={{ fontSize: 12, color: 'var(--t3)' }}>Unique Resources</div>
                     </div>
 
                     <div style={{ padding: '20px 24px', borderRadius: 12, background: 'linear-gradient(135deg, #3b82f618 0%, #3b82f608 100%)', border: '1px solid #3b82f640' }}>
