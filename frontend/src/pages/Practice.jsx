@@ -22,6 +22,7 @@ import {
   GitFork,
 } from 'lucide-react';
 import { practiceService } from '../api/practiceService';
+import { useAuth } from '../context/AuthContext';
 
 const iconMap = {
   array: Binary,
@@ -60,6 +61,7 @@ const itemVars = {
 };
 
 const Practice = () => {
+  const { refreshProfile } = useAuth();
   const [topics, setTopics] = React.useState([]);
   const [problems, setProblems] = React.useState([]);
   const [completedIds, setCompletedIds] = React.useState(new Set());
@@ -163,7 +165,7 @@ const Practice = () => {
   const toggleCompleted = async (problemId, completed) => {
     setSavingId(problemId);
     try {
-      await practiceService.updateProgress(problemId, completed);
+      const response = await practiceService.updateProgress(problemId, completed);
       setError('');
       setCompletedIds((prev) => {
         const next = new Set(prev);
@@ -174,12 +176,22 @@ const Practice = () => {
         }
         return next;
       });
+      if (typeof response.completedCount === 'number') {
+        setSolvedCountIfPresent(response.completedCount);
+      }
+      await refreshProfile();
     } catch (err) {
       console.error('Failed to update practice progress', err);
       setError('Could not save your progress. Please try again.');
     } finally {
       setSavingId(null);
     }
+  };
+
+  const setSolvedCountIfPresent = (completedCount) => {
+    window.dispatchEvent(new CustomEvent('practiceProgressUpdated', {
+      detail: { completedCount },
+    }));
   };
 
   const focusRecommendedProblems = (topicSlug) => {

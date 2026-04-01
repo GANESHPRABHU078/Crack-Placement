@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../api/authService';
+import { profileService } from '../api/profileService';
 
 const AuthContext = createContext();
 
@@ -30,8 +31,25 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const refreshProfile = async () => {
+    const profile = await profileService.getProfile();
+    localStorage.setItem('user', JSON.stringify(profile));
+    setUser(profile);
+    return profile;
+  };
+
+  const updateUser = (updater) => {
+    setUser((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      if (next) {
+        localStorage.setItem('user', JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshProfile, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

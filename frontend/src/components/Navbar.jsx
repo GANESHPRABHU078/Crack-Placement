@@ -6,6 +6,12 @@ import { useNavigate } from 'react-router-dom';
 const Navbar = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const navItems = [
+    { label: 'Explore', path: '/dashboard' },
+    { label: 'Practice', path: '/practice' },
+    { label: 'Contests', path: '/contests' },
+    { label: 'Discuss', path: '/community' },
+  ];
 
   if (!user) return null;
 
@@ -19,10 +25,11 @@ const Navbar = () => {
       <div className="tb-sep"></div>
 
       <div className="app-nav">
-        <button className="app-nav-btn on">Explore</button>
-        <button className="app-nav-btn">Practice</button>
-        <button className="app-nav-btn">Contests</button>
-        <button className="app-nav-btn">Discuss</button>
+        {navItems.map((item) => (
+          <button key={item.path} className="app-nav-btn" onClick={() => navigate(item.path)}>
+            {item.label}
+          </button>
+        ))}
       </div>
 
       <div className="tb-right">

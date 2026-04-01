@@ -1,5 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { profileService } from '../api/profileService';
+import { practiceService } from '../api/practiceService';
 import { motion } from 'framer-motion';
 import {
   Zap, CheckCircle2, Target, TrendingUp,
@@ -18,26 +20,50 @@ const itemVars = {
 };
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const [solvedCount, setSolvedCount] = React.useState(0);
+  const [checkInLoading, setCheckInLoading] = React.useState(false);
+  const [checkInMessage, setCheckInMessage] = React.useState('');
 
-  // Sync with LocalStorage for problems solved
   React.useEffect(() => {
-    const updateCount = () => {
-      const saved = localStorage.getItem('placementos_solved_problems');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) setSolvedCount(parsed.length);
-        } catch (e) { }
+    const loadSolvedCount = async () => {
+      try {
+        const progress = await practiceService.getProgress();
+        setSolvedCount(progress.completedCount || 0);
+      } catch (error) {
+        setSolvedCount(user?.problemsSolved || 0);
       }
     };
-    updateCount();
-    window.addEventListener('solvedProblemsUpdated', updateCount);
-    return () => window.removeEventListener('solvedProblemsUpdated', updateCount);
+
+    loadSolvedCount();
+  }, [user?.problemsSolved]);
+
+  React.useEffect(() => {
+    const handleProgressUpdated = (event) => {
+      if (typeof event.detail?.completedCount === 'number') {
+        setSolvedCount(event.detail.completedCount);
+      }
+    };
+
+    window.addEventListener('practiceProgressUpdated', handleProgressUpdated);
+    return () => window.removeEventListener('practiceProgressUpdated', handleProgressUpdated);
   }, []);
 
   if (!user) return null;
+
+  const handleDailyCheckIn = async () => {
+    setCheckInLoading(true);
+    setCheckInMessage('');
+    try {
+      const response = await profileService.dailyCheckIn();
+      await refreshProfile();
+      setCheckInMessage(response.alreadyCheckedIn ? 'Already checked in today.' : 'Daily check-in saved.');
+    } catch (error) {
+      setCheckInMessage('Daily check-in failed. Please try again.');
+    } finally {
+      setCheckInLoading(false);
+    }
+  };
 
   const stats = [
     { cls: 'c', Icon: Zap, val: user.currentStreak, lbl: 'Day Streak', delta: '+1 today', deltaUp: true },
@@ -57,31 +83,27 @@ const Dashboard = () => {
 
   return (
     <div className="app-page on" style={{ position: 'relative', overflow: 'hidden', padding: '28px 28px 40px' }}>
-
-      {/* ambient bg orbs */}
       <div style={{ position: 'fixed', top: 60, left: 220, width: 400, height: 400, background: 'radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'fixed', bottom: 100, right: 80, width: 300, height: 300, background: 'radial-gradient(circle, rgba(168,85,247,0.05) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1180 }}>
-
-        {/* header */}
         <div className="section-hdr mb32">
           <div>
             <p style={{ fontSize: 12, color: 'var(--orange)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
-              🔥 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
             <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1.2 }}>
               Welcome back, <span style={{ color: 'var(--orange)' }}>{user.firstName}</span>!
             </h1>
-            <p style={{ fontSize: 13, color: 'var(--t2)', marginTop: 5 }}>You're on a roll — keep the streak alive.</p>
+            <p style={{ fontSize: 13, color: 'var(--t2)', marginTop: 5 }}>Keep your streak alive and your solved count moving.</p>
+            {checkInMessage && <p style={{ fontSize: 12, color: 'var(--orange)', marginTop: 8 }}>{checkInMessage}</p>}
           </div>
-          <button className="btn btn-primary">
+          <button className="btn btn-primary" onClick={handleDailyCheckIn} disabled={checkInLoading}>
             <Calendar size={14} />
-            <span>Daily Check-in</span>
+            <span>{checkInLoading ? 'Checking In...' : 'Daily Check-in'}</span>
           </button>
         </div>
 
-        {/* stat cards */}
         <motion.div variants={containerVars} initial="hidden" animate="show" className="g4 mb28">
           {stats.map(({ cls, Icon, val, lbl, delta, deltaUp }) => (
             <motion.div key={cls} variants={itemVars} className={`stat-card ${cls}`}>
@@ -93,10 +115,7 @@ const Dashboard = () => {
           ))}
         </motion.div>
 
-        {/* main grid */}
         <motion.div variants={containerVars} initial="hidden" animate="show" className="g7030">
-
-          {/* left: progress + chart */}
           <motion.div variants={itemVars} className="card">
             <div className="card-hdr">
               <div>
@@ -122,11 +141,10 @@ const Dashboard = () => {
               </div>
             ))}
 
-            {/* weekly bar chart */}
             <div style={{ borderTop: '1px solid var(--b1)', paddingTop: 24, marginTop: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <div className="card-title">Weekly Activity</div>
-                <span style={{ fontSize: 11, color: 'var(--t3)' }}>7 problems this week</span>
+                <span style={{ fontSize: 11, color: 'var(--t3)' }}>{solvedCount} problems completed</span>
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 80 }}>
                 {weekData.map((h, i) => (
@@ -141,10 +159,7 @@ const Dashboard = () => {
             </div>
           </motion.div>
 
-          {/* right col */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-            {/* today's focus */}
             <motion.div variants={itemVars} className="card">
               <div className="card-hdr">
                 <div className="card-title">Today's Focus</div>
@@ -167,7 +182,6 @@ const Dashboard = () => {
               <button className="btn btn-ghost fw mt8 btn-sm" style={{ width: '100%', justifyContent: 'center', marginTop: 12 }}>View Roadmap <ChevronRight size={12} /></button>
             </motion.div>
 
-            {/* recent activity */}
             <motion.div variants={itemVars} className="card">
               <div className="card-hdr">
                 <div className="card-title">Recent Activity</div>
