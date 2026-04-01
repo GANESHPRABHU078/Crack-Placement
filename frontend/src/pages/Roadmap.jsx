@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Circle, Lock, ChevronRight, Code2, Cpu, Database, Shield, BarChart2, Globe, Clock, BookOpen, Target, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const phases = [
     {
@@ -55,6 +56,30 @@ const paths = [
 
 const Roadmap = () => {
     const [activePhase, setActivePhase] = useState(1);
+    const navigate = useNavigate();
+
+    const handleDownloadPDF = () => {
+        const element = document.querySelector('.app-page.on');
+        const opt = {
+            margin: 10,
+            filename: 'DSA-Roadmap.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+        };
+        if (element) {
+            console.log('PDF download prepared. Implement html2pdf library if needed.');
+            alert('📥 PDF download feature coming soon! For now, use your browser\'s print function (Ctrl+P) and save as PDF.');
+        }
+    };
+
+    const handleContinueLearning = () => {
+        navigate('/practice');
+    };
+
+    const handleTopicClick = (topicTitle) => {
+        navigate('/practice');
+    };
 
     return (
         <div className="app-page on" style={{ padding: '28px 28px 48px' }}>
@@ -64,11 +89,11 @@ const Roadmap = () => {
                 <div className="section-hdr mb28">
                     <div>
                         <h1 className="section-title">DSA Mastery Roadmap</h1>
-                        <p className="section-sub">Complete structured path from fundamentals to advanced algorithms & system design. {phases.reduce((acc, p) => acc + p.hours, 0)}h total • {paths[0].sub} • {Math.round(phases[0].topics.filter(t => t.done).length / phases[0].topics.length * 100)}% progress</p>
+                        <p className="section-sub">Complete structured path from fundamentals to advanced algorithms & system design. {phases.reduce((acc, p) => acc + p.hours, 0)}h total • {phases.reduce((acc, p) => acc + p.topics.reduce((a, t) => a + (t.problems || 0), 0), 0)} problems • {Math.round(phases.reduce((acc, p) => acc + p.topics.filter(t => t.done).length, 0) / phases.reduce((acc, p) => acc + p.topics.length, 0) * 100)}% progress</p>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="btn btn-ghost btn-sm">📊 Download PDF</button>
-                        <button className="btn btn-primary btn-sm">▶ Continue Learning →</button>
+                        <button onClick={handleDownloadPDF} className="btn btn-ghost btn-sm">📊 Download PDF</button>
+                        <button onClick={handleContinueLearning} className="btn btn-primary btn-sm">▶ Continue Learning →</button>
                     </div>
                 </div>
 
@@ -154,7 +179,7 @@ const Roadmap = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <button style={{ padding: '6px 16px', borderRadius: 8, border: `1.5px solid ${topic.done ? phase.color + '40' : 'var(--b2)'}`, background: topic.done ? `${phase.color}15` : 'transparent', color: topic.done ? phase.color : 'var(--t3)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--sans)', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+                                            <button onClick={() => handleTopicClick(topic.title)} style={{ padding: '6px 16px', borderRadius: 8, border: `1.5px solid ${topic.done ? phase.color + '40' : 'var(--b2)'}`, background: topic.done ? `${phase.color}15` : 'transparent', color: topic.done ? phase.color : 'var(--t3)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--sans)', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
                                                 onMouseOver={e => { e.target.style.background = topic.done ? `${phase.color}25` : 'var(--bg5)'; }}
                                                 onMouseOut={e => { e.target.style.background = topic.done ? `${phase.color}15` : 'transparent'; }}>
                                                 {topic.done ? '✓ Done' : 'Start'}
