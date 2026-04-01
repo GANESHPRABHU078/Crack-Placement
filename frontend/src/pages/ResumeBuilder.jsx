@@ -17,6 +17,21 @@ const resumeTemplates = [
     id: 'compact',
     name: 'Compact Edge',
     description: 'Tighter spacing for users who need to fit more content in one page.'
+  },
+  {
+    id: 'executive',
+    name: 'Executive',
+    description: 'Premium look with centered alignment for seasoned professionals.'
+  },
+  {
+    id: 'minimal',
+    name: 'Minimal',
+    description: 'Subtle and clean with minimalist design and soft colors.'
+  },
+  {
+    id: 'bold',
+    name: 'Bold Modern',
+    description: 'Strong visual hierarchy with color accents and modern fonts.'
   }
 ];
 
@@ -199,6 +214,30 @@ const ResumeBuilder = () => {
       headingBorder: '1px solid #374151',
       headingLetterSpacing: '0.03em',
       sectionGap: '10px'
+    },
+    executive: {
+      container: { padding: '22mm 20mm', fontFamily: '"Garamond", "Georgia", serif', lineHeight: '1.4', background: '#fafaf8' },
+      headerAlign: 'center',
+      headingColor: '#1a1a1a',
+      headingBorder: '3px solid #2c3e50',
+      headingLetterSpacing: '0.08em',
+      sectionGap: '18px'
+    },
+    minimal: {
+      container: { padding: '16mm 18mm', fontFamily: '"Segoe UI", "Trebuchet MS", sans-serif', lineHeight: '1.3' },
+      headerAlign: 'left',
+      headingColor: '#5a5a5a',
+      headingBorder: '1px solid #d0d0d0',
+      headingLetterSpacing: '0.02em',
+      sectionGap: '12px'
+    },
+    bold: {
+      container: { padding: '17mm 17mm', fontFamily: '"Arial", "Helvetica", sans-serif', lineHeight: '1.25' },
+      headerAlign: 'left',
+      headingColor: '#1e40af',
+      headingBorder: '3px solid #1e40af',
+      headingLetterSpacing: '0.05em',
+      sectionGap: '14px'
     }
   };
 
@@ -492,24 +531,24 @@ const ResumeBuilder = () => {
           style={{
             width: '210mm',
             minHeight: '297mm',
-            background: '#fff',
+            background: selectedTemplate === 'executive' ? '#fafaf8' : '#fff',
             color: '#000',
             ...previewTheme.container,
             boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
-            borderTop: selectedTemplate === 'modern' ? '6px solid #f97316' : 'none'
+            borderTop: selectedTemplate === 'modern' ? '6px solid #f97316' : selectedTemplate === 'bold' ? '6px solid #1e40af' : selectedTemplate === 'executive' ? '8px solid #2c3e50' : 'none'
           }}
         >
           {/* Header */}
           <div style={{ textAlign: previewTheme.headerAlign, marginBottom: previewTheme.sectionGap }}>
-            <h1 style={{ fontSize: selectedTemplate === 'compact' ? '24px' : '28px', fontWeight: 'bold', margin: '0 0 6px 0', letterSpacing: selectedTemplate === 'modern' ? '0.04em' : '0.02em', color: selectedTemplate === 'modern' ? '#111827' : '#000' }}>{resume.personal.name}</h1>
+            <h1 style={{ fontSize: selectedTemplate === 'compact' ? '24px' : selectedTemplate === 'executive' ? '32px' : '28px', fontWeight: 'bold', margin: '0 0 6px 0', letterSpacing: selectedTemplate === 'modern' ? '0.04em' : '0.02em', color: selectedTemplate === 'modern' ? '#111827' : selectedTemplate === 'bold' ? '#1e40af' : selectedTemplate === 'executive' ? '#2c3e50' : '#000' }}>{resume.personal.name}</h1>
             <div style={{ fontSize: selectedTemplate === 'compact' ? '10px' : '11px', display: 'flex', justifyContent: previewTheme.headerAlign === 'center' ? 'center' : 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
               {resume.personal.phone && <span>{resume.personal.phone}</span>}
               {resume.personal.phone && resume.personal.email && <span>|</span>}
               {resume.personal.email && <span>{resume.personal.email}</span>}
               {resume.personal.linkedin && <span>|</span>}
-              {resume.personal.linkedin && <a href={`https://${resume.personal.linkedin}`} style={{ color: '#000', textDecoration: 'none' }}>{resume.personal.linkedin}</a>}
+              {resume.personal.linkedin && <a href={`https://${resume.personal.linkedin}`} style={{ color: selectedTemplate === 'bold' ? '#1e40af' : '#000', textDecoration: 'none' }}>{resume.personal.linkedin}</a>}
               {resume.personal.github && <span>|</span>}
-              {resume.personal.github && <a href={`https://${resume.personal.github}`} style={{ color: '#000', textDecoration: 'none' }}>{resume.personal.github}</a>}
+              {resume.personal.github && <a href={`https://${resume.personal.github}`} style={{ color: selectedTemplate === 'bold' ? '#1e40af' : '#000', textDecoration: 'none' }}>{resume.personal.github}</a>}
             </div>
           </div>
 
