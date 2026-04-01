@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Save, Printer, Plus, Trash2, ChevronDown, ChevronUp, Activity, CheckCircle, AlertTriangle, Download } from 'lucide-react';
+import { Save, Printer, Plus, Trash2, ChevronDown, ChevronUp, Activity, CheckCircle, AlertTriangle, Download, Camera } from 'lucide-react';
 import { downloadResumePdf } from '../utils/resumePdf';
 
 const resumeTemplates = [
@@ -45,7 +45,7 @@ const ResumeBuilder = () => {
   const resumePreviewRef = useRef(null);
 
   const [resume, setResume] = useState({
-    personal: { name: 'Arjun Kumar', email: 'arjun@college.edu', phone: '+91 98765 43210', linkedin: 'linkedin.com/in/arjunkumar', github: 'github.com/arjuncodes' },
+    personal: { name: 'Arjun Kumar', email: 'arjun@college.edu', phone: '+91 98765 43210', linkedin: 'linkedin.com/in/arjunkumar', github: 'github.com/arjuncodes', photo: null },
     education: [{ school: 'Indian Institute of Technology, Madras', degree: 'Bachelor of Technology in Computer Science', date: 'Aug 2021 - May 2025', location: 'Chennai, TN', gpa: '9.2/10.0' }],
     experience: [{ company: 'Google', role: 'Software Engineering Intern', location: 'Bengaluru, KA', date: 'May 2024 - Aug 2024', desc: '• Engineered a scalable microservices architecture using Spring Boot, reducing API latency by 20%.\n• Collaborated with cross-functional teams to integrate a new Kafka-based messaging queue.\n• Developed and deployed Docker containers to AWS ECS.' }],
     projects: [{ name: 'PlacementOS', tech: 'React, Spring Boot, MySQL', date: 'Jan 2024 - Present', desc: '• Built a comprehensive full-stack platform for placement preparation serving 28,000+ students.\n• Implemented an integrated LeetCode-style code execution engine.\n• Designed an ATS-friendly resume builder and an interactive dashboard track progress.' }],
@@ -72,6 +72,17 @@ const ResumeBuilder = () => {
 
   const toggleSection = (sec) => {
     setActiveSection(activeSection === sec ? '' : sec);
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        handleChange('personal', null, 'photo', event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const calculateAtsScore = () => {
@@ -331,6 +342,31 @@ const ResumeBuilder = () => {
               <div className="field"><label>Phone</label><div class="input-wrap"><input type="text" value={resume.personal.phone} onChange={(e) => handleChange('personal', null, 'phone', e.target.value)} /></div></div>
               <div className="field"><label>LinkedIn</label><div class="input-wrap"><input type="text" value={resume.personal.linkedin} onChange={(e) => handleChange('personal', null, 'linkedin', e.target.value)} /></div></div>
               <div className="field"><label>GitHub</label><div class="input-wrap"><input type="text" value={resume.personal.github} onChange={(e) => handleChange('personal', null, 'github', e.target.value)} /></div></div>
+              <div className="field" style={{ gridColumn: 'span 2' }}>
+                <label>Profile Photo (Optional)</label>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  {resume.personal.photo && (
+                    <div style={{ position: 'relative' }}>
+                      <img src={resume.personal.photo} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--b1)' }} />
+                      <button
+                        type="button"
+                        onClick={() => handleChange('personal', null, 'photo', null)}
+                        style={{ position: 'absolute', top: '-8px', right: '-8px', background: 'var(--red)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: 'var(--bg2)', border: '1px dashed var(--b1)', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: 'var(--t2)' }}>
+                      <Camera size={14} />
+                      {resume.personal.photo ? 'Change Photo' : 'Upload Photo'}
+                      <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+                    </label>
+                    <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '6px' }}>PNG, JPG or GIF • Max 2MB • Shows in Modern & Bold templates</div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -539,18 +575,36 @@ const ResumeBuilder = () => {
           }}
         >
           {/* Header */}
-          <div style={{ textAlign: previewTheme.headerAlign, marginBottom: previewTheme.sectionGap }}>
-            <h1 style={{ fontSize: selectedTemplate === 'compact' ? '24px' : selectedTemplate === 'executive' ? '32px' : '28px', fontWeight: 'bold', margin: '0 0 6px 0', letterSpacing: selectedTemplate === 'modern' ? '0.04em' : '0.02em', color: selectedTemplate === 'modern' ? '#111827' : selectedTemplate === 'bold' ? '#1e40af' : selectedTemplate === 'executive' ? '#2c3e50' : '#000' }}>{resume.personal.name}</h1>
-            <div style={{ fontSize: selectedTemplate === 'compact' ? '10px' : '11px', display: 'flex', justifyContent: previewTheme.headerAlign === 'center' ? 'center' : 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
-              {resume.personal.phone && <span>{resume.personal.phone}</span>}
-              {resume.personal.phone && resume.personal.email && <span>|</span>}
-              {resume.personal.email && <span>{resume.personal.email}</span>}
-              {resume.personal.linkedin && <span>|</span>}
-              {resume.personal.linkedin && <a href={`https://${resume.personal.linkedin}`} style={{ color: selectedTemplate === 'bold' ? '#1e40af' : '#000', textDecoration: 'none' }}>{resume.personal.linkedin}</a>}
-              {resume.personal.github && <span>|</span>}
-              {resume.personal.github && <a href={`https://${resume.personal.github}`} style={{ color: selectedTemplate === 'bold' ? '#1e40af' : '#000', textDecoration: 'none' }}>{resume.personal.github}</a>}
+          {(selectedTemplate === 'modern' || selectedTemplate === 'bold' || selectedTemplate === 'executive') && resume.personal.photo ? (
+            <div style={{ display: 'flex', gap: '16px', marginBottom: previewTheme.sectionGap, alignItems: 'flex-start' }}>
+              <img src={resume.personal.photo} alt="Profile" style={{ width: '100px', height: '100px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0 }} />
+              <div>
+                <h1 style={{ fontSize: selectedTemplate === 'executive' ? '32px' : '28px', fontWeight: 'bold', margin: '0 0 6px 0', letterSpacing: selectedTemplate === 'modern' ? '0.04em' : '0.02em', color: selectedTemplate === 'modern' ? '#111827' : selectedTemplate === 'bold' ? '#1e40af' : selectedTemplate === 'executive' ? '#2c3e50' : '#000' }}>{resume.personal.name}</h1>
+                <div style={{ fontSize: selectedTemplate === 'compact' ? '10px' : '11px', display: 'flex', justifyContent: 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
+                  {resume.personal.phone && <span>{resume.personal.phone}</span>}
+                  {resume.personal.phone && resume.personal.email && <span>|</span>}
+                  {resume.personal.email && <span>{resume.personal.email}</span>}
+                  {resume.personal.linkedin && <span>|</span>}
+                  {resume.personal.linkedin && <a href={`https://${resume.personal.linkedin}`} style={{ color: selectedTemplate === 'bold' ? '#1e40af' : '#000', textDecoration: 'none' }}>{resume.personal.linkedin}</a>}
+                  {resume.personal.github && <span>|</span>}
+                  {resume.personal.github && <a href={`https://${resume.personal.github}`} style={{ color: selectedTemplate === 'bold' ? '#1e40af' : '#000', textDecoration: 'none' }}>{resume.personal.github}</a>}
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div style={{ textAlign: previewTheme.headerAlign, marginBottom: previewTheme.sectionGap }}>
+              <h1 style={{ fontSize: selectedTemplate === 'compact' ? '24px' : selectedTemplate === 'executive' ? '32px' : '28px', fontWeight: 'bold', margin: '0 0 6px 0', letterSpacing: selectedTemplate === 'modern' ? '0.04em' : '0.02em', color: selectedTemplate === 'modern' ? '#111827' : selectedTemplate === 'bold' ? '#1e40af' : selectedTemplate === 'executive' ? '#2c3e50' : '#000' }}>{resume.personal.name}</h1>
+              <div style={{ fontSize: selectedTemplate === 'compact' ? '10px' : '11px', display: 'flex', justifyContent: previewTheme.headerAlign === 'center' ? 'center' : 'flex-start', gap: '8px', flexWrap: 'wrap' }}>
+                {resume.personal.phone && <span>{resume.personal.phone}</span>}
+                {resume.personal.phone && resume.personal.email && <span>|</span>}
+                {resume.personal.email && <span>{resume.personal.email}</span>}
+                {resume.personal.linkedin && <span>|</span>}
+                {resume.personal.linkedin && <a href={`https://${resume.personal.linkedin}`} style={{ color: selectedTemplate === 'bold' ? '#1e40af' : '#000', textDecoration: 'none' }}>{resume.personal.linkedin}</a>}
+                {resume.personal.github && <span>|</span>}
+                {resume.personal.github && <a href={`https://${resume.personal.github}`} style={{ color: selectedTemplate === 'bold' ? '#1e40af' : '#000', textDecoration: 'none' }}>{resume.personal.github}</a>}
+              </div>
+            </div>
+          )}
 
           {/* Education */}
           {resume.education.length > 0 && (

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User as UserIcon, CheckCircle2, Globe } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, CheckCircle2, Globe, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -121,9 +122,36 @@ const Login = () => {
 
             <div className="field">
               <label>Password</label>
-              <div className="input-wrap">
+              <div className="input-wrap" style={{ position: 'relative' }}>
                 <span className="input-ico"><Lock size={14} /></span>
-                <input type="password" id="password" placeholder="••••••••" onChange={handleChange} required />
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  id="password" 
+                  placeholder="••••••••" 
+                  onChange={handleChange} 
+                  required 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--t3)',
+                    padding: '4px'
+                  }}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 
@@ -141,10 +169,17 @@ const Login = () => {
                     <label>Branch</label>
                     <div className="input-wrap">
                       <select id="branch" onChange={handleChange} style={{ paddingLeft: '38px' }}>
-                        <option value="">Select</option>
+                        <option value="">Select Branch</option>
                         <option value="CSE">CSE</option>
                         <option value="IT">IT</option>
                         <option value="ECE">ECE</option>
+                        <option value="EEE">EEE</option>
+                        <option value="ME">ME</option>
+                        <option value="CE">CE</option>
+                        <option value="BE">BE</option>
+                        <option value="BT">BT</option>
+                        <option value="AI/ML">AI/ML</option>
+                        <option value="Data Science">Data Science</option>
                       </select>
                     </div>
                   </div>
@@ -152,10 +187,14 @@ const Login = () => {
                     <label>Grad Year</label>
                     <div className="input-wrap">
                       <select id="gradYear" onChange={handleChange} style={{ paddingLeft: '38px' }}>
-                        <option value="">Year</option>
+                        <option value="">Select Year</option>
+                        <option value="2024">2024</option>
                         <option value="2025">2025</option>
                         <option value="2026">2026</option>
                         <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
                       </select>
                     </div>
                   </div>
