@@ -14,16 +14,30 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  const syncProfileAfterAuth = async (fallbackUser) => {
+    try {
+      await profileService.dailyCheckIn();
+    } catch (error) {
+      // If the user already checked in today, we still want the latest profile state.
+    }
+
+    try {
+      return await refreshProfile();
+    } catch (error) {
+      return fallbackUser;
+    }
+  };
+
   const login = async (credentials) => {
     const data = await authService.login(credentials);
     setUser(data);
-    return data;
+    return syncProfileAfterAuth(data);
   };
 
   const register = async (userData) => {
     const data = await authService.register(userData);
     setUser(data);
-    return data;
+    return syncProfileAfterAuth(data);
   };
 
   const logout = () => {

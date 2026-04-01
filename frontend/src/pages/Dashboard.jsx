@@ -1,11 +1,10 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { profileService } from '../api/profileService';
 import { practiceService } from '../api/practiceService';
 import { motion } from 'framer-motion';
 import {
   Zap, CheckCircle2, Target, TrendingUp,
-  Calendar, Clock, ArrowUpRight, Code2,
+  Clock, ArrowUpRight, Code2,
   BookOpen, Cpu, ChevronRight
 } from 'lucide-react';
 
@@ -20,10 +19,8 @@ const itemVars = {
 };
 
 const Dashboard = () => {
-  const { user, refreshProfile } = useAuth();
+  const { user } = useAuth();
   const [solvedCount, setSolvedCount] = React.useState(0);
-  const [checkInLoading, setCheckInLoading] = React.useState(false);
-  const [checkInMessage, setCheckInMessage] = React.useState('');
 
   React.useEffect(() => {
     const loadSolvedCount = async () => {
@@ -50,20 +47,6 @@ const Dashboard = () => {
   }, []);
 
   if (!user) return null;
-
-  const handleDailyCheckIn = async () => {
-    setCheckInLoading(true);
-    setCheckInMessage('');
-    try {
-      const response = await profileService.dailyCheckIn();
-      await refreshProfile();
-      setCheckInMessage(response.alreadyCheckedIn ? 'Already checked in today.' : 'Daily check-in saved.');
-    } catch (error) {
-      setCheckInMessage('Daily check-in failed. Please try again.');
-    } finally {
-      setCheckInLoading(false);
-    }
-  };
 
   const stats = [
     { cls: 'c', Icon: Zap, val: user.currentStreak, lbl: 'Day Streak', delta: '+1 today', deltaUp: true },
@@ -96,12 +79,10 @@ const Dashboard = () => {
               Welcome back, <span style={{ color: 'var(--orange)' }}>{user.firstName}</span>!
             </h1>
             <p style={{ fontSize: 13, color: 'var(--t2)', marginTop: 5 }}>Keep your streak alive and your solved count moving.</p>
-            {checkInMessage && <p style={{ fontSize: 12, color: 'var(--orange)', marginTop: 8 }}>{checkInMessage}</p>}
+            <p style={{ fontSize: 12, color: 'var(--orange)', marginTop: 8 }}>
+              Daily check-in now happens automatically when you log in.
+            </p>
           </div>
-          <button className="btn btn-primary" onClick={handleDailyCheckIn} disabled={checkInLoading}>
-            <Calendar size={14} />
-            <span>{checkInLoading ? 'Checking In...' : 'Daily Check-in'}</span>
-          </button>
         </div>
 
         <motion.div variants={containerVars} initial="hidden" animate="show" className="g4 mb28">
