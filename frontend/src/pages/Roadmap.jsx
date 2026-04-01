@@ -1,406 +1,422 @@
 import React from 'react';
 import {
+  ArrowRight,
+  BookOpen,
   CheckCircle2,
   Circle,
-  ChevronRight,
+  Clock3,
   Code2,
   Cpu,
-  Database,
-  Shield,
-  BarChart2,
+  ExternalLink,
   Globe,
-  Clock,
-  BookOpen,
+  Layers3,
+  Lightbulb,
+  Sparkles,
   Target,
-  Zap,
-  Check
+  TrendingUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { roadmapService } from '../api/roadmapService';
 
-const basePhases = [
-  {
-    id: 1,
-    label: 'Fundamentals',
-    color: '#10b981',
-    hours: 40,
-    topics: [
-      { id: 'programming-basics', title: 'Programming Basics', sub: 'Variables, loops, functions, OOP concepts', problems: 25, difficulty: 'Easy', resources: ['GeeksforGeeks', 'YouTube'] },
-      { id: 'complexity-analysis', title: 'Complexity Analysis', sub: 'Big-O notation, time and space complexity calculations', problems: 15, difficulty: 'Easy', resources: ['Wikipedia', 'GeeksforGeeks'] },
-      { id: 'arrays-strings', title: 'Arrays & Strings', sub: 'Two pointers, sliding window, prefix sums, hashing', problems: 45, difficulty: 'Easy-Medium', resources: ['LeetCode', 'HackerRank'] },
-      { id: 'linked-lists', title: 'Linked Lists', sub: 'Singly and doubly linked lists, cycle detection, list manipulation', problems: 30, difficulty: 'Easy-Medium', resources: ['LeetCode', 'InterviewBit'] },
-      { id: 'recursion-backtracking', title: 'Recursion & Backtracking', sub: 'Base cases, recursion tree, pruning', problems: 25, difficulty: 'Medium', resources: ['CP Algorithms', 'YouTube'] }
-    ]
-  },
-  {
-    id: 2,
-    label: 'Core Data Structures',
-    color: '#f59e0b',
-    hours: 50,
-    topics: [
-      { id: 'stacks-queues', title: 'Stacks & Queues', sub: 'Monotonic stacks, deque, circular queue applications', problems: 35, difficulty: 'Medium', resources: ['GeeksforGeeks', 'LeetCode'] },
-      { id: 'trees-bsts', title: 'Trees & BSTs', sub: 'Traversals, height, LCA, path problems', problems: 50, difficulty: 'Medium', resources: ['AlgoExpert', 'LeetCode'] },
-      { id: 'heaps-priority-queues', title: 'Heaps & Priority Queues', sub: 'Min and max heap, heap sort, K-th largest and smallest', problems: 25, difficulty: 'Medium', resources: ['LeetCode', 'Visualgo'] },
-      { id: 'graphs-basics', title: 'Graphs Basics', sub: 'Adjacency lists, BFS, DFS, connected components', problems: 40, difficulty: 'Medium', resources: ['CP Algorithms', 'CodeChef'] },
-      { id: 'hash-tables', title: 'Hash Tables', sub: 'Hash functions, collision handling, custom hashing', problems: 30, difficulty: 'Medium', resources: ['LeetCode', 'GeeksforGeeks'] }
-    ]
-  },
-  {
-    id: 3,
-    label: 'Advanced Algorithms',
-    color: '#8b5cf6',
-    hours: 60,
-    topics: [
-      { id: 'dynamic-programming', title: 'Dynamic Programming', sub: 'Knapsack, LCS, LIS, coin change, house robber', problems: 60, difficulty: 'Hard', resources: ['DP Playlist', 'CP Algorithms'] },
-      { id: 'graph-algorithms', title: 'Graph Algorithms', sub: 'Dijkstra, Bellman-Ford, Floyd-Warshall, MST, topological sort', problems: 45, difficulty: 'Hard', resources: ['Codeforces', 'LeetCode'] },
-      { id: 'greedy-algorithms', title: 'Greedy Algorithms', sub: 'Activity selection, interval scheduling, Huffman coding', problems: 25, difficulty: 'Medium-Hard', resources: ['InterviewBit', 'YouTube'] },
-      { id: 'divide-conquer', title: 'Divide & Conquer', sub: 'Merge sort, quick sort, binary search, median of arrays', problems: 30, difficulty: 'Medium', resources: ['LeetCode', 'HackerRank'] },
-      { id: 'advanced-trees', title: 'Advanced Trees', sub: 'Segment trees, Fenwick trees, trie, suffix arrays', problems: 35, difficulty: 'Hard', resources: ['CF Academy', 'CP Algorithms'] }
-    ]
-  },
-  {
-    id: 4,
-    label: 'Interview Preparation',
-    color: '#3b82f6',
-    hours: 45,
-    topics: [
-      { id: 'company-specific-dsa', title: 'Company-Specific DSA', sub: 'Latest Google, Amazon, Microsoft, and product company patterns', problems: 80, difficulty: 'Hard', resources: ['LeetCode Premium', 'InterviewBit'] },
-      { id: 'system-design-basics', title: 'System Design Basics', sub: 'Scalability, load balancing, caching, databases', problems: 20, difficulty: 'Expert', resources: ['System Design Interview', 'Grokking'] },
-      { id: 'os-dbms', title: 'OS & DBMS', sub: 'Threads, locks, SQL optimization, indexing strategies', problems: 40, difficulty: 'Medium-Hard', resources: ['Jenny Lectures', 'GeeksforGeeks'] },
-      { id: 'behavioral-resume', title: 'Behavioral & Resume', sub: 'STAR method, conflict resolution, resume optimization', problems: 15, difficulty: 'Easy', resources: ['AlgoExpert', 'YouTube'] },
-      { id: 'mock-interviews', title: 'Mock Interviews', sub: 'Mock sessions with feedback and timed practice', problems: 0, difficulty: 'Expert', resources: ['Pramp', 'Interviewing.io'] }
-    ]
-  }
-];
+const iconMap = {
+  code: Code2,
+  cpu: Cpu,
+  layers: Layers3,
+  globe: Globe
+};
 
-const basePaths = [
-  { icon: Code2, label: 'SDE Path', color: '#f59e0b', hours: 200, focus: 'Best for coding interviews and product companies.' },
-  { icon: Cpu, label: 'ML Engineer', color: '#8b5cf6', hours: 150, focus: 'Good for data structures plus ML project depth.' },
-  { icon: Database, label: 'Backend Dev', color: '#3b82f6', hours: 180, focus: 'Prioritize APIs, SQL, and system design basics.' },
-  { icon: Shield, label: 'Security Eng', color: '#10b981', hours: 140, focus: 'Add networks, OS, and security fundamentals.' },
-  { icon: BarChart2, label: 'Data Analyst', color: '#ef4444', hours: 160, focus: 'Keep SQL, stats, and communication strong.' },
-  { icon: Globe, label: 'Full Stack', color: '#ec4899', hours: 190, focus: 'Balance frontend, backend, and interview rounds.' }
-];
-
-const getStorageKey = (email) => `roadmap_progress_${email || 'guest'}`;
+const badgeStyle = {
+  Easy: { bg: '#16a34a20', fg: '#22c55e' },
+  Medium: { bg: '#f59e0b20', fg: '#f59e0b' },
+  Hard: { bg: '#ef444420', fg: '#ef4444' }
+};
 
 const Roadmap = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const roadmapRef = React.useRef(null);
-
-  const [activePhase, setActivePhase] = React.useState(1);
-  const [activePath, setActivePath] = React.useState('SDE Path');
-  const [progressMap, setProgressMap] = React.useState({});
-  const [statusMessage, setStatusMessage] = React.useState('');
+  const [roadmaps, setRoadmaps] = React.useState([]);
+  const [activeId, setActiveId] = React.useState('');
+  const [trackId, setTrackId] = React.useState('');
+  const [progress, setProgress] = React.useState({});
+  const [message, setMessage] = React.useState('');
+  const [loadingRoadmaps, setLoadingRoadmaps] = React.useState(true);
+  const [loadingProgress, setLoadingProgress] = React.useState(true);
 
   React.useEffect(() => {
-    const saved = localStorage.getItem(getStorageKey(user?.email));
-    if (saved) {
+    let cancelled = false;
+
+    const loadRoadmaps = async () => {
+      setLoadingRoadmaps(true);
       try {
-        setProgressMap(JSON.parse(saved));
-        return;
+        const data = await roadmapService.getRoadmaps();
+        if (cancelled) return;
+        setRoadmaps(Array.isArray(data) ? data : []);
       } catch (error) {
-        // Ignore broken saved state and reset below.
+        if (!cancelled) {
+          setMessage('Could not load roadmap content from the server right now.');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingRoadmaps(false);
+        }
       }
-    }
-    setProgressMap({});
-  }, [user?.email]);
+    };
+
+    loadRoadmaps();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   React.useEffect(() => {
-    localStorage.setItem(getStorageKey(user?.email), JSON.stringify(progressMap));
-  }, [progressMap, user?.email]);
+    if (!roadmaps.length) return;
+    if (!activeId || !roadmaps.some((item) => item.id === activeId)) {
+      setActiveId(roadmaps[0].id);
+    }
+  }, [roadmaps, activeId]);
 
-  const getTopicStatus = (topicId) => progressMap[topicId]?.status || 'not_started';
-  const isTopicDone = (topicId) => getTopicStatus(topicId) === 'completed';
+  const active = roadmaps.find((item) => item.id === activeId) || roadmaps[0] || null;
 
-  const totalTopics = basePhases.reduce((acc, phase) => acc + phase.topics.length, 0);
-  const completedTopics = basePhases.reduce(
-    (acc, phase) => acc + phase.topics.filter((topic) => isTopicDone(topic.id)).length,
-    0
-  );
-  const overallProgress = totalTopics ? Math.round((completedTopics / totalTopics) * 100) : 0;
-  const totalProblems = basePhases.reduce((acc, phase) => acc + phase.topics.reduce((sum, topic) => sum + (topic.problems || 0), 0), 0);
-
-  const getTopicRoute = (topicTitle) => {
-    if (topicTitle === 'Behavioral & Resume') return '/resume-builder';
-    if (topicTitle === 'Mock Interviews') return '/mock-interviews';
-    if (topicTitle === 'System Design Basics') return '/mock-interviews';
-    return '/practice';
-  };
-
-  const handleDownloadPDF = () => {
-    const roadmapHtml = roadmapRef.current?.outerHTML;
-    if (!roadmapHtml) return;
-
-    const printWindow = window.open('', '_blank', 'width=1100,height=1400');
-    if (!printWindow) {
-      setStatusMessage('Please allow popups to print or save the roadmap.');
+  React.useEffect(() => {
+    if (!active?.tracks?.length) {
+      setTrackId('');
       return;
     }
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Placement Roadmap</title>
-          <style>
-            body { margin: 0; padding: 24px; background: #ffffff; color: #111827; font-family: Arial, sans-serif; }
-            button { display: none !important; }
-          </style>
-        </head>
-        <body>${roadmapHtml}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    setStatusMessage('Opened a printable roadmap view for PDF download.');
-  };
-
-  const handleContinueLearning = () => {
-    const nextTopic = basePhases
-      .flatMap((phase) => phase.topics)
-      .find((topic) => getTopicStatus(topic.id) !== 'completed');
-
-    navigate(getTopicRoute(nextTopic?.title || 'Programming Basics'));
-  };
-
-  const handleTopicClick = (topic) => {
-    navigate(getTopicRoute(topic.title));
-  };
-
-  const handlePathClick = (pathLabel) => {
-    setActivePath(pathLabel);
-    setStatusMessage(`${pathLabel} selected as your roadmap focus.`);
-  };
-
-  const handleStartTopic = (topic) => {
-    const status = getTopicStatus(topic.id);
-    if (status === 'not_started') {
-      setProgressMap((prev) => ({
-        ...prev,
-        [topic.id]: {
-          status: 'in_progress',
-          startedAt: new Date().toISOString()
-        }
-      }));
-      setStatusMessage(`${topic.title} marked as in progress.`);
+    if (!trackId || !active.tracks.some((item) => item.id === trackId)) {
+      setTrackId(active.tracks[0].id);
     }
+  }, [active, trackId]);
 
-    navigate(getTopicRoute(topic.title));
-  };
+  React.useEffect(() => {
+    let cancelled = false;
 
-  const handleCompleteTopic = (topic) => {
-    setProgressMap((prev) => ({
-      ...prev,
-      [topic.id]: {
-        ...prev[topic.id],
-        status: 'completed',
-        completedAt: new Date().toISOString()
+    const loadProgress = async () => {
+      if (!user) {
+        setProgress({});
+        setLoadingProgress(false);
+        return;
       }
-    }));
-    setStatusMessage(`${topic.title} marked as completed.`);
+
+      setLoadingProgress(true);
+      try {
+        const data = await roadmapService.getProgress();
+        if (cancelled) return;
+        const nextProgress = (data.progressEntries || []).reduce((acc, entry) => {
+          acc[entry.topicId] = entry;
+          return acc;
+        }, {});
+        setProgress(nextProgress);
+      } catch (error) {
+        if (!cancelled) {
+          setMessage('Could not load roadmap progress from the server right now.');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingProgress(false);
+        }
+      }
+    };
+
+    loadProgress();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.email]);
+
+  const statusOf = (topicId) => progress[topicId]?.status || 'not_started';
+
+  const saveStatus = async (roadmap, levelLabel, topic, status) => {
+    const previous = progress[topic.id];
+    const optimisticEntry = {
+      ...previous,
+      roadmapId: roadmap.id,
+      roadmapTitle: roadmap.title,
+      levelLabel,
+      topicId: topic.id,
+      topicTitle: topic.title,
+      status,
+      startedAt: previous?.startedAt || new Date().toISOString(),
+      completedAt: status === 'completed' ? new Date().toISOString() : null,
+      updatedAt: new Date().toISOString()
+    };
+
+    setProgress((prev) => ({ ...prev, [topic.id]: optimisticEntry }));
+
+    try {
+      const data = await roadmapService.updateProgress({
+        roadmapId: roadmap.id,
+        roadmapTitle: roadmap.title,
+        levelLabel,
+        topicId: topic.id,
+        topicTitle: topic.title,
+        status
+      });
+      setProgress((prev) => ({ ...prev, [topic.id]: data.entry }));
+    } catch (error) {
+      setProgress((prev) => {
+        const next = { ...prev };
+        if (previous) next[topic.id] = previous;
+        else delete next[topic.id];
+        return next;
+      });
+      throw error;
+    }
   };
+
+  const openResource = (resource) => {
+    if (resource.internal) {
+      navigate(resource.url);
+      return;
+    }
+    window.open(resource.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const startTopic = async (topic, levelLabel) => {
+    if (!active) return;
+    try {
+      if (statusOf(topic.id) === 'not_started') {
+        await saveStatus(active, levelLabel, topic, 'in_progress');
+        setMessage(`${topic.title} added to your active plan.`);
+      }
+      if (topic.route) navigate(topic.route);
+    } catch (error) {
+      setMessage('Could not save roadmap progress. Please try again.');
+    }
+  };
+
+  const toggleComplete = async (topic, levelLabel) => {
+    if (!active) return;
+    const done = statusOf(topic.id) === 'completed';
+    try {
+      await saveStatus(active, levelLabel, topic, done ? 'in_progress' : 'completed');
+      setMessage(done ? `${topic.title} moved back to in progress.` : `${topic.title} marked completed.`);
+    } catch (error) {
+      setMessage('Could not save roadmap progress. Please try again.');
+    }
+  };
+
+  const progressOfRoadmap = (roadmap) => {
+    const topics = roadmap?.levels?.flatMap((level) => level.topics || []) || [];
+    const completed = topics.filter((topic) => statusOf(topic.id) === 'completed').length;
+    const total = topics.length || 1;
+    return { completed, total, percent: Math.round((completed / total) * 100) };
+  };
+
+  const activeTrack = active?.tracks?.find((item) => item.id === trackId) || active?.tracks?.[0] || null;
+  const activeProgress = active ? progressOfRoadmap(active) : { completed: 0, total: 1, percent: 0 };
+  const recommendations = active
+    ? active.levels
+        .flatMap((level) => (level.topics || []).filter((topic) => statusOf(topic.id) !== 'completed').map((topic) => ({ ...topic, level: level.label })))
+        .slice(0, 3)
+    : [];
+  const weakAreas = roadmaps
+    .map((roadmap) => ({ roadmap, stats: progressOfRoadmap(roadmap) }))
+    .sort((a, b) => a.stats.percent - b.stats.percent)
+    .slice(0, 2);
+
+  if (loadingRoadmaps && !roadmaps.length) {
+    return <div className="app-page on" style={{ padding: 28, color: 'var(--t2)' }}>Loading roadmap content...</div>;
+  }
+
+  if (!active) {
+    return <div className="app-page on" style={{ padding: 28, color: 'var(--t2)' }}>No roadmap content available right now.</div>;
+  }
 
   return (
     <div className="app-page on" style={{ padding: '28px 28px 48px' }}>
-      <div style={{ maxWidth: 1100 }} ref={roadmapRef}>
-        <div className="section-hdr mb28">
-          <div>
-            <h1 className="section-title">DSA Mastery Roadmap</h1>
-            <p className="section-sub">
-              Complete structured path from fundamentals to advanced algorithms and interview preparation. {basePhases.reduce((acc, phase) => acc + phase.hours, 0)}h total • {totalProblems} problems • {overallProgress}% progress
-            </p>
-            {statusMessage && <p style={{ fontSize: 12, color: 'var(--orange)', marginTop: 8 }}>{statusMessage}</p>}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={handleDownloadPDF} className="btn btn-ghost btn-sm">Download PDF</button>
-            <button onClick={handleContinueLearning} className="btn btn-primary btn-sm">Continue Learning</button>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 24 }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>Learning Paths</div>
-            {basePaths.map(({ icon: Icon, label, color, hours, focus }) => {
-              const active = activePath === label;
-              return (
-                <button
-                  key={label}
-                  onClick={() => handlePathClick(label)}
-                  style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px', marginBottom: 8, borderRadius: 10, background: active ? `${color}18` : 'var(--bg3)', border: `1px solid ${active ? `${color}40` : 'var(--b1)'}`, cursor: 'pointer', transition: 'all 0.15s', width: '100%', textAlign: 'left', fontFamily: 'inherit' }}
-                >
-                  <div style={{ width: 36, height: 36, borderRadius: 9, background: `${color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon size={16} style={{ color }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: active ? color : 'var(--t1)', marginBottom: 2 }}>{label}</div>
-                    <div style={{ fontSize: 10, color: 'var(--t3)', lineHeight: 1.5 }}>{focus}</div>
-                    <div style={{ fontSize: 10, color: 'var(--t4)', marginTop: 4 }}>≈ {hours}h</div>
-                  </div>
-                  {active && <ChevronRight size={14} style={{ color, marginTop: 4 }} />}
-                </button>
-              );
-            })}
-          </div>
-
-          <div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 24, background: 'var(--bg3)', padding: 4, borderRadius: 12, border: '1px solid var(--b1)' }}>
-              {basePhases.map((phase) => (
-                <button
-                  key={phase.id}
-                  onClick={() => setActivePhase(phase.id)}
-                  style={{ flex: 1, padding: '7px 12px', borderRadius: 9, border: 'none', cursor: 'pointer', fontFamily: 'var(--sans)', fontSize: 12, fontWeight: 600, transition: 'all 0.15s', background: activePhase === phase.id ? 'var(--bg5)' : 'transparent', color: activePhase === phase.id ? 'var(--t1)' : 'var(--t3)', boxShadow: activePhase === phase.id ? '0 1px 6px rgba(0,0,0,0.3)' : 'none' }}
-                >
-                  Phase {phase.id} · {phase.label}
-                </button>
-              ))}
+      <div style={{ maxWidth: 1220, margin: '0 auto', display: 'grid', gap: 24 }}>
+        <section style={{ padding: 28, borderRadius: 20, border: '1px solid var(--b1)', background: 'linear-gradient(135deg, rgba(15,23,42,0.98), rgba(30,41,59,0.96))' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ maxWidth: 760 }}>
+              <div style={{ fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--orange)', fontWeight: 800, marginBottom: 10 }}>Placement Preparation Roadmaps</div>
+              <h1 className="section-title" style={{ marginBottom: 10 }}>Structured roadmaps for placements with backend-driven content</h1>
+              <p className="section-sub">Every roadmap card, stage, topic, plan, and resource link on this page now comes from your backend data instead of hardcoded frontend content.</p>
+              {message && <div style={{ marginTop: 12, fontSize: 13, color: 'var(--t2)' }}>{message}</div>}
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(150px, 1fr))', gap: 12, minWidth: 320 }}>
+              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.28)' }}>
+                <div style={{ fontSize: 12, color: 'var(--t3)' }}>Active roadmap</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', marginTop: 6 }}>{active.title}</div>
+                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 4 }}>{active.duration}</div>
+              </div>
+              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.28)' }}>
+                <div style={{ fontSize: 12, color: 'var(--t3)' }}>Progress</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', marginTop: 6 }}>{activeProgress.percent}%</div>
+                <div style={{ fontSize: 12, color: 'var(--t3)', marginTop: 4 }}>{activeProgress.completed}/{activeProgress.total} topics done</div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            {basePhases
-              .filter((phase) => phase.id === activePhase)
-              .map((phase) => {
-                const doneCount = phase.topics.filter((topic) => isTopicDone(topic.id)).length;
-                const phaseProgress = Math.round((doneCount / phase.topics.length) * 100);
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+          {roadmaps.map((roadmap) => {
+            const Icon = iconMap[roadmap.iconName] || Code2;
+            const stats = progressOfRoadmap(roadmap);
+            const selected = active.id === roadmap.id;
+            return (
+              <button key={roadmap.id} type="button" onClick={() => { setActiveId(roadmap.id); setMessage(`${roadmap.title} roadmap selected.`); }} style={{ padding: 20, borderRadius: 18, border: `1px solid ${selected ? `${roadmap.color}55` : 'var(--b1)'}`, background: selected ? `${roadmap.color}12` : 'var(--bg3)', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 14, background: `${roadmap.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={20} style={{ color: roadmap.color }} /></div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: roadmap.color }}>{stats.percent}%</div>
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)', marginBottom: 8 }}>{roadmap.title}</div>
+                <div style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.6, marginBottom: 10 }}>{roadmap.subtitle}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--t3)' }}><span>{roadmap.duration}</span><span>{stats.completed}/{stats.total} topics</span></div>
+              </button>
+            );
+          })}
+        </section>
 
-                return (
-                  <div key={phase.id}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 24 }}>
-                      <div style={{ width: 50, height: 50, borderRadius: 14, background: `${phase.color}20`, border: `2px solid ${phase.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 900, color: phase.color, flexShrink: 0 }}>{phase.id}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>Phase {phase.id}: {phase.label}</div>
-                        <div style={{ fontSize: 13, color: 'var(--t3)', marginBottom: 8 }}>{doneCount}/{phase.topics.length} topics completed</div>
-                        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                          <div style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t2)' }}>
-                            <Clock size={14} style={{ color: phase.color }} />
-                            <span><strong>{phase.hours}h</strong> estimated</span>
-                          </div>
-                          <div style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--t2)' }}>
-                            <Target size={14} style={{ color: phase.color }} />
-                            <span><strong>{phase.topics.reduce((acc, topic) => acc + (topic.problems || 0), 0)}</strong> problems</span>
-                          </div>
-                        </div>
+        <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(320px, 1fr)', gap: 24 }}>
+          <div style={{ display: 'grid', gap: 18 }}>
+            <div style={{ padding: 24, borderRadius: 18, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>
+                <div>
+                  <div style={{ fontSize: 12, color: active.color, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{active.title} roadmap</div>
+                  <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--t1)', margin: 0 }}>{active.subtitle}</h2>
+                </div>
+                <button type="button" onClick={() => navigate(active.primaryRoute)} className="btn btn-primary btn-sm">Open Practice Area</button>
+              </div>
+
+              {active.tracks?.length > 0 && (
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 12, color: 'var(--t3)', marginBottom: 8 }}>Language tracks</div>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    {active.tracks.map((track) => (
+                      <button key={track.id} type="button" onClick={() => setTrackId(track.id)} style={{ padding: '8px 14px', borderRadius: 999, border: `1px solid ${trackId === track.id ? `${active.color}55` : 'var(--b1)'}`, background: trackId === track.id ? `${active.color}18` : 'transparent', color: trackId === track.id ? active.color : 'var(--t2)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{track.label}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gap: 16 }}>
+                {active.levels.map((level, index) => (
+                  <div key={level.id} style={{ padding: 18, borderRadius: 16, background: 'var(--bg4)', border: '1px solid var(--b1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 12, background: `${active.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: active.color, fontWeight: 800 }}>{index + 1}</div>
+                      <div>
+                        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--t1)' }}>{level.label}</div>
+                        <div style={{ fontSize: 13, color: 'var(--t3)' }}>{level.desc}</div>
                       </div>
                     </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      {phase.topics.map((topic) => {
-                        const status = getTopicStatus(topic.id);
-                        const done = status === 'completed';
-                        const inProgress = status === 'in_progress';
-
+                    <div style={{ display: 'grid', gap: 12 }}>
+                      {level.topics.map((topic) => {
+                        const state = statusOf(topic.id);
+                        const done = state === 'completed';
+                        const doing = state === 'in_progress';
+                        const badge = badgeStyle[topic.difficulty] || badgeStyle.Medium;
                         return (
-                          <div key={topic.id} style={{ display: 'flex', gap: 16, padding: '16px 18px', borderRadius: 12, background: 'var(--bg3)', border: `2px solid ${done ? `${phase.color}40` : inProgress ? `${phase.color}25` : 'var(--b1)'}` }}>
-                            <div style={{ marginTop: 2, flexShrink: 0 }}>
-                              {done ? <CheckCircle2 size={22} style={{ color: phase.color }} /> : inProgress ? <Check size={22} style={{ color: phase.color }} /> : <Circle size={22} style={{ color: 'var(--t4)' }} />}
-                            </div>
-                            <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => handleTopicClick(topic)}>
-                              <div style={{ fontSize: 14, fontWeight: 700, color: done || inProgress ? phase.color : 'var(--t1)', marginBottom: 4 }}>{topic.title}</div>
-                              <div style={{ fontSize: 12, color: 'var(--t3)', marginBottom: 8 }}>{topic.sub}</div>
-                              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--t4)', background: 'var(--bg5)', padding: '4px 8px', borderRadius: 6 }}>
-                                  <Target size={12} /> {topic.problems} problems
-                                </div>
-                                <div style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 6, background: topic.difficulty.includes('Hard') || topic.difficulty.includes('Expert') ? '#fca5a580' : topic.difficulty.includes('Medium') ? '#f59e0b80' : '#10b98180', color: topic.difficulty.includes('Hard') || topic.difficulty.includes('Expert') ? '#dc2626' : topic.difficulty.includes('Medium') ? '#d97706' : '#059669' }}>
-                                  {topic.difficulty}
-                                </div>
-                                {topic.resources?.length > 0 && (
-                                  <div style={{ fontSize: 10, color: 'var(--t4)' }}>
-                                    <BookOpen size={12} style={{ display: 'inline', marginRight: 4 }} />
-                                    {topic.resources.slice(0, 2).join(', ')}
+                          <div key={topic.id} style={{ padding: 16, borderRadius: 14, border: `1px solid ${done ? `${active.color}55` : doing ? `${active.color}30` : 'var(--b1)'}`, background: done ? `${active.color}10` : 'rgba(255,255,255,0.02)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
+                                <div style={{ marginTop: 2 }}>{done ? <CheckCircle2 size={20} style={{ color: active.color }} /> : <Circle size={20} style={{ color: doing ? active.color : 'var(--t4)' }} />}</div>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 6 }}>
+                                    <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--t1)' }}>{topic.title}</div>
+                                    <span style={{ padding: '4px 10px', borderRadius: 999, background: badge.bg, color: badge.fg, fontSize: 11, fontWeight: 800 }}>{topic.difficulty}</span>
                                   </div>
-                                )}
+                                  <div style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.6, marginBottom: 12 }}>{topic.summary}</div>
+                                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                    {topic.resources.map((resource) => (
+                                      <button key={resource.label} type="button" onClick={() => openResource(resource)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 11px', borderRadius: 10, border: '1px solid var(--b1)', background: 'var(--bg5)', color: 'var(--t2)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>
+                                        <ExternalLink size={12} />
+                                        {resource.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end', justifyContent: 'center' }}>
-                              <button
-                                type="button"
-                                onClick={() => handleStartTopic(topic)}
-                                style={{ padding: '6px 16px', borderRadius: 8, border: `1.5px solid ${done || inProgress ? `${phase.color}40` : 'var(--b2)'}`, background: done || inProgress ? `${phase.color}15` : 'transparent', color: done ? phase.color : inProgress ? phase.color : 'var(--t3)', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--sans)', whiteSpace: 'nowrap' }}
-                              >
-                                {done ? 'Review' : inProgress ? 'Continue' : 'Start'}
-                              </button>
-                              {!done && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleCompleteTopic(topic)}
-                                  style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${phase.color}30`, background: `${phase.color}12`, color: phase.color, fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--sans)' }}
-                                >
-                                  Mark Done
-                                </button>
-                              )}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <button type="button" onClick={() => startTopic(topic, level.label)} className="btn btn-ghost btn-sm">{done ? 'Review' : doing ? 'Continue' : 'Start'}</button>
+                                <button type="button" onClick={() => toggleComplete(topic, level.label)} style={{ padding: '8px 12px', borderRadius: 10, border: `1px solid ${active.color}35`, background: `${active.color}12`, color: active.color, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{done ? 'Undo Complete' : 'Mark Complete'}</button>
+                              </div>
                             </div>
                           </div>
                         );
                       })}
                     </div>
-
-                    <div style={{ marginTop: 28, padding: '18px 20px', borderRadius: 12, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <div>
-                          <div style={{ fontSize: 12, color: 'var(--t2)', marginBottom: 2 }}>Phase Progress</div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: phase.color }}>{phaseProgress}%</div>
-                        </div>
-                        <div style={{ textAlign: 'right', fontSize: 11, color: 'var(--t3)' }}>
-                          {doneCount} of {phase.topics.length} topics
-                        </div>
-                      </div>
-                      <div style={{ background: 'var(--bg5)', borderRadius: 99, height: 7, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', borderRadius: 99, background: phase.color, width: `${phaseProgress}%`, transition: 'width 0.5s ease', boxShadow: `0 0 12px ${phase.color}60` }} />
-                      </div>
-                    </div>
                   </div>
-                );
-              })}
-          </div>
-        </div>
-
-        <div style={{ marginTop: 48, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          <div style={{ padding: '20px 24px', borderRadius: 12, background: 'linear-gradient(135deg, #10b98118 0%, #10b98108 100%)', border: '1px solid #10b98140' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#10b98125', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Zap size={18} style={{ color: '#10b981' }} />
+                ))}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>Total Duration</div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#10b981', marginBottom: 4 }}>{basePhases.reduce((acc, phase) => acc + phase.hours, 0)}h</div>
-            <div style={{ fontSize: 12, color: 'var(--t3)' }}>≈ 12 weeks at a steady pace</div>
           </div>
 
-          <div style={{ padding: '20px 24px', borderRadius: 12, background: 'linear-gradient(135deg, #f59e0b18 0%, #f59e0b08 100%)', border: '1px solid #f59e0b40' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f59e0b25', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Target size={18} style={{ color: '#f59e0b' }} />
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>Total Problems</div>
+          <div style={{ display: 'grid', gap: 18 }}>
+            <div style={{ padding: 20, borderRadius: 18, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><TrendingUp size={18} style={{ color: active.color }} /><div style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)' }}>Progress tracking</div></div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--t3)', marginBottom: 8 }}><span>{active.title}</span><span>{activeProgress.percent}%</span></div>
+              <div style={{ height: 9, borderRadius: 999, background: 'var(--bg5)', overflow: 'hidden', marginBottom: 12 }}><div style={{ width: `${activeProgress.percent}%`, height: '100%', background: active.color, borderRadius: 999 }} /></div>
+              <div style={{ fontSize: 12, color: 'var(--t3)' }}>{loadingProgress ? 'Loading saved roadmap progress...' : <>Completion is saved to your account for <strong style={{ color: 'var(--t2)' }}>{user?.email || 'this user'}</strong>.</>}</div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#f59e0b', marginBottom: 4 }}>{totalProblems}</div>
-            <div style={{ fontSize: 12, color: 'var(--t3)' }}>Across all roadmap phases</div>
-          </div>
 
-          <div style={{ padding: '20px 24px', borderRadius: 12, background: 'linear-gradient(135deg, #8b5cf618 0%, #8b5cf608 100%)', border: '1px solid #8b5cf640' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#8b5cf625', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BookOpen size={18} style={{ color: '#8b5cf6' }} />
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>Resources</div>
+            <div style={{ padding: 20, borderRadius: 18, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><Clock3 size={18} style={{ color: active.color }} /><div style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)' }}>Daily and weekly plan</div></div>
+              <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>{(active.daily || []).map((item) => <div key={item} style={{ padding: 12, borderRadius: 12, background: 'var(--bg4)', border: '1px solid var(--b1)', fontSize: 13, color: 'var(--t2)', lineHeight: 1.6 }}>{item}</div>)}</div>
+              <div style={{ paddingTop: 14, borderTop: '1px solid var(--b1)', display: 'grid', gap: 8 }}>{(active.weekly || []).map((item) => <div key={item} style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.6 }}>{item}</div>)}</div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#8b5cf6', marginBottom: 4 }}>{new Set(basePhases.flatMap((phase) => phase.topics.flatMap((topic) => topic.resources || []))).size}+</div>
-            <div style={{ fontSize: 12, color: 'var(--t3)' }}>Unique learning resources</div>
-          </div>
 
-          <div style={{ padding: '20px 24px', borderRadius: 12, background: 'linear-gradient(135deg, #3b82f618 0%, #3b82f608 100%)', border: '1px solid #3b82f640' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#3b82f625', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <CheckCircle2 size={18} style={{ color: '#3b82f6' }} />
+            <div style={{ padding: 20, borderRadius: 18, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><BookOpen size={18} style={{ color: active.color }} /><div style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)' }}>Resources</div></div>
+              <div style={{ display: 'grid', gap: 10 }}>
+                {(activeTrack?.resources || active.levels?.[0]?.topics?.[0]?.resources || []).map((resource) => (
+                  <button key={resource.label} type="button" onClick={() => openResource(resource)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--b1)', background: 'var(--bg5)', color: 'var(--t2)', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <span>{resource.label}</span>
+                    <ExternalLink size={14} />
+                  </button>
+                ))}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>Your Progress</div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: '#3b82f6', marginBottom: 4 }}>{overallProgress}%</div>
-            <div style={{ fontSize: 12, color: 'var(--t3)' }}>{completedTopics} completed topics saved for your account on this device</div>
+
+            <div style={{ padding: 20, borderRadius: 18, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><Sparkles size={18} style={{ color: active.color }} /><div style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)' }}>Personalized recommendations</div></div>
+              <div style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
+                {recommendations.length > 0 ? recommendations.map((topic) => (
+                  <button key={topic.id} type="button" onClick={() => startTopic(topic, topic.level)} style={{ padding: 12, borderRadius: 12, border: '1px solid var(--b1)', background: 'var(--bg4)', color: 'var(--t2)', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)', marginBottom: 4 }}>{topic.title}</div>
+                    <div style={{ fontSize: 12, color: 'var(--t3)' }}>{topic.level}</div>
+                  </button>
+                )) : <div style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.6 }}>This roadmap is fully complete. Move to another roadmap or start revision rounds.</div>}
+              </div>
+
+              <div style={{ paddingTop: 14, borderTop: '1px solid var(--b1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}><Lightbulb size={16} style={{ color: active.color }} /><div style={{ fontSize: 13, fontWeight: 800, color: 'var(--t1)' }}>Weak areas</div></div>
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {weakAreas.map(({ roadmap, stats }) => (
+                    <div key={roadmap.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 12, background: 'var(--bg4)', border: '1px solid var(--b1)' }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)' }}>{roadmap.title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--t3)' }}>{stats.completed}/{stats.total} topics completed</div>
+                      </div>
+                      <button type="button" onClick={() => setActiveId(roadmap.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: roadmap.color, background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 700, fontFamily: 'inherit' }}>
+                        Focus
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
+
+        <section style={{ padding: 22, borderRadius: 18, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}><Target size={18} style={{ color: active.color }} /><div style={{ fontSize: 18, fontWeight: 800, color: 'var(--t1)' }}>Roadmap overview</div></div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+            {roadmaps.map((roadmap) => {
+              const stats = progressOfRoadmap(roadmap);
+              return (
+                <div key={roadmap.id} style={{ padding: 16, borderRadius: 14, background: 'var(--bg4)', border: '1px solid var(--b1)' }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', marginBottom: 6 }}>{roadmap.title}</div>
+                  <div style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.6, marginBottom: 12 }}>{roadmap.subtitle}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--t3)', marginBottom: 8 }}><span>{roadmap.duration}</span><span>{stats.percent}% done</span></div>
+                  <div style={{ height: 7, borderRadius: 999, background: 'var(--bg5)', overflow: 'hidden' }}><div style={{ height: '100%', width: `${stats.percent}%`, background: roadmap.color, borderRadius: 999 }} /></div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 14, fontSize: 12, color: 'var(--t3)' }}>Roadmap definitions are now loaded from the backend database, and user progress is saved separately per account.</div>
+        </section>
       </div>
     </div>
   );
