@@ -42,6 +42,51 @@ const roundPlans = {
   Communication: ['60-second pitch', 'Confidence and clarity round', 'Group discussion style response', 'Reflection and refinement']
 };
 
+const topicCatalog = {
+  Technical: [
+    'React hooks and state management',
+    'Java OOP and collections',
+    'DBMS and SQL joins',
+    'Operating systems and threads',
+    'Computer networks basics',
+    'REST API design',
+    'Node.js backend concepts',
+    'Spring Boot fundamentals',
+    'JavaScript event loop',
+    'Data structures and algorithms'
+  ],
+  HR: [
+    'Tell me about yourself',
+    'Why should we hire you',
+    'Strengths and weaknesses',
+    'Conflict resolution example',
+    'Leadership experience',
+    'Failure and lessons learned',
+    'Career goals and motivation',
+    'Teamwork under pressure'
+  ],
+  'System Design': [
+    'Design URL shortener',
+    'Design chat application',
+    'Design online coding platform',
+    'Design ride-booking system',
+    'Design notification service',
+    'Design video streaming platform',
+    'Design food delivery app',
+    'Design file storage system'
+  ],
+  Communication: [
+    'Self introduction for placement',
+    'Group discussion opening',
+    'Explain your project clearly',
+    'Pitch yourself in 60 seconds',
+    'Handle difficult interviewer question',
+    'Summarize internship experience',
+    'Present an opinion with examples',
+    'Communicate under time pressure'
+  ]
+};
+
 const loadState = () => {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -93,6 +138,7 @@ const MockInterview = () => {
     null;
 
   const activePlan = activeSession ? (roundPlans[activeSession.roundType] || roundPlans.Technical) : [];
+  const suggestedTopics = topicCatalog[formData.roundType] || [];
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -165,7 +211,19 @@ const MockInterview = () => {
                 <div className="field">
                   <label>Topic</label>
                   <div className="input-wrap">
-                    <input type="text" value={formData.topic} onChange={(event) => setFormData({ ...formData, topic: event.target.value })} placeholder="Example: React hooks and state management" required />
+                    <input
+                      type="text"
+                      list="mock-interview-topics"
+                      value={formData.topic}
+                      onChange={(event) => setFormData({ ...formData, topic: event.target.value })}
+                      placeholder="Example: React hooks and state management"
+                      required
+                    />
+                    <datalist id="mock-interview-topics">
+                      {suggestedTopics.map((topic) => (
+                        <option key={topic} value={topic} />
+                      ))}
+                    </datalist>
                   </div>
                 </div>
                 <div className="field">
@@ -177,7 +235,16 @@ const MockInterview = () => {
                 <div className="field">
                   <label>Round Type</label>
                   <div className="input-wrap">
-                    <select value={formData.roundType} onChange={(event) => setFormData({ ...formData, roundType: event.target.value })}>
+                    <select
+                      value={formData.roundType}
+                      onChange={(event) =>
+                        setFormData({
+                          ...formData,
+                          roundType: event.target.value,
+                          topic: topicCatalog[event.target.value]?.[0] || ''
+                        })
+                      }
+                    >
                       {Object.keys(roundPlans).map((type) => (
                         <option key={type} value={type}>{type}</option>
                       ))}
@@ -194,6 +261,25 @@ const MockInterview = () => {
                   <label>Date & Time</label>
                   <div className="input-wrap">
                     <input type="datetime-local" value={formData.scheduledTime} onChange={(event) => setFormData({ ...formData, scheduledTime: event.target.value })} required />
+                  </div>
+                </div>
+                <div className="field" style={{ gridColumn: 'span 2' }}>
+                  <label>Suggested Topics</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {suggestedTopics.map((topic) => (
+                      <button
+                        key={topic}
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setFormData({ ...formData, topic })}
+                        style={{
+                          borderColor: formData.topic === topic ? 'var(--orange)' : 'var(--b2)',
+                          color: formData.topic === topic ? 'var(--orange)' : 'var(--t2)'
+                        }}
+                      >
+                        {topic}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>

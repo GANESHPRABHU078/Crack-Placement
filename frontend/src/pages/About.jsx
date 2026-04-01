@@ -16,7 +16,7 @@ const developerDetails = {
   location: 'India',
   email: 'gp561910@gmail.com',
   github: 'https://github.com/GANESHPRABHU078',
-  linkedin: 'www.linkedin.com/in/ganeshprabhu-csehprabhu-s',
+  linkedin: 'https://www.linkedin.com/in/ganeshprabhu-csehprabhu-s',
   bio: 'This project was built to help students prepare for placements with one practical workspace for coding, aptitude, resume building, interviews, and communication improvement.'
 };
 
@@ -116,8 +116,18 @@ const About = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div className="faic gap8"><MapPin size={14} /> <span>{developerDetails.location}</span></div>
                 <div className="faic gap8"><Mail size={14} /> <span>{developerDetails.email}</span></div>
-                <div className="faic gap8"><Link size={14} /> <span>{developerDetails.github}</span></div>
-                <div className="faic gap8"><Link size={14} /> <span>{developerDetails.linkedin}</span></div>
+                <div className="faic gap8">
+                  <Link size={14} />
+                  <a href={developerDetails.github} target="_blank" rel="noreferrer" style={{ color: 'var(--orange)', textDecoration: 'none', fontWeight: 600 }}>
+                    GitHub Profile
+                  </a>
+                </div>
+                <div className="faic gap8">
+                  <Link size={14} />
+                  <a href={developerDetails.linkedin} target="_blank" rel="noreferrer" style={{ color: 'var(--orange)', textDecoration: 'none', fontWeight: 600 }}>
+                    LinkedIn Profile
+                  </a>
+                </div>
               </div>
             </div>
 
