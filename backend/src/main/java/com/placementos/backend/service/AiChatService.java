@@ -61,6 +61,12 @@ public class AiChatService {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 400) {
+                if (response.statusCode() == 401 || response.statusCode() == 403) {
+                    throw new ResponseStatusException(
+                            HttpStatus.SERVICE_UNAVAILABLE,
+                            "AI assistant is not configured correctly on the server. Check OPENAI_API_KEY in backend environment variables."
+                    );
+                }
                 throw new ResponseStatusException(
                         HttpStatus.BAD_GATEWAY,
                         extractErrorMessage(response.body())
