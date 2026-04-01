@@ -1,26 +1,27 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Practice from './pages/Practice';
-import CompanyPrep from './pages/CompanyPrep';
-import Aptitude from './pages/Aptitude';
-import Jobs from './pages/Jobs';
-import ResumeBuilder from './pages/ResumeBuilder';
-import InterviewExperience from './pages/InterviewExperience';
-import MockInterview from './pages/MockInterview';
-import Roadmap from './pages/Roadmap';
-import Contests from './pages/Contests';
-import AIAssistant from './pages/AIAssistant';
-import Community from './pages/Community';
-import CourseCatalog from './pages/CourseCatalog';
-import CommunicationLab from './pages/CommunicationLab';
-import About from './pages/About';
 import { motion, AnimatePresence } from 'framer-motion';
 import './index.css';
+
+const Login = lazy(() => import('./pages/Login'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Practice = lazy(() => import('./pages/Practice'));
+const CompanyPrep = lazy(() => import('./pages/CompanyPrep'));
+const Aptitude = lazy(() => import('./pages/Aptitude'));
+const Jobs = lazy(() => import('./pages/Jobs'));
+const ResumeBuilder = lazy(() => import('./pages/ResumeBuilder'));
+const InterviewExperience = lazy(() => import('./pages/InterviewExperience'));
+const MockInterview = lazy(() => import('./pages/MockInterview'));
+const Roadmap = lazy(() => import('./pages/Roadmap'));
+const Contests = lazy(() => import('./pages/Contests'));
+const AIAssistant = lazy(() => import('./pages/AIAssistant'));
+const Community = lazy(() => import('./pages/Community'));
+const CourseCatalog = lazy(() => import('./pages/CourseCatalog'));
+const CommunicationLab = lazy(() => import('./pages/CommunicationLab'));
+const About = lazy(() => import('./pages/About'));
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -65,28 +66,30 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+        <Suspense fallback={<div style={{ color: 'var(--t2)', padding: 24 }}>Loading page...</div>}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-          <Route path="/" element={<P><Dashboard /></P>} />
-          <Route path="/dashboard" element={<P><Dashboard /></P>} />
-          <Route path="/practice" element={<P><Practice /></P>} />
-          <Route path="/company-prep" element={<P><CompanyPrep /></P>} />
-          <Route path="/aptitude" element={<P><Aptitude /></P>} />
-          <Route path="/jobs" element={<P><Jobs /></P>} />
-          <Route path="/resume-builder" element={<P><ResumeBuilder /></P>} />
-          <Route path="/interviews" element={<P><InterviewExperience /></P>} />
-          <Route path="/mock-interviews" element={<P><MockInterview /></P>} />
-          <Route path="/roadmap" element={<P><Roadmap /></P>} />
-          <Route path="/contests" element={<P><Contests /></P>} />
-          <Route path="/ai" element={<P><AIAssistant /></P>} />
-          <Route path="/community" element={<P><Community /></P>} />
-          <Route path="/courses" element={<P><CourseCatalog /></P>} />
-          <Route path="/communication" element={<P><CommunicationLab /></P>} />
-          <Route path="/about" element={<P><About /></P>} />
+            <Route path="/" element={<P><Dashboard /></P>} />
+            <Route path="/dashboard" element={<P><Dashboard /></P>} />
+            <Route path="/practice" element={<P><Practice /></P>} />
+            <Route path="/company-prep" element={<P><CompanyPrep /></P>} />
+            <Route path="/aptitude" element={<P><Aptitude /></P>} />
+            <Route path="/jobs" element={<P><Jobs /></P>} />
+            <Route path="/resume-builder" element={<P><ResumeBuilder /></P>} />
+            <Route path="/interviews" element={<P><InterviewExperience /></P>} />
+            <Route path="/mock-interviews" element={<P><MockInterview /></P>} />
+            <Route path="/roadmap" element={<P><Roadmap /></P>} />
+            <Route path="/contests" element={<P><Contests /></P>} />
+            <Route path="/ai" element={<P><AIAssistant /></P>} />
+            <Route path="/community" element={<P><Community /></P>} />
+            <Route path="/courses" element={<P><CourseCatalog /></P>} />
+            <Route path="/communication" element={<P><CommunicationLab /></P>} />
+            <Route path="/about" element={<P><About /></P>} />
 
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Suspense>
       </Router>
     </AuthProvider>
   );
