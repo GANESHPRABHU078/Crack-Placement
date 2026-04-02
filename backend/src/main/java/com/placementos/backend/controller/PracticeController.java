@@ -13,10 +13,13 @@ import com.placementos.backend.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @RestController
 public class PracticeController {
@@ -49,8 +52,9 @@ public class PracticeController {
     }
 
     @GetMapping("/api/practice-progress")
+    @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getProgress(Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User user = requireUser(authentication);
         List<PracticeProgress> completed = practiceProgressRepository.findByUserIdAndCompletedTrue(user.getId());
         Set<Long> completedProblemIds = completed.stream().map(progress -> progress.getProblem().getId()).collect(Collectors.toCollection(LinkedHashSet::new));
         Map<String, Object> response = new LinkedHashMap<>();
@@ -62,8 +66,9 @@ public class PracticeController {
     }
 
     @GetMapping("/api/practice-insights")
+    @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getPracticeInsights(Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User user = requireUser(authentication);
         List<PracticeTopic> topics = practiceTopicRepository.findAllByOrderByDisplayOrderAscNameAsc();
         List<PracticeProblem> allProblems = practiceProblemRepository.findAllByOrderByDisplayOrderAscTitleAsc();
         Set<Long> completedProblemIds = practiceProgressRepository.findByUserIdAndCompletedTrue(user.getId()).stream().map(progress -> progress.getProblem().getId()).collect(Collectors.toSet());
@@ -81,7 +86,7 @@ public class PracticeController {
 
     @PutMapping("/api/practice-progress/{problemId}")
     public ResponseEntity<Map<String, Object>> updateProgress(@PathVariable Long problemId, @Valid @RequestBody PracticeProgressUpdateRequest request, Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User user = requireUser(authentication);
         PracticeProblem problem = practiceProblemRepository.findById(problemId).orElseThrow();
         PracticeProgress progress = practiceProgressRepository.findByUserIdAndProblemId(user.getId(), problemId).orElseGet(() -> PracticeProgress.builder().user(user).problem(problem).completed(false).build());
         progress.setCompleted(request.getCompleted());
@@ -156,6 +161,14 @@ public class PracticeController {
             return "You are in a strong position across tracked topics. Time to raise the bar with harder sets.";
         }
         return "You are weakest in " + name + " right now. Practice these " + recommendationCount + " problems next.";
+    }
+
+    private User requireUser(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new ResponseStatusException(UNAUTHORIZED, "Authentication required.");
+        }
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "User not found for the provided token."));
     }
 
     @java.lang.SuppressWarnings("all")
