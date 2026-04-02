@@ -8,10 +8,12 @@ import com.placementos.backend.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -19,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @RestController
 public class RoadmapProgressController {
@@ -31,8 +34,9 @@ public class RoadmapProgressController {
     }
 
     @GetMapping("/api/roadmap-progress")
+    @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getRoadmapProgress(Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User user = requireUser(authentication);
         List<RoadmapProgress> entries = roadmapProgressRepository.findByUserIdOrderByUpdatedAtDesc(user.getId());
 
         List<Map<String, Object>> progressEntries = entries.stream()
@@ -59,7 +63,7 @@ public class RoadmapProgressController {
             @Valid @RequestBody RoadmapProgressUpdateRequest request,
             Authentication authentication
     ) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User user = requireUser(authentication);
 
         RoadmapProgress progress = roadmapProgressRepository
                 .findByUserIdAndRoadmapIdAndTopicId(user.getId(), request.getRoadmapId(), request.getTopicId())
@@ -126,5 +130,13 @@ public class RoadmapProgressController {
         item.put("inProgressTopics", inProgress);
         item.put("lastUpdatedAt", group.stream().map(RoadmapProgress::getUpdatedAt).max(LocalDateTime::compareTo).orElse(null));
         return item;
+    }
+
+    private User requireUser(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new ResponseStatusException(UNAUTHORIZED, "Authentication required.");
+        }
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "User not found for the provided token."));
     }
 }
