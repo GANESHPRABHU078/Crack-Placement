@@ -4,7 +4,8 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     region: oregon
-    autoDeploy: false
+    autoDeploy: true
+    healthCheckPath: /health
     
     envVars:
       - key: JAVA_OPTS
