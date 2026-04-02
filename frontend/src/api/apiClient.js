@@ -1,10 +1,18 @@
 import axios from 'axios';
 
+const deprecatedProductionHosts = [
+  'https://crack-placement.onrender.com/api',
+];
+
 const fallbackBaseURL = import.meta.env.PROD
   ? 'https://crackplacement-backend.onrender.com/api'
   : 'http://localhost:8080/api';
 
-const baseURL = (import.meta.env.VITE_API_BASE_URL || fallbackBaseURL).replace(/\/+$/, '');
+const configuredBaseURL = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '');
+
+const baseURL = deprecatedProductionHosts.includes(configuredBaseURL)
+  ? fallbackBaseURL
+  : (configuredBaseURL || fallbackBaseURL);
 
 const apiClient = axios.create({
   baseURL,
