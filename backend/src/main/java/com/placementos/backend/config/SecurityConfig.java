@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Configuration
 public class SecurityConfig {
 
-    @Value("${app.cors.allowed-origins:https://crackplacement.vercel.app,http://localhost:5173,http://localhost:3000}")
+    @Value("${app.cors.allowed-origins:https://crackplacement.vercel.app,https://*.vercel.app,http://localhost:5173,http://localhost:3000}")
     private String allowedOrigins;
     private final JwtAuthFilter jwtAuthFilter;
 
@@ -59,8 +59,14 @@ public class SecurityConfig {
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
                 .collect(Collectors.toList());
-        cfg.setAllowedOrigins(origins);
-        cfg.setAllowedOriginPatterns(origins);
+        List<String> exactOrigins = origins.stream()
+                .filter(origin -> !origin.contains("*"))
+                .collect(Collectors.toList());
+        List<String> originPatterns = origins.stream()
+                .filter(origin -> origin.contains("*"))
+                .collect(Collectors.toList());
+        cfg.setAllowedOrigins(exactOrigins);
+        cfg.setAllowedOriginPatterns(originPatterns);
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
         cfg.setExposedHeaders(List.of("Authorization", "Content-Type"));
