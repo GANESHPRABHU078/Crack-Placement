@@ -20,11 +20,18 @@ import java.util.stream.Collectors;
 public class RenderCorsFilter extends OncePerRequestFilter {
 
     private final Set<String> allowedOrigins;
+    private final Set<String> allowedOriginPatterns;
 
-    public RenderCorsFilter(@Value("${app.cors.allowed-origins:https://crackplacement.vercel.app,http://localhost:5173,http://localhost:3000}") String allowedOrigins) {
-        this.allowedOrigins = Arrays.stream(allowedOrigins.split(","))
+    public RenderCorsFilter(@Value("${app.cors.allowed-origins:https://crackplacement.vercel.app,https://*.vercel.app,http://localhost:5173,http://localhost:3000}") String allowedOrigins) {
+        Set<String> configuredOrigins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
                 .filter(origin -> !origin.isEmpty())
+                .collect(Collectors.toSet());
+        this.allowedOrigins = configuredOrigins.stream()
+                .filter(origin -> !origin.contains("*"))
+                .collect(Collectors.toSet());
+        this.allowedOriginPatterns = configuredOrigins.stream()
+                .filter(origin -> origin.contains("*"))
                 .collect(Collectors.toSet());
     }
 
@@ -32,7 +39,7 @@ public class RenderCorsFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String origin = request.getHeader("Origin");
 
-        if (origin != null && allowedOrigins.contains(origin)) {
+        if (origin != null && isAllowedOrigin(origin)) {
             response.setHeader("Access-Control-Allow-Origin", origin);
             response.setHeader("Vary", "Origin");
             response.setHeader("Access-Control-Allow-Credentials", "true");
@@ -47,5 +54,20 @@ public class RenderCorsFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isAllowedOrigin(String origin) {
+        if (allowedOrigins.contains(origin)) {
+            return true;
+        }
+
+        return allowedOriginPatterns.stream().anyMatch(pattern -> matchesPattern(origin, pattern));
+    }
+
+    private boolean matchesPattern(String origin, String pattern) {
+        String regex = pattern
+                .replace(".", "\\.")
+                .replace("*", ".*");
+        return origin.matches(regex);
     }
 }

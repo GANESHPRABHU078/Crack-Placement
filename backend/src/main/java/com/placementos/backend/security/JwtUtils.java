@@ -4,9 +4,13 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Key;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
+
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @Component
 public class JwtUtils {
@@ -18,7 +22,19 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
     private Key key() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new ResponseStatusException(
+                    SERVICE_UNAVAILABLE,
+                    "JWT is not configured on the server. Set JWT_SECRET in backend environment variables."
+            );
+        }
+        if (jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new ResponseStatusException(
+                    SERVICE_UNAVAILABLE,
+                    "JWT_SECRET must be at least 32 bytes long."
+            );
+        }
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String email) {
