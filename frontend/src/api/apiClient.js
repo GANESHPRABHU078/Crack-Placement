@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 const deprecatedProductionHosts = [
-  'https://crack-placement.onrender.com/api',
+  'https://crackplacement-backend.onrender.com/api',
 ];
 
 const fallbackBaseURL = import.meta.env.PROD
-  ? 'https://crackplacement-backend.onrender.com/api'
+  ? 'https://crack-placement.onrender.com/api'
   : 'http://localhost:8080/api';
 
 const configuredBaseURL = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '');
