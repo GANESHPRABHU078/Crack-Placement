@@ -92,29 +92,45 @@ public class AiChatService {
         if (geminiApiKey.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Gemini is not configured. Add GEMINI_API_KEY.");
         }
+
+        String[] apiVersions = {"v1beta", "v1"};
+        String[] modelsToTry = {geminiModel, "gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"};
+        String lastError = "";
+
         try {
             String payload = buildGeminiPayload(messages);
-            String url = GEMINI_CHAT_URL + geminiModel + ":generateContent?key=" + geminiApiKey;
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(45))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(payload))
-                    .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() >= 400) {
-                return "Gemini error: " + response.body();
-            }
+            for (String version : apiVersions) {
+                for (String modelName : modelsToTry) {
+                    try {
+                        String url = String.format("https://generativelanguage.googleapis.com/%s/models/%s:generateContent?key=%s", 
+                                version, modelName, geminiApiKey);
+                        
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(URI.create(url))
+                                .timeout(Duration.ofSeconds(20))
+                                .header("Content-Type", "application/json")
+                                .POST(HttpRequest.BodyPublishers.ofString(payload))
+                                .build();
 
-            String reply = extractGeminiReply(response.body());
-            if (reply == null || reply.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini assistant returned an empty reply.");
+                        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                        
+                        if (response.statusCode() == 200) {
+                            String reply = extractGeminiReply(response.body());
+                            if (reply != null && !reply.isBlank()) {
+                                return reply;
+                            }
+                        } else {
+                            lastError = response.body();
+                        }
+                    } catch (Exception e) {
+                        lastError = e.getMessage();
+                    }
+                }
             }
-            return reply;
-        } catch (IOException | InterruptedException exception) {
-            Thread.currentThread().interrupt();
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini request failed.");
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini failed after trying multiple models: " + lastError);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini request construction failed.");
         }
     }
 
