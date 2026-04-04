@@ -151,7 +151,7 @@ public class AiChatService {
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("contents", contents);
-        payload.put("system_instruction", Map.of("parts", List.of(Map.of("text", getSystemInstruction()))));
+        payload.put("systemInstruction", Map.of("parts", List.of(Map.of("text", getSystemInstruction()))));
         payload.put("generationConfig", Map.of("temperature", 0.7));
 
         return objectMapper.writeValueAsString(payload);
