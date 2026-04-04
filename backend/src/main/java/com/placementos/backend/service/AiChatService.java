@@ -139,19 +139,28 @@ public class AiChatService {
 
     private String buildGeminiPayload(List<AiChatMessage> messages) throws IOException {
         List<Map<String, Object>> contents = new java.util.ArrayList<>();
+        boolean isFirstMessage = true;
+
         for (AiChatMessage msg : messages) {
             String role = "assistant".equalsIgnoreCase(msg.getRole()) ? "model" : "user";
-            if (msg.getContent() != null && !msg.getContent().isBlank()) {
+            String content = msg.getContent() != null ? msg.getContent().trim() : "";
+
+            if (!content.isBlank()) {
+                // Prepend system instruction to the first user message for maximum compatibility
+                if (isFirstMessage && "user".equals(role)) {
+                    content = getSystemInstruction() + "\n\n" + content;
+                    isFirstMessage = false;
+                }
+
                 contents.add(Map.of(
                         "role", role,
-                        "parts", List.of(Map.of("text", msg.getContent().trim()))
+                        "parts", List.of(Map.of("text", content))
                 ));
             }
         }
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("contents", contents);
-        payload.put("systemInstruction", Map.of("parts", List.of(Map.of("text", getSystemInstruction()))));
         payload.put("generationConfig", Map.of("temperature", 0.7));
 
         return objectMapper.writeValueAsString(payload);
