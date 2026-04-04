@@ -37,7 +37,7 @@ public class AiChatService {
             @Value("${app.ai.provider:openai}") String provider,
             @Value("${app.ai.openai-api-key:}") String openAiApiKey,
             @Value("${app.ai.gemini-api-key:}") String geminiApiKey,
-            @Value("${app.ai.gemini-model:gemini-1.5-flash}") String geminiModel,
+            @Value("${app.ai.gemini-model:gemini-pro}") String geminiModel,
             @Value("${app.ai.model:gpt-4o-mini}") String model
     ) {
         this.objectMapper = objectMapper;
@@ -47,7 +47,7 @@ public class AiChatService {
         this.provider = provider.toLowerCase();
         this.openAiApiKey = openAiApiKey == null ? "" : openAiApiKey.trim();
         this.geminiApiKey = geminiApiKey == null ? "" : geminiApiKey.trim();
-        this.geminiModel = geminiModel == null ? "gemini-1.5-flash" : geminiModel.trim();
+        this.geminiModel = geminiModel == null ? "gemini-pro" : geminiModel.trim();
         this.model = model;
     }
 
