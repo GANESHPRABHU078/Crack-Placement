@@ -68,12 +68,8 @@ public class DataSeeder implements CommandLineRunner {
         } else {
             log.info("Practice content already exists, skipping reseed.");
         }
-        if (companyPrepProfileRepository.count() == 0) {
-            seedCompanyPrepContent();
-            log.info("Seeded company prep content.");
-        } else {
-            log.info("Company prep content already exists, skipping reseed.");
-        }
+        seedCompanyPrepContent();
+        log.info("Synced company prep content.");
     }
 
     private void seedJobs() {
@@ -156,6 +152,11 @@ public class DataSeeder implements CommandLineRunner {
         saveCompanyProfile(3, "Infosys", "Easy to Medium", "INF", "#0ea5e9", 3, 1, 3, 95, "Quant, coding, then technical interview on core DSA", "Prioritize stack and trees after warming up with arrays and strings.", List.of("Arrays", "Strings", "Stack", "Trees"), List.of("Valid parentheses", "Prefix comparison", "Tree traversal"), List.of("Valid Parentheses", "Maximum Depth of Binary Tree", "Binary Tree Level Order Traversal"), topicsByName, problemsByTitle);
         saveCompanyProfile(4, "Google", "Medium to Hard", "GOO", "#ef4444", 5, 2, 6, 180, "Online assessment followed by algorithmic interviews and deep problem solving", "Invest in arrays, graphs, dynamic programming, and binary search under timed sets.", List.of("Arrays", "Graphs", "Dynamic Programming", "Binary Search"), List.of("Graph traversal and connected components", "DP state transitions", "Binary search on answer"), List.of("Merge Intervals", "Number of Islands", "Course Schedule", "House Robber", "Search in Rotated Sorted Array"), topicsByName, problemsByTitle);
         saveCompanyProfile(5, "Microsoft", "Medium", "MS", "#2563eb", 4, 1, 4, 135, "Coding round followed by DSA-focused interviews with implementation and communication emphasis", "Cover trees and linked lists early, then use strings and dynamic programming to build interview stamina.", List.of("Trees", "Linked List", "Strings", "Dynamic Programming"), List.of("Tree traversal", "Linked list pointer movement", "String hashing", "Simple recurrences"), List.of("Maximum Depth of Binary Tree", "Reverse Linked List", "Add Two Numbers", "Longest Substring Without Repeating Characters", "Climbing Stairs"), topicsByName, problemsByTitle);
+        saveCompanyProfile(6, "Adobe", "Medium", "ADB", "#dc2626", 4, 1, 4, 140, "Online coding round, algorithmic interviews, and computer science fundamentals discussion", "Mix string and dynamic programming practice with tree and graph rounds to mirror Adobe's balance of implementation and reasoning.", List.of("Strings", "Dynamic Programming", "Trees", "Graphs"), List.of("Minimum window substring variants", "Tree level traversal", "Cycle detection in dependency graphs"), List.of("Minimum Window Substring", "Binary Tree Level Order Traversal", "Course Schedule", "House Robber"), topicsByName, problemsByTitle);
+        saveCompanyProfile(7, "Flipkart", "Medium", "FLP", "#2563eb", 4, 2, 5, 150, "Assessment with implementation-heavy coding followed by DSA and low-level design discussion", "Train arrays, sorting, and graph thinking alongside linked list implementation drills.", List.of("Arrays", "Sorting & Searching", "Graphs", "Linked List"), List.of("Merge overlapping intervals", "Order scheduling with dependencies", "Linked list arithmetic"), List.of("Merge Intervals", "Course Schedule", "Add Two Numbers", "Sort Colors"), topicsByName, problemsByTitle);
+        saveCompanyProfile(8, "Zoho", "Easy to Medium", "ZHO", "#16a34a", 4, 1, 3, 120, "Aptitude plus coding rounds with strong emphasis on clean implementation and basics", "Stay sharp on arrays, strings, queues, and binary search because Zoho often rewards clarity over trickiness.", List.of("Arrays", "Strings", "Queue", "Binary Search"), List.of("Array scanning problems", "Substring and string cleanup", "Queue simulation", "Search on sorted data"), List.of("Two Sum", "Valid Anagram", "Implement Queue using Stacks", "Search in Rotated Sorted Array"), topicsByName, problemsByTitle);
+        saveCompanyProfile(9, "Walmart", "Medium", "WMT", "#1d4ed8", 4, 1, 4, 140, "Online coding followed by DSA rounds and practical backend-oriented discussions", "Invest in graphs, trees, and dynamic programming, then add queue and BFS practice for operations-style problem solving.", List.of("Graphs", "Trees", "Dynamic Programming", "Queue"), List.of("Island counting and BFS", "Binary tree traversal", "DP optimization under constraints"), List.of("Number of Islands", "Binary Tree Level Order Traversal", "House Robber", "Rotting Oranges"), topicsByName, problemsByTitle);
+        saveCompanyProfile(10, "Atlassian", "Medium to Hard", "ATL", "#0f766e", 5, 2, 5, 165, "Coding assessment, algorithm interviews, and strong emphasis on communication and problem clarity", "Practice arrays and strings under time pressure, then deepen graph and backtracking confidence for onsite-style questions.", List.of("Arrays", "Strings", "Graphs", "Backtracking"), List.of("Window-based string problems", "Connected components", "Generate valid states recursively"), List.of("Longest Substring Without Repeating Characters", "Minimum Window Substring", "Number of Islands", "Generate Parentheses"), topicsByName, problemsByTitle);
     }
 
     private PracticeTopic topic(int order, String name, String slug, String description, String iconName, String accentColor) {
@@ -167,7 +168,22 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void saveCompanyProfile(int displayOrder, String company, String aptitudeLevel, String logoText, String brandColor, int interviewRounds, int onlineAssessmentQuestions, int codingQuestions, int interviewDurationMinutes, String roundPattern, String prepPlan, List<String> focusAreaNames, List<String> askedQuestionTexts, List<String> recommendedProblemTitles, Map<String, PracticeTopic> topicsByName, Map<String, PracticeProblem> problemsByTitle) {
-        CompanyPrepProfile profile = CompanyPrepProfile.builder().company(company).aptitudeLevel(aptitudeLevel).logoText(logoText).brandColor(brandColor).interviewRounds(interviewRounds).onlineAssessmentQuestions(onlineAssessmentQuestions).codingQuestions(codingQuestions).interviewDurationMinutes(interviewDurationMinutes).roundPattern(roundPattern).prepPlan(prepPlan).displayOrder(displayOrder).build();
+        CompanyPrepProfile profile = companyPrepProfileRepository.findByCompanyIgnoreCase(company)
+                .orElseGet(() -> CompanyPrepProfile.builder().company(company).build());
+        profile.setCompany(company);
+        profile.setAptitudeLevel(aptitudeLevel);
+        profile.setLogoText(logoText);
+        profile.setBrandColor(brandColor);
+        profile.setInterviewRounds(interviewRounds);
+        profile.setOnlineAssessmentQuestions(onlineAssessmentQuestions);
+        profile.setCodingQuestions(codingQuestions);
+        profile.setInterviewDurationMinutes(interviewDurationMinutes);
+        profile.setRoundPattern(roundPattern);
+        profile.setPrepPlan(prepPlan);
+        profile.setDisplayOrder(displayOrder);
+        profile.getFocusAreas().clear();
+        profile.getAskedQuestions().clear();
+        profile.getRecommendedProblems().clear();
         for (int index = 0; index < focusAreaNames.size(); index++) {
             profile.getFocusAreas().add(CompanyPrepFocusArea.builder().profile(profile).topic(requiredTopic(topicsByName, focusAreaNames.get(index))).displayOrder(index + 1).build());
         }

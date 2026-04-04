@@ -3,6 +3,32 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User as UserIcon, CheckCircle2, Globe, Eye, EyeOff } from 'lucide-react';
 
+const GOOGLE_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
+
+const loadGoogleScript = () => {
+  const existing = document.querySelector(`script[src="${GOOGLE_SCRIPT_SRC}"]`);
+  if (existing) {
+    if (window.google?.accounts?.id) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      existing.addEventListener('load', resolve, { once: true });
+      existing.addEventListener('error', reject, { once: true });
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = GOOGLE_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+};
+
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -18,8 +44,10 @@ const Login = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const googleButtonRef = React.useRef(null);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim();
 
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -45,6 +73,61 @@ const Login = () => {
     }
   };
 
+  React.useEffect(() => {
+    if (!isLogin || !googleClientId || !googleButtonRef.current) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const renderGoogleButton = async () => {
+      try {
+        await loadGoogleScript();
+        if (cancelled || !window.google?.accounts?.id || !googleButtonRef.current) {
+          return;
+        }
+
+        window.google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: async ({ credential }) => {
+            if (!credential) {
+              setError('Google sign-in could not be completed.');
+              return;
+            }
+
+            setLoading(true);
+            setError('');
+            try {
+              await loginWithGoogle(credential);
+              navigate('/dashboard');
+            } catch (err) {
+              setError(err.response?.data?.message || 'Google sign-in failed');
+            } finally {
+              setLoading(false);
+            }
+          },
+        });
+
+        googleButtonRef.current.innerHTML = '';
+        window.google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          shape: 'pill',
+          text: 'signin_with',
+          width: 320,
+        });
+      } catch (scriptError) {
+        setError('Google sign-in is unavailable right now.');
+      }
+    };
+
+    renderGoogleButton();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [googleClientId, isLogin, loginWithGoogle, navigate]);
+
   return (
     <div className="screen active" id="s-auth">
       <div className="auth-left">
@@ -61,15 +144,15 @@ const Login = () => {
             </div>
           </div>
           <div className="auth-tagline">Your path to<br /><span className="hl">dream companies</span><br />starts here.</div>
-          <div className="auth-sub">Practice DSA, crack aptitude, build projects, track progress, and land the job — 100% free, forever.</div>
+          <div className="auth-sub">Practice DSA, crack aptitude, build projects, track progress, and land the job - 100% free, forever.</div>
 
           <div className="auth-feature">
             <div className="af-icon afi-o"><CheckCircle2 size={16} /></div>
-            <div className="af-text"><b>LeetCode-style coding</b> — Integrated with Spring Boot & MySQL.</div>
+            <div className="af-text"><b>LeetCode-style coding</b> - Integrated with Spring Boot & MySQL.</div>
           </div>
           <div className="auth-feature">
             <div className="af-icon afi-g"><Globe size={16} /></div>
-            <div className="af-text"><b>Live job board</b> — Real-time updates from our backend API.</div>
+            <div className="af-text"><b>Live job board</b> - Real-time updates from our backend API.</div>
           </div>
         </div>
         <div className="auth-bottom">
@@ -88,8 +171,8 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="auth-view on">
-            <div className="auth-heading">{isLogin ? 'Welcome back 👋' : 'Create your account'}</div>
-            <div className="auth-subhead">{isLogin ? 'Sign in to continue your placement journey.' : 'Step 1 of 1 — Start your journey for free.'}</div>
+            <div className="auth-heading">{isLogin ? 'Welcome back' : 'Create your account'}</div>
+            <div className="auth-subhead">{isLogin ? 'Sign in to continue your placement journey.' : 'Step 1 of 1 - Start your journey for free.'}</div>
 
             {error && <div className="field-err show mb16">{error}</div>}
 
@@ -124,12 +207,12 @@ const Login = () => {
               <label>Password</label>
               <div className="input-wrap" style={{ position: 'relative' }}>
                 <span className="input-ico"><Lock size={14} /></span>
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  id="password" 
-                  placeholder="••••••••" 
-                  onChange={handleChange} 
-                  required 
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  placeholder="********"
+                  onChange={handleChange}
+                  required
                 />
                 <button
                   type="button"
@@ -203,9 +286,30 @@ const Login = () => {
             )}
 
             <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} disabled={loading}>
-              <span className="btn-txt">{isLogin ? 'Sign In →' : 'Create Account →'}</span>
+              <span className="btn-txt">{isLogin ? 'Sign In ->' : 'Create Account ->'}</span>
               <div className="btn-spinner"></div>
             </button>
+
+            {isLogin && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '18px 0 10px' }}>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
+                  <span style={{ color: 'var(--t4)', fontSize: '11px', letterSpacing: '.14em', textTransform: 'uppercase' }}>Or continue with</span>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
+                </div>
+
+                {googleClientId ? (
+                  <div
+                    ref={googleButtonRef}
+                    style={{ display: 'flex', justifyContent: 'center', minHeight: '44px' }}
+                  />
+                ) : (
+                  <div className="field-err show" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#bfdbfe' }}>
+                    Set `VITE_GOOGLE_CLIENT_ID` to enable Google sign-in.
+                  </div>
+                )}
+              </>
+            )}
           </form>
         </div>
       </div>

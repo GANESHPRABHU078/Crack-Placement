@@ -37,6 +37,11 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(req));
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> google(@Valid @RequestBody GoogleAuthRequest req) {
+        return ResponseEntity.ok(authService.googleSignIn(req.getCredential()));
+    }
+
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
     public AuthController(final AuthService authService) {
