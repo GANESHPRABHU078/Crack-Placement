@@ -99,6 +99,11 @@ public class AiChatService {
 
         try {
             String payload = buildGeminiPayload(messages);
+            String maskedKey = geminiApiKey.length() > 8 
+                ? geminiApiKey.substring(0, 4) + "..." + geminiApiKey.substring(geminiApiKey.length() - 4)
+                : "INVALID_KEY_LENGTH";
+            
+            System.out.println("[DIAGNOSTIC] Gemini API Key (Masked): " + maskedKey);
 
             for (String version : apiVersions) {
                 for (String modelName : modelsToTry) {
@@ -106,6 +111,8 @@ public class AiChatService {
                         String url = String.format("https://generativelanguage.googleapis.com/%s/models/%s:generateContent?key=%s", 
                                 version, modelName, geminiApiKey);
                         
+                        System.out.println("[DIAGNOSTIC] Attempting Gemini: " + version + " / " + modelName);
+
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(URI.create(url))
                                 .timeout(Duration.ofSeconds(20))
