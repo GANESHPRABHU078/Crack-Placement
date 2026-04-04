@@ -11,21 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(
-        originPatterns = {"https://crackplacement.vercel.app", "https://*.vercel.app", "http://localhost:5173", "http://localhost:3000"},
-        allowCredentials = "true",
-        allowedHeaders = "*",
-        methods = {RequestMethod.POST, RequestMethod.OPTIONS}
-)
 public class AuthController {
     private final AuthService authService;
-
-    @RequestMapping(value = {"/login", "/register"}, method = RequestMethod.OPTIONS)
-    public ResponseEntity<Void> authPreflight() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.ALLOW, "POST,OPTIONS");
-        return new ResponseEntity<>(headers, HttpStatus.OK);
-    }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest req) {
