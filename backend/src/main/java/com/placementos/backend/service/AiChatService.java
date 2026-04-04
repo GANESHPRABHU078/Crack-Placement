@@ -21,7 +21,7 @@ import java.util.Map;
 @Service
 public class AiChatService {
 
-    private static final String OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+    private static final String OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions";
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
@@ -31,7 +31,7 @@ public class AiChatService {
     public AiChatService(
             ObjectMapper objectMapper,
             @Value("${app.ai.openai-api-key:}") String openAiApiKey,
-            @Value("${app.ai.model:gpt-4.1-mini}") String model
+            @Value("${app.ai.model:gpt-4o-mini}") String model
     ) {
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder()
@@ -52,7 +52,7 @@ public class AiChatService {
         try {
             String payload = buildPayload(messages);
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(OPENAI_RESPONSES_URL))
+                    .uri(URI.create(OPENAI_CHAT_URL))
                     .timeout(Duration.ofSeconds(45))
                     .header("Authorization", "Bearer " + openAiApiKey)
                     .header("Content-Type", "application/json")
@@ -85,26 +85,25 @@ public class AiChatService {
     }
 
     private String buildPayload(List<AiChatMessage> messages) throws IOException {
-        List<Map<String, Object>> input = messages.stream()
-                .filter(message -> message.getContent() != null && !message.getContent().isBlank())
-                .map(message -> {
-                    Map<String, Object> item = new HashMap<>();
-                    item.put("role", normalizeRole(message.getRole()));
-                    item.put("content", List.of(Map.of(
-                            "type", "input_text",
-                            "text", message.getContent().trim()
-                    )));
-                    return item;
-                })
-                .toList();
+        List<Map<String, String>> formattedMessages = new java.util.ArrayList<>();
+        formattedMessages.add(Map.of(
+                "role", "system",
+                "content", "You are PlacementOS AI Mentor. Help students with coding, interview preparation, aptitude, communication, resume guidance, and company preparation. " +
+                        "Be practical, concise, encouraging, and technically correct. Use markdown when useful."
+        ));
+
+        for (AiChatMessage msg : messages) {
+            String role = normalizeRole(msg.getRole());
+            String content = msg.getContent();
+            if (content != null && !content.isBlank()) {
+                formattedMessages.add(Map.of("role", role, "content", content.trim()));
+            }
+        }
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", model);
-        payload.put("instructions",
-                "You are PlacementOS AI Mentor. Help students with coding, interview preparation, aptitude, communication, resume guidance, and company preparation. " +
-                        "Be practical, concise, encouraging, and technically correct. Use markdown when useful."
-        );
-        payload.put("input", input);
+        payload.put("messages", formattedMessages);
+        payload.put("temperature", 0.7);
 
         return objectMapper.writeValueAsString(payload);
     }
@@ -118,43 +117,27 @@ public class AiChatService {
 
     private String extractReply(String body) throws IOException {
         JsonNode root = objectMapper.readTree(body);
-
-        JsonNode outputText = root.get("output_text");
-        if (outputText != null && !outputText.isNull() && !outputText.asText().isBlank()) {
-            return outputText.asText();
-        }
-
-        JsonNode output = root.get("output");
-        if (output != null && output.isArray()) {
-            for (JsonNode item : output) {
-                JsonNode content = item.get("content");
-                if (content == null || !content.isArray()) {
-                    continue;
-                }
-
-                for (JsonNode part : content) {
-                    JsonNode textNode = part.get("text");
-                    if (textNode != null && !textNode.isNull() && !textNode.asText().isBlank()) {
-                        return textNode.asText();
-                    }
-                }
+        JsonNode choices = root.path("choices");
+        if (choices.isArray() && !choices.isEmpty()) {
+            JsonNode message = choices.get(0).path("message");
+            JsonNode content = message.path("content");
+            if (!content.isMissingNode() && !content.isNull()) {
+                return content.asText();
             }
         }
-
         return null;
     }
 
     private String extractErrorMessage(String body) {
         try {
             JsonNode root = objectMapper.readTree(body);
-            JsonNode errorMessage = root.path("error").path("message");
+            JsonNode errorNode = root.path("error");
+            JsonNode errorMessage = errorNode.path("message");
             if (!errorMessage.isMissingNode() && !errorMessage.asText().isBlank()) {
                 return "AI assistant error: " + errorMessage.asText();
             }
         } catch (IOException ignored) {
-            // Fall through to generic message.
         }
-
         return "AI assistant request failed with the provider.";
     }
 }
