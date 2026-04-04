@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, startTransition } from 'react';
 import { authService } from '../api/authService';
 import { profileService } from '../api/profileService';
 
@@ -28,16 +28,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const finishAuth = (authUser) => {
+    setUser(authUser);
+
+    void syncProfileAfterAuth(authUser).then((profile) => {
+      if (!profile) {
+        return;
+      }
+
+      startTransition(() => {
+        setUser(profile);
+      });
+    });
+
+    return authUser;
+  };
+
   const login = async (credentials) => {
     const data = await authService.login(credentials);
-    setUser(data);
-    return syncProfileAfterAuth(data);
+    return finishAuth(data);
   };
 
   const register = async (userData) => {
     const data = await authService.register(userData);
-    setUser(data);
-    return syncProfileAfterAuth(data);
+    return finishAuth(data);
+  };
+
+  const loginWithGoogle = async (credential) => {
+    const data = await authService.googleLogin(credential);
+    return finishAuth(data);
   };
 
   const logout = () => {
@@ -63,7 +82,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshProfile, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, logout, refreshProfile, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
