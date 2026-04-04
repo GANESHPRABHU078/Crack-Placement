@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -45,6 +46,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
         if (jobRepository.count() == 0) {
             seedJobs();
@@ -167,6 +169,7 @@ public class DataSeeder implements CommandLineRunner {
         return PracticeProblem.builder().displayOrder(order).topic(topic).title(title).difficulty(difficulty).platform(platform).problemUrl(url).summary(summary).build();
     }
 
+    @Transactional
     private void saveCompanyProfile(int displayOrder, String company, String aptitudeLevel, String logoText, String brandColor, int interviewRounds, int onlineAssessmentQuestions, int codingQuestions, int interviewDurationMinutes, String roundPattern, String prepPlan, List<String> focusAreaNames, List<String> askedQuestionTexts, List<String> recommendedProblemTitles, Map<String, PracticeTopic> topicsByName, Map<String, PracticeProblem> problemsByTitle) {
         CompanyPrepProfile profile = companyPrepProfileRepository.findByCompanyIgnoreCase(company)
                 .orElseGet(() -> CompanyPrepProfile.builder().company(company).build());
