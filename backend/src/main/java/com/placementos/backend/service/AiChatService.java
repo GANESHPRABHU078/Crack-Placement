@@ -22,12 +22,13 @@ import java.util.Map;
 public class AiChatService {
 
     private static final String OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions";
-    private static final String GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
+    private static final String GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1/models/";
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
     private final String openAiApiKey;
     private final String geminiApiKey;
+    private final String geminiModel;
     private final String provider;
     private final String model;
 
@@ -36,6 +37,7 @@ public class AiChatService {
             @Value("${app.ai.provider:openai}") String provider,
             @Value("${app.ai.openai-api-key:}") String openAiApiKey,
             @Value("${app.ai.gemini-api-key:}") String geminiApiKey,
+            @Value("${app.ai.gemini-model:gemini-1.5-flash}") String geminiModel,
             @Value("${app.ai.model:gpt-4o-mini}") String model
     ) {
         this.objectMapper = objectMapper;
@@ -45,6 +47,7 @@ public class AiChatService {
         this.provider = provider.toLowerCase();
         this.openAiApiKey = openAiApiKey == null ? "" : openAiApiKey.trim();
         this.geminiApiKey = geminiApiKey == null ? "" : geminiApiKey.trim();
+        this.geminiModel = geminiModel == null ? "gemini-1.5-flash" : geminiModel.trim();
         this.model = model;
     }
 
@@ -91,8 +94,9 @@ public class AiChatService {
         }
         try {
             String payload = buildGeminiPayload(messages);
+            String url = GEMINI_CHAT_URL + geminiModel + ":generateContent?key=" + geminiApiKey;
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(GEMINI_CHAT_URL + geminiApiKey))
+                    .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(45))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(payload))
@@ -100,7 +104,7 @@ public class AiChatService {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 400) {
-                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini error: " + response.body());
+                return "Gemini error: " + response.body();
             }
 
             String reply = extractGeminiReply(response.body());
