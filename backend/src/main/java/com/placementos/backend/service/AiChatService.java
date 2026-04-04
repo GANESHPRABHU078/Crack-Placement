@@ -22,35 +22,45 @@ import java.util.Map;
 public class AiChatService {
 
     private static final String OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions";
+    private static final String GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=";
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
     private final String openAiApiKey;
+    private final String geminiApiKey;
+    private final String provider;
     private final String model;
 
     public AiChatService(
             ObjectMapper objectMapper,
+            @Value("${app.ai.provider:openai}") String provider,
             @Value("${app.ai.openai-api-key:}") String openAiApiKey,
+            @Value("${app.ai.gemini-api-key:}") String geminiApiKey,
             @Value("${app.ai.model:gpt-4o-mini}") String model
     ) {
         this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(15))
                 .build();
+        this.provider = provider.toLowerCase();
         this.openAiApiKey = openAiApiKey == null ? "" : openAiApiKey.trim();
+        this.geminiApiKey = geminiApiKey == null ? "" : geminiApiKey.trim();
         this.model = model;
     }
 
     public String generateReply(List<AiChatMessage> messages) {
-        if (openAiApiKey.isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "AI assistant is not configured on the server. Add OPENAI_API_KEY in backend environment variables."
-            );
+        if ("gemini".equals(provider)) {
+            return generateGeminiReply(messages);
         }
+        return generateOpenAiReply(messages);
+    }
 
+    private String generateOpenAiReply(List<AiChatMessage> messages) {
+        if (openAiApiKey.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "OpenAI is not configured. Add OPENAI_API_KEY.");
+        }
         try {
-            String payload = buildPayload(messages);
+            String payload = buildOpenAiPayload(messages);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(OPENAI_CHAT_URL))
                     .timeout(Duration.ofSeconds(45))
@@ -61,42 +71,57 @@ public class AiChatService {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 400) {
-                if (response.statusCode() == 401 || response.statusCode() == 403) {
-                    throw new ResponseStatusException(
-                            HttpStatus.SERVICE_UNAVAILABLE,
-                            "AI assistant is not configured correctly on the server. Check OPENAI_API_KEY in backend environment variables."
-                    );
-                }
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_GATEWAY,
-                        extractErrorMessage(response.body())
-                );
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, extractOpenAiErrorMessage(response.body()));
             }
 
-            String reply = extractReply(response.body());
+            String reply = extractOpenAiReply(response.body());
             if (reply == null || reply.isBlank()) {
                 throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI assistant returned an empty reply.");
             }
             return reply;
         } catch (IOException | InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI assistant request failed. Please try again.");
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "OpenAI request failed.");
         }
     }
 
-    private String buildPayload(List<AiChatMessage> messages) throws IOException {
+    private String generateGeminiReply(List<AiChatMessage> messages) {
+        if (geminiApiKey.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Gemini is not configured. Add GEMINI_API_KEY.");
+        }
+        try {
+            String payload = buildGeminiPayload(messages);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(GEMINI_CHAT_URL + geminiApiKey))
+                    .timeout(Duration.ofSeconds(45))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 400) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini error: " + response.body());
+            }
+
+            String reply = extractGeminiReply(response.body());
+            if (reply == null || reply.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini assistant returned an empty reply.");
+            }
+            return reply;
+        } catch (IOException | InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini request failed.");
+        }
+    }
+
+    private String buildOpenAiPayload(List<AiChatMessage> messages) throws IOException {
         List<Map<String, String>> formattedMessages = new java.util.ArrayList<>();
-        formattedMessages.add(Map.of(
-                "role", "system",
-                "content", "You are PlacementOS AI Mentor. Help students with coding, interview preparation, aptitude, communication, resume guidance, and company preparation. " +
-                        "Be practical, concise, encouraging, and technically correct. Use markdown when useful."
-        ));
+        formattedMessages.add(Map.of("role", "system", "content", getSystemInstruction()));
 
         for (AiChatMessage msg : messages) {
             String role = normalizeRole(msg.getRole());
-            String content = msg.getContent();
-            if (content != null && !content.isBlank()) {
-                formattedMessages.add(Map.of("role", role, "content", content.trim()));
+            if (msg.getContent() != null && !msg.getContent().isBlank()) {
+                formattedMessages.add(Map.of("role", role, "content", msg.getContent().trim()));
             }
         }
 
@@ -108,36 +133,62 @@ public class AiChatService {
         return objectMapper.writeValueAsString(payload);
     }
 
-    private String normalizeRole(String role) {
-        if ("assistant".equalsIgnoreCase(role)) {
-            return "assistant";
+    private String buildGeminiPayload(List<AiChatMessage> messages) throws IOException {
+        List<Map<String, Object>> contents = new java.util.ArrayList<>();
+        for (AiChatMessage msg : messages) {
+            String role = "assistant".equalsIgnoreCase(msg.getRole()) ? "model" : "user";
+            if (msg.getContent() != null && !msg.getContent().isBlank()) {
+                contents.add(Map.of(
+                        "role", role,
+                        "parts", List.of(Map.of("text", msg.getContent().trim()))
+                ));
+            }
         }
-        return "user";
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("contents", contents);
+        payload.put("system_instruction", Map.of("parts", List.of(Map.of("text", getSystemInstruction()))));
+        payload.put("generationConfig", Map.of("temperature", 0.7));
+
+        return objectMapper.writeValueAsString(payload);
     }
 
-    private String extractReply(String body) throws IOException {
+    private String getSystemInstruction() {
+        return "You are PlacementOS AI Mentor. Help students with coding, interview preparation, aptitude, communication, resume guidance, and company preparation. Be practical, concise, encouraging, and technically correct. Use markdown when useful.";
+    }
+
+    private String normalizeRole(String role) {
+        return "assistant".equalsIgnoreCase(role) ? "assistant" : "user";
+    }
+
+    private String extractOpenAiReply(String body) throws IOException {
         JsonNode root = objectMapper.readTree(body);
         JsonNode choices = root.path("choices");
         if (choices.isArray() && !choices.isEmpty()) {
-            JsonNode message = choices.get(0).path("message");
-            JsonNode content = message.path("content");
-            if (!content.isMissingNode() && !content.isNull()) {
-                return content.asText();
+            return choices.get(0).path("message").path("content").asText();
+        }
+        return null;
+    }
+
+    private String extractGeminiReply(String body) throws IOException {
+        JsonNode root = objectMapper.readTree(body);
+        JsonNode candidates = root.path("candidates");
+        if (candidates.isArray() && !candidates.isEmpty()) {
+            JsonNode parts = candidates.get(0).path("content").path("parts");
+            if (parts.isArray() && !parts.isEmpty()) {
+                return parts.get(0).path("text").asText();
             }
         }
         return null;
     }
 
-    private String extractErrorMessage(String body) {
+    private String extractOpenAiErrorMessage(String body) {
         try {
             JsonNode root = objectMapper.readTree(body);
-            JsonNode errorNode = root.path("error");
-            JsonNode errorMessage = errorNode.path("message");
-            if (!errorMessage.isMissingNode() && !errorMessage.asText().isBlank()) {
-                return "AI assistant error: " + errorMessage.asText();
-            }
+            String message = root.path("error").path("message").asText();
+            return message.isBlank() ? "OpenAI request failed." : "AI assistant error: " + message;
         } catch (IOException ignored) {
+            return "OpenAI request failed.";
         }
-        return "AI assistant request failed with the provider.";
     }
 }
