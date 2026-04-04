@@ -52,10 +52,21 @@ public class AiChatService {
     }
 
     public String generateReply(List<AiChatMessage> messages) {
-        if ("gemini".equals(provider)) {
-            return generateGeminiReply(messages);
+        if (messages == null || messages.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No messages provided for AI assistant.");
         }
-        return generateOpenAiReply(messages);
+        
+        try {
+            if ("openai".equalsIgnoreCase(provider)) {
+                return generateOpenAiReply(messages);
+            }
+            return generateGeminiReply(messages);
+        } catch (ResponseStatusException e) {
+            throw e; // Pass through existing response status exceptions
+        } catch (Exception e) {
+            e.printStackTrace(); // Log stack trace in Render
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "AI Assistant error: " + e.getMessage());
+        }
     }
 
     private String generateOpenAiReply(List<AiChatMessage> messages) {
@@ -107,11 +118,16 @@ public class AiChatService {
 
             for (String version : apiVersions) {
                 for (String modelName : modelsToTry) {
+                    if (modelName == null || modelName.isBlank()) continue;
+                    
+                    // Clean model name (some users accidentally add 'models/' in their env var)
+                    String cleanedModel = modelName.startsWith("models/") ? modelName.substring(7) : modelName;
+
                     try {
                         String url = String.format("https://generativelanguage.googleapis.com/%s/models/%s:generateContent?key=%s", 
-                                version, modelName, geminiApiKey);
+                                version, cleanedModel, geminiApiKey);
                         
-                        System.out.println("[DIAGNOSTIC] Attempting Gemini: " + version + " / " + modelName);
+                        System.out.println("[DIAGNOSTIC] Attempting Gemini: " + version + " / " + cleanedModel);
 
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(URI.create(url))
