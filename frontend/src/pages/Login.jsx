@@ -46,6 +46,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const googleButtonRef = React.useRef(null);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim();
+  console.log("[DIAGNOSTIC] Current Google Client ID:", googleClientId ? googleClientId.substring(0, 10) + "..." : "NOT_FOUND");
 
   const { login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
