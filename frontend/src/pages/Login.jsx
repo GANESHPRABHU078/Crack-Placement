@@ -46,7 +46,10 @@ const Login = () => {
   const [error, setError] = useState('');
   const googleButtonRef = React.useRef(null);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim();
+  const isGoogleConfigured = googleClientId && googleClientId !== 'your-google-client-id-here.apps.googleusercontent.com';
+  
   console.log("[DIAGNOSTIC] Current Google Client ID:", googleClientId ? googleClientId.substring(0, 10) + "..." : "NOT_FOUND");
+  console.log("[DIAGNOSTIC] Google Is Configured:", isGoogleConfigured);
 
   const { login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -75,7 +78,7 @@ const Login = () => {
   };
 
   React.useEffect(() => {
-    if (!isLogin || !googleClientId || !googleButtonRef.current) {
+    if (!isLogin || !isGoogleConfigured || !googleButtonRef.current) {
       return undefined;
     }
 
@@ -300,14 +303,15 @@ const Login = () => {
               <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
             </div>
 
-            {googleClientId ? (
+            {isGoogleConfigured ? (
               <div
                 ref={googleButtonRef}
                 style={{ display: 'flex', justifyContent: 'center', minHeight: '44px' }}
               />
             ) : (
-              <div className="field-err show" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#bfdbfe' }}>
-                Set `VITE_GOOGLE_CLIENT_ID` to enable Google sign-in.
+              <div className="field-err show" style={{ background: 'rgba(59, 130, 246, 0.11)', color: '#bfdbfe', border: '1px solid rgba(59, 130, 246, 0.2)', textAlign: 'center', fontSize: '12px' }}>
+                <div style={{ fontWeight: '600', marginBottom: '4px' }}>Google Auth Not Configured</div>
+                Please set a valid `VITE_GOOGLE_CLIENT_ID` in your environment.
               </div>
             )}
           </form>

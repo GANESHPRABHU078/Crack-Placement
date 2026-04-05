@@ -42,4 +42,21 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor to handle 401 Unauthorized (stale sessions)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // If we get a 401, the token is likely invalid or the user was deleted/re-seeded
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Redirect to login only if we're not already there (to avoid loops)
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;
