@@ -27,8 +27,7 @@ const protectedPrefixes = [
   '/interviews'
 ];
 
-const shouldAttachAuth = (url = '') =>
-  protectedPrefixes.some((prefix) => url.startsWith(prefix));
+const shouldAttachAuth = (url = '') => true; // Attach to all API requests if token exists
 
 // Request interceptor to add JWT token to headers
 apiClient.interceptors.request.use(
