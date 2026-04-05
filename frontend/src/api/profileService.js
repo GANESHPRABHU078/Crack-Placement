@@ -10,4 +10,9 @@ export const profileService = {
     const response = await apiClient.post('/profile/check-in');
     return response.data;
   },
+
+  updateProfile: async (userData) => {
+    const response = await apiClient.put('/profile', userData);
+    return response.data;
+  }
 };

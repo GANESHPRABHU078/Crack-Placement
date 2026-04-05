@@ -1,14 +1,22 @@
-import apiClient from './apiClient';
+import api from './api';
 
-export const jobService = {
-  getAll: async (type) => {
-    const params = {};
-    if (type) params.type = type;
-    const response = await apiClient.get('/jobs', { params });
-    return response.data;
-  },
-  getNew: async () => {
-    const response = await apiClient.get('/jobs/new');
-    return response.data;
-  }
+export const getJobs = async (type = null) => {
+  const params = type ? { type } : {};
+  const response = await api.get('/jobs', { params });
+  return response.data;
+};
+
+export const getNewJobs = async () => {
+  const response = await api.get('/jobs/new');
+  return response.data;
+};
+
+export const getRecommendations = async () => {
+  const response = await api.get('/jobs/recommendations');
+  return response.data;
+};
+
+export const createJob = async (jobData) => {
+  const response = await api.post('/jobs', jobData);
+  return response.data;
 };

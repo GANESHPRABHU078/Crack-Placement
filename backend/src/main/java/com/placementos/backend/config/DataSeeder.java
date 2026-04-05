@@ -26,6 +26,8 @@ public class DataSeeder implements CommandLineRunner {
     private final PracticeTopicRepository practiceTopicRepository;
     private final PracticeProblemRepository practiceProblemRepository;
     private final CompanyPrepProfileRepository companyPrepProfileRepository;
+    private final ProjectIdeaRepository projectIdeaRepository;
+    private final ProjectStepRepository projectStepRepository;
 
     public DataSeeder(
             JobRepository jobRepository,
@@ -34,7 +36,9 @@ public class DataSeeder implements CommandLineRunner {
             MockInterviewRepository mockInterviewRepository,
             PracticeTopicRepository practiceTopicRepository,
             PracticeProblemRepository practiceProblemRepository,
-            CompanyPrepProfileRepository companyPrepProfileRepository
+            CompanyPrepProfileRepository companyPrepProfileRepository,
+            ProjectIdeaRepository projectIdeaRepository,
+            ProjectStepRepository projectStepRepository
     ) {
         this.jobRepository = jobRepository;
         this.aptitudeQuestionRepository = aptitudeQuestionRepository;
@@ -43,6 +47,8 @@ public class DataSeeder implements CommandLineRunner {
         this.practiceTopicRepository = practiceTopicRepository;
         this.practiceProblemRepository = practiceProblemRepository;
         this.companyPrepProfileRepository = companyPrepProfileRepository;
+        this.projectIdeaRepository = projectIdeaRepository;
+        this.projectStepRepository = projectStepRepository;
     }
 
     @Override
@@ -79,13 +85,27 @@ public class DataSeeder implements CommandLineRunner {
         } else {
             log.info("Company prep content already exists, skipping.");
         }
+
+        if (projectIdeaRepository.count() == 0) {
+            seedProjectIdeas();
+            log.info("Seeded 15+ real-world project ideas.");
+        }
     }
 
     private void seedJobs() {
-        Job j1 = Job.builder().title("SDE Intern").company("Microsoft").logoEmoji("\uD83D\uDD35").location("Hyderabad").type(Job.JobType.Internship).salary("Rs45K/mo").skills(Arrays.asList("C++", "Azure")).isNew(true).applyLink("https://careers.microsoft.com").postedAt(LocalDateTime.now()).build();
-        Job j2 = Job.builder().title("Software Engineer").company("Google").logoEmoji("\uD83D\uDD34").location("Bangalore").type(Job.JobType.FullTime).salary("Rs25-45 LPA").skills(Arrays.asList("Java", "Go")).isNew(false).applyLink("https://careers.google.com").postedAt(LocalDateTime.now()).build();
-        Job j3 = Job.builder().title("Backend Developer").company("Zoho").logoEmoji("\uD83D\uDFE0").location("Chennai").type(Job.JobType.FullTime).salary("Rs8-14 LPA").skills(Arrays.asList("Java", "Spring Boot", "MySQL")).isNew(true).applyLink("https://www.zoho.com/careers/").postedAt(LocalDateTime.now().minusHours(8)).build();
-        jobRepository.saveAll(List.of(j1, j2, j3));
+        List<Job> jobs = Arrays.asList(
+            Job.builder().title("SDE-1").company("Google").logoEmoji("🔴").location("Bangalore").type(Job.JobType.FullTime).salary("30-45 LPA").skills(Arrays.asList("Java", "Go", "Distributed Systems", "Kubernetes")).isNew(true).applyLink("https://careers.google.com").postedAt(LocalDateTime.now()).build(),
+            Job.builder().title("Software Engineer").company("Microsoft").logoEmoji("🔵").location("Hyderabad").type(Job.JobType.FullTime).salary("25-40 LPA").skills(Arrays.asList("C#", ".NET", "Azure", "TypeScript")).isNew(true).applyLink("https://careers.microsoft.com").postedAt(LocalDateTime.now().minusDays(1)).build(),
+            Job.builder().title("Backend Developer").company("Amazon").logoEmoji("🟠").location("Bangalore").type(Job.JobType.FullTime).salary("28-42 LPA").skills(Arrays.asList("Java", "Spring Boot", "AWS", "DynamoDB")).isNew(false).applyLink("https://amazon.jobs").postedAt(LocalDateTime.now().minusDays(2)).build(),
+            Job.builder().title("Full Stack Intern").company("Zomato").logoEmoji("🍕").location("Gurgaon").type(Job.JobType.Internship).salary("50K/mo").skills(Arrays.asList("React", "Node.js", "MongoDB", "Tailwind")).isNew(true).applyLink("https://www.zomato.com/careers").postedAt(LocalDateTime.now()).build(),
+            Job.builder().title("Product Engineer").company("Swiggy").logoEmoji("🍔").location("Remote").type(Job.JobType.Remote).salary("18-26 LPA").skills(Arrays.asList("JavaScript", "React", "Node.js", "PostgreSQL")).isNew(false).applyLink("https://careers.swiggy.com").postedAt(LocalDateTime.now().minusDays(3)).build(),
+            Job.builder().title("Frontend Engineer").company("Meta").logoEmoji("♾️").location("Remote").type(Job.JobType.FullTime).salary("40-60 LPA").skills(Arrays.asList("React", "GraphQL", "TypeScript", "Relay")).isNew(true).applyLink("https://www.metacareers.com").postedAt(LocalDateTime.now().minusHours(5)).build(),
+            Job.builder().title("SDE Intern").company("Uber").logoEmoji("🏎️").location("Hyderabad").type(Job.JobType.Internship).salary("60K/mo").skills(Arrays.asList("Java", "Python", "Microservices")).isNew(true).applyLink("https://www.uber.com/careers").postedAt(LocalDateTime.now().minusDays(1)).build(),
+            Job.builder().title("Data Scientist").company("Netflix").logoEmoji("🍿").location("Remote").type(Job.JobType.FullTime).salary("50-80 LPA").skills(Arrays.asList("Python", "PyTorch", "Spark", "SQL")).isNew(true).applyLink("https://jobs.netflix.com").postedAt(LocalDateTime.now().minusDays(4)).build(),
+            Job.builder().title("iOS Developer").company("Apple").logoEmoji("🍎").location("Bangalore").type(Job.JobType.FullTime).salary("35-55 LPA").skills(Arrays.asList("Swift", "SwiftUI", "Objective-C", "iOS SDK")).isNew(false).applyLink("https://www.apple.com/jobs").postedAt(LocalDateTime.now().minusWeeks(1)).build(),
+            Job.builder().title("Backend Intern").company("Razorpay").logoEmoji("💳").location("Bangalore").type(Job.JobType.Internship).salary("45K/mo").skills(Arrays.asList("PHP", "Laravel", "MySQL", "Redis")).isNew(true).applyLink("https://razorpay.com/jobs").postedAt(LocalDateTime.now().minusDays(2)).build()
+        );
+        jobRepository.saveAll(jobs);
     }
 
     private void seedAptitudeQuestions() {
@@ -336,4 +356,236 @@ public class DataSeeder implements CommandLineRunner {
         }
         return problem;
     }
-}
+    private void seedProjectIdeas() {
+        // AI-Powered Customer Support Chatbot
+        ProjectIdea chatbot = ProjectIdea.builder()
+                .title("AI-Powered Support Chatbot")
+                .description("Build an intelligent chatbot that uses NLP to handle customer queries and escalate to humans when needed.")
+                .domain(ProjectIdea.ProjectDomain.AI_ML)
+                .difficulty(ProjectIdea.ProjectDifficulty.INTERMEDIATE)
+                .techStack(Arrays.asList("Python", "TensorFlow", "React", "WebSocket"))
+                .estimatedTime("4-6 Weeks")
+                .realWorldUseCase("Used by e-commerce platforms to reduce support ticket volume by 40%.")
+                .resumeImpactScore(9)
+                .githubLink("https://github.com/example/ai-chatbot")
+                .build();
+        projectIdeaRepository.save(chatbot);
+        seedSteps(chatbot, Arrays.asList(
+            "Set up a basic NLP model using BERT or GPT.",
+            "Build a WebSocket-based real-time chat interface in React.",
+            "Implement intent detection to route queries to specific departments.",
+            "Integrate with a CRM like Salesforce or Zendesk via API."
+        ));
+
+        // Scalable Microservices E-commerce
+        ProjectIdea ecommerce = ProjectIdea.builder()
+                .title("Microservices E-commerce Suite")
+                .description("Design and implement a distributed system for a high-traffic online store.")
+                .domain(ProjectIdea.ProjectDomain.SYSTEM_DESIGN)
+                .difficulty(ProjectIdea.ProjectDifficulty.ADVANCED)
+                .techStack(Arrays.asList("Spring Boot", "Docker", "Kubernetes", "Kafka", "PostgreSQL"))
+                .estimatedTime("8-12 Weeks")
+                .realWorldUseCase("Infrastructure pattern used by Amazon and Netflix to handle regional independence.")
+                .resumeImpactScore(10)
+                .githubLink("https://github.com/example/micro-ecommerce")
+                .build();
+        projectIdeaRepository.save(ecommerce);
+        seedSteps(ecommerce, Arrays.asList(
+            "Decompose monolith into Order, Product, and Payment services.",
+            "Implement API Gateway using Spring Cloud Gateway.",
+            "Set up event-driven communication using Kafka for inventory updates.",
+            "Deploy services to a Kubernetes cluster with persistent volumes."
+        ));
+
+        // Real-time Collaborative Document Editor
+        ProjectIdea editor = ProjectIdea.builder()
+                .title("Co-Edit: Real-time Editor")
+                .description("A web-based document editor allowing multiple users to edit the same file simultaneously.")
+                .domain(ProjectIdea.ProjectDomain.WEB_DEV)
+                .difficulty(ProjectIdea.ProjectDifficulty.INTERMEDIATE)
+                .techStack(Arrays.asList("Node.js", "Socket.io", "React", "Yjs (CRDTs)"))
+                .estimatedTime("5-7 Weeks")
+                .realWorldUseCase("Core technology behind Google Docs and Figma.")
+                .resumeImpactScore(9)
+                .githubLink("https://github.com/example/co-edit")
+                .build();
+        projectIdeaRepository.save(editor);
+        seedSteps(editor, Arrays.asList(
+            "Implement Conflict-free Replicated Data Types (CRDTs) for data consistency.",
+            "Build a robust WebSocket server to broadcast changes across clients.",
+            "Create a rich-text UI using Slate.js or Quill.js.",
+            "Implement user presence indicators (avatars showing who is active)."
+        ));
+
+        // Placement Analytics Dashboard
+        ProjectIdea analytics = ProjectIdea.builder()
+                .title("Career Flow Analytics")
+                .description("Visualize hiring trends, salary ranges, and skill requirements from millions of job postings.")
+                .domain(ProjectIdea.ProjectDomain.DATA_SCIENCE)
+                .difficulty(ProjectIdea.ProjectDifficulty.BEGINNER)
+                .techStack(Arrays.asList("Python", "Pandas", "Scikit-Learn", "Chart.js"))
+                .estimatedTime("3-4 Weeks")
+                .realWorldUseCase("Insights used by HR managers to benchmark salaries and identify talent gaps.")
+                .resumeImpactScore(8)
+                .githubLink("https://github.com/example/career-analytics")
+                .build();
+        projectIdeaRepository.save(analytics);
+        seedSteps(analytics, Arrays.asList(
+            "Scrape job data from LinkedIn and Indeed using Selenium.",
+            "Perform exploratory data analysis (EDA) to find correlations.",
+            "Train a regression model to predict salary based on skills/location.",
+            "Build a dashboard to visualize trends using React and Chart.js."
+        ));
+
+        // Fitness Tracker with Wearable Integration
+        ProjectIdea fitness = ProjectIdea.builder()
+                .title("FitTrack Pro")
+                .description("A mobile-first application to track workouts, calories, and sync with Apple Health/Google Fit.")
+                .domain(ProjectIdea.ProjectDomain.MOBILE_APP)
+                .difficulty(ProjectIdea.ProjectDifficulty.INTERMEDIATE)
+                .techStack(Arrays.asList("Flutter", "Firebase", "HealthKit API", "Node.js"))
+                .estimatedTime("6-8 Weeks")
+                .realWorldUseCase("Health monitoring apps for insurance and patient record tracking.")
+                .resumeImpactScore(8)
+                .githubLink("https://github.com/example/fittrack")
+                .build();
+        projectIdeaRepository.save(fitness);
+        seedSteps(fitness, Arrays.asList(
+            "Implement OAuth2 login with Google and Apple.",
+            "Sync step and heart rate data from Health API to local DB.",
+            "Build a workout logger with dynamic charts for weight progress.",
+            "implement push notifications for daily hydration reminders."
+        ));
+
+        // Blockchain-based Certifier
+        ProjectIdea blockchain = ProjectIdea.builder()
+                .title("SafeCert: Blockchain Degrees")
+                .description("Issue and verify academic certificates on the Ethereum blockchain to prevent fraud.")
+                .domain(ProjectIdea.ProjectDomain.BLOCKCHAIN)
+                .difficulty(ProjectIdea.ProjectDifficulty.ADVANCED)
+                .techStack(Arrays.asList("Solidity", "Hardhat", "Ether.js", "React"))
+                .estimatedTime("8-10 Weeks")
+                .realWorldUseCase("Ensuring tamper-proof academic and professional credentials.")
+                .resumeImpactScore(10)
+                .githubLink("https://github.com/example/safecert")
+                .build();
+        projectIdeaRepository.save(blockchain);
+        seedSteps(blockchain, Arrays.asList(
+            "Write a Smart Contract in Solidity to store certificate hashes.",
+            "Develop a verification portal for employers to check credential validity.",
+            "Implement gas-optimized minting for bulk certificate issuance.",
+            "Integrate MetaMask for digital identity verification."
+        ));
+
+        // Personal Finance Tracker
+        ProjectIdea finance = ProjectIdea.builder()
+                .title("SpendWise")
+                .description("Automatically track expenses from SMS alerts and provide budget insights.")
+                .domain(ProjectIdea.ProjectDomain.MOBILE_APP)
+                .difficulty(ProjectIdea.ProjectDifficulty.BEGINNER)
+                .techStack(Arrays.asList("React Native", "SQLite", "Expo"))
+                .estimatedTime("3 Weeks")
+                .realWorldUseCase("Consumer fintech apps for financial literacy.")
+                .resumeImpactScore(7)
+                .githubLink("https://github.com/example/spendwise")
+                .build();
+        projectIdeaRepository.save(finance);
+        seedSteps(finance, Arrays.asList(
+            "Build a category-based expense logger UI.",
+            "Implement local storage using SQLite for offline access.",
+            "Create monthly spending charts using React Native SVG Charts.",
+            "Implement a 'Budget Alert' system using local notifications."
+        ));
+
+        // Distributed Key-Value Store
+        ProjectIdea kvstore = ProjectIdea.builder()
+                .title("Titan KV Store")
+                .description("Build a highly available and consistent key-value store from scratch.")
+                .domain(ProjectIdea.ProjectDomain.SYSTEM_DESIGN)
+                .difficulty(ProjectIdea.ProjectDifficulty.ADVANCED)
+                .techStack(Arrays.asList("C++", "Raft Consensus", "gRPC"))
+                .estimatedTime("10-14 Weeks")
+                .realWorldUseCase("Core component of Redis and Etcd clusters.")
+                .resumeImpactScore(10)
+                .githubLink("https://github.com/example/titan-kv")
+                .build();
+        projectIdeaRepository.save(kvstore);
+        seedSteps(kvstore, Arrays.asList(
+            "Implement the Raft consensus algorithm for leader election.",
+            "Build a log replication system for data consistency.",
+            "Implement data persistence using LSM trees for high write-throughput.",
+            "Add a gRPC client library for external service interaction."
+        ));
+
+        // Cybersecurity Threat Map
+        ProjectIdea threatmap = ProjectIdea.builder()
+                .title("CyberSentinel Map")
+                .description("Visualize real-time cyber threats and DDoS attacks globally.")
+                .domain(ProjectIdea.ProjectDomain.CYBERSECURITY)
+                .difficulty(ProjectIdea.ProjectDifficulty.INTERMEDIATE)
+                .techStack(Arrays.asList("Go", "ELK Stack", "Leaflet.js", "Redis"))
+                .estimatedTime("5 Weeks")
+                .realWorldUseCase("Used in Security Operations Centers (SOCs) for threat intelligence.")
+                .resumeImpactScore(9)
+                .githubLink("https://github.com/example/cybersentinel")
+                .build();
+        projectIdeaRepository.save(threatmap);
+        seedSteps(threatmap, Arrays.asList(
+            "Ingest honeypot data using Go-based log listeners.",
+            "Geolocate IP addresses using MaxMind database.",
+            "Stream data to a web frontend using Server-Sent Events (SSE).",
+            "Build an interactive 3D globe visualization in WebGL."
+        ));
+
+        // Recommendation Engine for Movies
+        ProjectIdea movies = ProjectIdea.builder()
+                .title("CineMatch AI")
+                .description("A movie recommendation system using collaborative filtering and content-based algorithms.")
+                .domain(ProjectIdea.ProjectDomain.AI_ML)
+                .difficulty(ProjectIdea.ProjectDifficulty.BEGINNER)
+                .techStack(Arrays.asList("Python", "Surprise Library", "FastAPI", "MongoDB"))
+                .estimatedTime("4 Weeks")
+                .realWorldUseCase("Personalization algorithms used by Netflix and YouTube.")
+                .resumeImpactScore(8)
+                .githubLink("https://github.com/example/cinematch")
+                .build();
+        projectIdeaRepository.save(movies);
+        seedSteps(movies, Arrays.asList(
+            "Preprocess MovieLens dataset using Pandas.",
+            "Implement Singular Value Decomposition (SVD) for matrix factorization.",
+            "Build a REST API to serve user-specific recommendations.",
+            "Deploy the model using Docker on AWS App Runner."
+        ));
+
+        // Inventory Management System
+        ProjectIdea inventory = ProjectIdea.builder()
+                .title("StockMaster")
+                .description("Real-time inventory tracking for warehouses with barcode scanning support.")
+                .domain(ProjectIdea.ProjectDomain.WEB_DEV)
+                .difficulty(ProjectIdea.ProjectDifficulty.BEGINNER)
+                .techStack(Arrays.asList("Java", "Spring Boot", "MySQL", "React"))
+                .estimatedTime("4 Weeks")
+                .realWorldUseCase("Retail and logistics supply chain management.")
+                .resumeImpactScore(7)
+                .githubLink("https://github.com/example/stockmaster")
+                .build();
+        projectIdeaRepository.save(inventory);
+        seedSteps(inventory, Arrays.asList(
+            "Design a DB schema for Products, Warehouses, and Transactions.",
+            "Implement REST endpoints for CRUD operations on inventory.",
+            "Build a frontend dashboard with low-stock alerts.",
+            "Integrate a JS-based barcode scanner library."
+        ));
+    }
+
+    private void seedSteps(ProjectIdea project, List<String> stepDescriptions) {
+        for (int i = 0; i < stepDescriptions.size(); i++) {
+            ProjectStep step = ProjectStep.builder()
+                    .projectIdea(project)
+                    .stepNumber(i + 1)
+                    .title("Step " + (i + 1))
+                    .description(stepDescriptions.get(i))
+                    .build();
+            projectStepRepository.save(step);
+        }
+    }

@@ -21,6 +21,8 @@ const RevisionScheduler = lazy(() => import('./pages/RevisionScheduler'));
 const CommunicationLab = lazy(() => import('./pages/CommunicationLab'));
 const About = lazy(() => import('./pages/About'));
 const Profile = lazy(() => import('./pages/Profile'));
+const JobRecommendations = lazy(() => import('./pages/JobRecommendations'));
+const ProjectIdeas = lazy(() => import('./pages/ProjectIdeas'));
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -75,6 +77,8 @@ function App() {
             <Route path="/company-prep" element={<P><CompanyPrep /></P>} />
             <Route path="/aptitude" element={<P><Aptitude /></P>} />
             <Route path="/jobs" element={<P><Jobs /></P>} />
+            <Route path="/recommendations" element={<P><JobRecommendations /></P>} />
+            <Route path="/project-ideas" element={<P><ProjectIdeas /></P>} />
             <Route path="/resume-builder" element={<P><ResumeBuilder /></P>} />
             <Route path="/interviews" element={<P><InterviewExperience /></P>} />
             <Route path="/mock-interviews" element={<P><MockInterview /></P>} />

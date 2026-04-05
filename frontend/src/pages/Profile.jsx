@@ -15,8 +15,10 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { practiceService } from '../api/practiceService';
 
+import { profileService } from '../api/profileService';
+
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [stats, setStats] = useState({
     solvedCount: user?.problemsSolved || 0,
     totalCount: 0,
@@ -44,6 +46,32 @@ const Profile = () => {
 
     fetchStats();
   }, [user]);
+
+  const handleAddSkill = async (skill) => {
+    if (!skill || !skill.trim()) return;
+    const s = skill.trim();
+    const currentSkills = user.skills || [];
+    if (currentSkills.includes(s)) return;
+    
+    const updatedSkills = [...currentSkills, s];
+    try {
+      const updatedUser = await profileService.updateProfile({ ...user, skills: updatedSkills });
+      updateUser(updatedUser);
+    } catch (err) {
+      console.error('Failed to add skill', err);
+    }
+  };
+
+  const handleRemoveSkill = async (skill) => {
+    const currentSkills = user.skills || [];
+    const updatedSkills = currentSkills.filter(s => s !== skill);
+    try {
+      const updatedUser = await profileService.updateProfile({ ...user, skills: updatedSkills });
+      updateUser(updatedUser);
+    } catch (err) {
+      console.error('Failed to remove skill', err);
+    }
+  };
 
   const calculateLevel = (count) => {
     if (count > 100) return 'Expert';
@@ -178,10 +206,58 @@ const Profile = () => {
           <section>
             <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--t1)' }}>Personal Details</h2>
             <div className="card" style={{ padding: '0' }}>
-              <DetailRow label="Role" value="Software Developer Aspirant" border />
-              <DetailRow label="College" value="Not Specified" border />
-              <DetailRow label="Joined On" value="April 2024" border />
-              <DetailRow label="Account Security" value="Verified (E-mail)" last />
+              <DetailRow label="Primary Goal" value={user.primaryGoal || "Not Set"} border />
+              <DetailRow label="College" value={user.college || "Not Specified"} border />
+              <DetailRow label="Graduation Year" value={user.gradYear || "N/A"} border />
+              <DetailRow label="Branch" value={user.branch || "N/A"} last />
+            </div>
+
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginTop: '32px', marginBottom: '20px', color: 'var(--t1)' }}>Technical Skills</h2>
+            <div className="card" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                {user.skills && user.skills.length > 0 ? (
+                  user.skills.map(skill => (
+                    <span 
+                      key={skill} 
+                      style={{ 
+                        background: 'var(--bg2)', 
+                        color: 'var(--t2)', 
+                        padding: '6px 12px', 
+                        borderRadius: '8px', 
+                        fontSize: '13px',
+                        border: '1px solid var(--b1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      {skill}
+                      <button 
+                        onClick={() => handleRemoveSkill(skill)}
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'var(--t3)' }}
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <p style={{ fontSize: '13px', color: 'var(--t3)' }}>No skills added yet. Add skills to get better job recommendations.</p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <input 
+                  type="text" 
+                  placeholder="Add skill (e.g. Java, React)" 
+                  style={{ flex: 1, background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: '8px', padding: '8px 12px', color: 'var(--t1)' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddSkill(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+                <button className="btn btn-primary btn-sm">Add</button>
+              </div>
             </div>
           </section>
 
