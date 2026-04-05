@@ -16,10 +16,8 @@ const ResumeBuilder = lazy(() => import('./pages/ResumeBuilder'));
 const InterviewExperience = lazy(() => import('./pages/InterviewExperience'));
 const MockInterview = lazy(() => import('./pages/MockInterview'));
 const Roadmap = lazy(() => import('./pages/Roadmap'));
-const Contests = lazy(() => import('./pages/Contests'));
 const AIAssistant = lazy(() => import('./pages/AIAssistant'));
-const Community = lazy(() => import('./pages/Community'));
-const CourseCatalog = lazy(() => import('./pages/CourseCatalog'));
+const RevisionScheduler = lazy(() => import('./pages/RevisionScheduler'));
 const CommunicationLab = lazy(() => import('./pages/CommunicationLab'));
 const About = lazy(() => import('./pages/About'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -81,10 +79,8 @@ function App() {
             <Route path="/interviews" element={<P><InterviewExperience /></P>} />
             <Route path="/mock-interviews" element={<P><MockInterview /></P>} />
             <Route path="/roadmap" element={<P><Roadmap /></P>} />
-            <Route path="/contests" element={<P><Contests /></P>} />
+            <Route path="/revision-scheduler" element={<P><RevisionScheduler /></P>} />
             <Route path="/ai" element={<P><AIAssistant /></P>} />
-            <Route path="/community" element={<P><Community /></P>} />
-            <Route path="/courses" element={<P><CourseCatalog /></P>} />
             <Route path="/communication" element={<P><CommunicationLab /></P>} />
             <Route path="/about" element={<P><About /></P>} />
             <Route path="/profile" element={<P><Profile /></P>} />

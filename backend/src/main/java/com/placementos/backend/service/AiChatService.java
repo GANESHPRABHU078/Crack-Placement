@@ -69,6 +69,26 @@ public class AiChatService {
         }
     }
 
+    public String analyzeInterviewResponse(String question, String answer) {
+        if (question == null || answer == null || answer.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing question or answer for analysis.");
+        }
+
+        String prompt = "You are an Expert Interview Coach. Analyze the following interview response and provide constructive, structured feedback.\n\n" +
+                "QUESTION: " + question + "\n" +
+                "ANSWER: " + answer + "\n\n" +
+                "PROVIDE FEEDBACK ON:\n" +
+                "1. Clarity & Confidence (0-10 score)\n" +
+                "2. Content Depth & Relevance\n" +
+                "3. Grammar & Filler Words (e.g., um, uh, like)\n" +
+                "4. Framework Alignment (Did they use STAR or PREP effectively?)\n" +
+                "5. Specific Advice for Improvement\n\n" +
+                "Keep the tone professional, encouraging, and concise. Use markdown for structure.";
+
+        AiChatMessage systemMsg = new AiChatMessage("user", prompt); // First user msg gets system prompt
+        return generateReply(List.of(systemMsg));
+    }
+
     private String generateOpenAiReply(List<AiChatMessage> messages) {
         if (openAiApiKey.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "OpenAI is not configured. Add OPENAI_API_KEY.");

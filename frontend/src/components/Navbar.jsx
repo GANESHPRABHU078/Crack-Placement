@@ -10,8 +10,6 @@ const Navbar = () => {
   const navItems = [
     { label: 'Explore', path: '/dashboard' },
     { label: 'Practice', path: '/practice' },
-    { label: 'Contests', path: '/contests' },
-    { label: 'Discuss', path: '/community' },
     { label: 'About', path: '/about' },
   ];
 

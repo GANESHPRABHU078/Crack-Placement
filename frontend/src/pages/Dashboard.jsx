@@ -7,6 +7,7 @@ import {
   Clock, ArrowUpRight, Code2,
   BookOpen, Cpu, ChevronRight
 } from 'lucide-react';
+import Heatmap from '../components/Heatmap';
 
 const containerVars = {
   hidden: { opacity: 0 },
@@ -21,6 +22,7 @@ const itemVars = {
 const Dashboard = () => {
   const { user } = useAuth();
   const [solvedCount, setSolvedCount] = React.useState(0);
+  const [heatmapData, setHeatmapData] = React.useState({});
 
   React.useEffect(() => {
     const loadSolvedCount = async () => {
@@ -32,7 +34,17 @@ const Dashboard = () => {
       }
     };
 
+    const loadHeatmapData = async () => {
+      try {
+        const data = await practiceService.getHeatmapData();
+        setHeatmapData(data);
+      } catch (error) {
+        console.error('Failed to load heatmap data:', error);
+      }
+    };
+
     loadSolvedCount();
+    loadHeatmapData();
   }, [user?.problemsSolved]);
 
   React.useEffect(() => {
@@ -138,6 +150,10 @@ const Dashboard = () => {
                 ))}
               </div>
             </div>
+          </motion.div>
+          
+          <motion.div variants={itemVars} style={{ gridColumn: '1 / -1' }}>
+            <Heatmap data={heatmapData} />
           </motion.div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

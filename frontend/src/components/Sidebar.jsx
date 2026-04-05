@@ -7,14 +7,13 @@ import {
   Map,
   MessageSquare,
   Briefcase,
-  Trophy,
   GraduationCap,
   Award,
-  Users,
   Video,
   Target,
   Building2,
-  Info
+  Info,
+  History
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -26,18 +25,16 @@ const Sidebar = () => {
     { icon: BookOpen, label: 'Resume Builder', path: '/resume-builder' },
     { icon: Calculator, label: 'Aptitude Quiz', path: '/aptitude' },
     { icon: Map, label: 'Study Roadmap', path: '/roadmap' },
+    { icon: History, label: 'Revision Scheduler', path: '/revision-scheduler' },
 
     { label: 'OPPORTUNITIES', type: 'label' },
     { icon: Briefcase, label: 'Jobs & Interns', path: '/jobs' },
-    { icon: Trophy, label: 'Contests', path: '/contests' },
 
     { label: 'PLACEMENT PREP', type: 'label' },
     { icon: GraduationCap, label: 'Interview Exp', path: '/interviews' },
     { icon: Video, label: 'Mock Interviews', path: '/mock-interviews' },
     { icon: MessageSquare, label: 'Communication', path: '/communication' },
-    { icon: Award, label: 'Course Catalog', path: '/courses' },
     { icon: MessageSquare, label: 'AI Assistant', path: '/ai' },
-    { icon: Users, label: 'Community', path: '/community' },
     { icon: Info, label: 'About', path: '/about' },
   ];
 

@@ -9,8 +9,11 @@ import {
   Play,
   RotateCcw,
   Save,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
+import { communicationService } from '../api/communicationService';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const STORAGE_KEY = 'communication_lab_state';
 
@@ -105,6 +108,58 @@ const CommunicationLab = () => {
   const [secondsLeft, setSecondsLeft] = React.useState(0);
   const [isRunning, setIsRunning] = React.useState(false);
   const [saveMessage, setSaveMessage] = React.useState('');
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [transcript, setTranscript] = React.useState('');
+  const [aiFeedback, setAiFeedback] = React.useState('');
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false);
+
+  const recognitionRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        setTranscript((prev) => prev + finalTranscript);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+    } else {
+      setTranscript('');
+      setAiFeedback('');
+      recognitionRef.current?.start();
+      setIsRecording(true);
+    }
+  };
 
   const selectedTrack = practiceTracks.find((track) => track.id === selectedTrackId) || practiceTracks[0];
   const currentPrompt = selectedTrack.prompts[promptIndex] || selectedTrack.prompts[0];
@@ -174,6 +229,20 @@ const CommunicationLab = () => {
 
     setSessions((value) => [entry, ...value].slice(0, 8));
     setSaveMessage('Practice session saved.');
+  };
+
+  const handleAnalyze = async () => {
+    if (!transcript && !notes) return;
+    setIsAnalyzing(true);
+    try {
+      const result = await communicationService.analyzeResponse(currentPrompt, transcript || notes);
+      setAiFeedback(result.feedback);
+    } catch (err) {
+      console.error('Analysis failed:', err);
+      setAiFeedback('Failed to analyze. Please try again.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const completionRate = Math.min(100, sessions.length * 10);
@@ -261,7 +330,13 @@ const CommunicationLab = () => {
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 18 }}>
-                <button className="btn btn-primary btn-sm" onClick={startTimer}>
+                <button 
+                  className={`btn ${isRecording ? 'btn-danger' : 'btn-primary'} btn-sm mic-btn`} 
+                  onClick={toggleRecording}
+                >
+                  {isRecording ? <div className="pulse-mic"><Mic size={14} /> Stop Recording</div> : <><Mic size={14} /> Record Answer</>}
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={startTimer}>
                   <Play size={14} /> Start Timer
                 </button>
                 <button className="btn btn-ghost btn-sm" onClick={resetTimer}>
@@ -272,13 +347,20 @@ const CommunicationLab = () => {
                 </button>
               </div>
 
+              {transcript && (
+                <div className="transcript-box mb18">
+                  <div className="transcript-hdr">Live Transcript</div>
+                  <div className="transcript-text">{transcript}</div>
+                </div>
+              )}
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 12, marginBottom: 8, color: 'var(--t3)' }}>Your response notes</label>
+                  <label style={{ display: 'block', fontSize: 12, marginBottom: 8, color: 'var(--t3)' }}>Your response (Text/Transcript)</label>
                   <textarea
-                    value={notes}
-                    onChange={(event) => setNotes(event.target.value)}
-                    placeholder="Write the answer outline or key points you spoke."
+                    value={transcript || notes}
+                    onChange={(event) => transcript ? setTranscript(event.target.value) : setNotes(event.target.value)}
+                    placeholder="Transcribed text will appear here, or you can type."
                     style={{ width: '100%', minHeight: 120, background: 'var(--bg2)', border: '1px solid var(--b2)', borderRadius: 12, color: 'var(--t1)', padding: '12px 14px', resize: 'vertical' }}
                   />
                 </div>
@@ -303,11 +385,38 @@ const CommunicationLab = () => {
                 />
               </div>
 
-              <div style={{ marginTop: 16 }}>
+              <div style={{ marginTop: 16, display: 'flex', gap: 12 }}>
                 <button className="btn btn-primary btn-sm" onClick={saveSession}>
                   <Save size={14} /> Save Practice Session
                 </button>
+                <button 
+                  className="btn btn-ghost btn-sm" 
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing || (!transcript && !notes)}
+                >
+                  {isAnalyzing ? <><Loader2 size={14} className="spin" /> Analyzing...</> : <><Sparkles size={14} /> Get AI Feedback</>}
+                </button>
               </div>
+
+              <AnimatePresence>
+                {aiFeedback && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="ai-analysis-card mt24"
+                  >
+                    <div className="card-hdr">
+                      <div className="card-title faic gap8"><Sparkles size={16} color="var(--orange)" /> Expert AI Analysis</div>
+                    </div>
+                    <div className="ai-feedback-content markdown-body">
+                      {aiFeedback.split('\n').map((line, i) => (
+                        <p key={i} style={{ marginBottom: 8 }}>{line}</p>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
@@ -380,6 +489,68 @@ const CommunicationLab = () => {
           </div>
         </div>
       </div>
+      <style jsx>{`
+        .pulse-mic {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.8; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+
+        .btn-danger {
+          background: #ef4444;
+          color: white;
+        }
+
+        .transcript-box {
+          background: var(--bg2);
+          border: 1px solid var(--b2);
+          border-radius: 12px;
+          padding: 14px;
+        }
+
+        .transcript-hdr {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--orange);
+          text-transform: uppercase;
+          margin-bottom: 8px;
+        }
+
+        .transcript-text {
+          font-size: 14px;
+          color: var(--t2);
+          line-height: 1.5;
+        }
+
+        .ai-analysis-card {
+          background: rgba(249,115,22,0.04);
+          border: 1px solid rgba(249,115,22,0.2);
+          border-radius: 16px;
+          padding: 20px;
+        }
+
+        .ai-feedback-content {
+          font-size: 14px;
+          color: var(--t2);
+          line-height: 1.6;
+        }
+
+        .spin {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 };
