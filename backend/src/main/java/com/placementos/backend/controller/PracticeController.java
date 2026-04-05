@@ -222,7 +222,13 @@ public class PracticeController {
         item.put("platform", problem.getPlatform().name());
         item.put("problemUrl", problem.getProblemUrl());
         item.put("summary", problem.getSummary());
-        item.put("topic", Map.of("id", topic.getId(), "name", topic.getName(), "slug", topic.getSlug(), "accentColor", topic.getAccentColor(), "iconName", topic.getIconName()));
+        Map<String, Object> topicMap = new LinkedHashMap<>();
+        topicMap.put("id", topic.getId());
+        topicMap.put("name", topic.getName());
+        topicMap.put("slug", topic.getSlug());
+        topicMap.put("accentColor", topic.getAccentColor());
+        topicMap.put("iconName", topic.getIconName());
+        item.put("topic", topicMap);
         return item;
     }
 

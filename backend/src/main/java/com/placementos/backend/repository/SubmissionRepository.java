@@ -14,9 +14,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
 
     @Query("SELECT FUNCTION('DATE', s.submittedAt) as date, COUNT(s) as count " +
            "FROM Submission s " +
-           "WHERE s.user.id = :userId AND s.status = 'Accepted' " +
+           "WHERE s.user.id = :userId AND s.status = :status " +
            "AND s.submittedAt >= :startDate " +
            "GROUP BY FUNCTION('DATE', s.submittedAt) " +
            "ORDER BY date ASC")
-    List<Object[]> getDailyAcceptedSubmissionCounts(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate);
+    List<Object[]> getDailyAcceptedSubmissionCounts(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate, @Param("status") Submission.Status status);
 }
