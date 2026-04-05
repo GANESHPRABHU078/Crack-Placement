@@ -28,6 +28,7 @@ public class DataSeeder implements CommandLineRunner {
     private final CompanyPrepProfileRepository companyPrepProfileRepository;
     private final ProjectIdeaRepository projectIdeaRepository;
     private final ProjectStepRepository projectStepRepository;
+    private final PracticeProgressRepository practiceProgressRepository;
 
     public DataSeeder(
             JobRepository jobRepository,
@@ -38,7 +39,8 @@ public class DataSeeder implements CommandLineRunner {
             PracticeProblemRepository practiceProblemRepository,
             CompanyPrepProfileRepository companyPrepProfileRepository,
             ProjectIdeaRepository projectIdeaRepository,
-            ProjectStepRepository projectStepRepository
+            ProjectStepRepository projectStepRepository,
+            PracticeProgressRepository practiceProgressRepository
     ) {
         this.jobRepository = jobRepository;
         this.aptitudeQuestionRepository = aptitudeQuestionRepository;
@@ -49,6 +51,7 @@ public class DataSeeder implements CommandLineRunner {
         this.companyPrepProfileRepository = companyPrepProfileRepository;
         this.projectIdeaRepository = projectIdeaRepository;
         this.projectStepRepository = projectStepRepository;
+        this.practiceProgressRepository = practiceProgressRepository;
     }
 
     @Override
@@ -72,6 +75,9 @@ public class DataSeeder implements CommandLineRunner {
         }
         if (practiceTopicRepository.count() < 15 || practiceProblemRepository.count() < 90) {
             // Drop dependent entities first to avoid foreign key constraints during delete
+            practiceProgressRepository.deleteAll();
+            practiceProgressRepository.flush();
+            
             companyPrepProfileRepository.deleteAll();
             companyPrepProfileRepository.flush();
             
