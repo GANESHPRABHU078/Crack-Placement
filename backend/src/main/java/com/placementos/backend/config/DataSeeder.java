@@ -71,8 +71,16 @@ public class DataSeeder implements CommandLineRunner {
             log.info("Seeded mock interviews.");
         }
         if (practiceTopicRepository.count() < 15 || practiceProblemRepository.count() < 90) {
+            // Drop dependent entities first to avoid foreign key constraints during delete
+            companyPrepProfileRepository.deleteAll();
+            companyPrepProfileRepository.flush();
+            
             practiceProblemRepository.deleteAll();
+            practiceProblemRepository.flush();
+            
             practiceTopicRepository.deleteAll();
+            practiceTopicRepository.flush();
+            
             seedPracticeContent();
             log.info("Seeded 90+ real-world practice problems.");
         } else {
