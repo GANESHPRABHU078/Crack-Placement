@@ -104,6 +104,7 @@ public class AiChatService {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Gemini is not configured. Add GEMINI_API_KEY.");
         }
 
+        int modelListAttempted = 0;
         String[] apiVersions = {"v1beta", "v1"};
         String[] modelsToTry = {
                 "gemini-1.5-flash-latest", 
@@ -155,6 +156,19 @@ public class AiChatService {
                         } else {
                             lastError = response.body();
                             System.out.println("[DIAGNOSTIC] Failed " + version + "/" + cleanedModel + ": " + response.statusCode());
+                            
+                            // If we get a 404, let's try to LIST models once to see what this key actually sees
+                            if (response.statusCode() == 404 && modelListAttempted < 1) {
+                                modelListAttempted++;
+                                try {
+                                    String listUrl = String.format("https://generativelanguage.googleapis.com/%s/models?key=%s", version, geminiApiKey);
+                                    HttpRequest listReq = HttpRequest.newBuilder().uri(URI.create(listUrl)).timeout(Duration.ofSeconds(10)).GET().build();
+                                    HttpResponse<String> listRes = httpClient.send(listReq, HttpResponse.BodyHandlers.ofString());
+                                    System.out.println("[DIAGNOSTIC] Available Models for this Key: " + listRes.body());
+                                } catch (Exception listEx) {
+                                    System.err.println("[DIAGNOSTIC] Failed to list models: " + listEx.getMessage());
+                                }
+                            }
                         }
                     } catch (Exception e) {
                         lastError = e.getMessage();
