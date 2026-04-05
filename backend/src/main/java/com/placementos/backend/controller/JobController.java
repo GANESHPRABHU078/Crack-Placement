@@ -89,10 +89,4 @@ public class JobController {
     public ResponseEntity<Job> create(@RequestBody Job job) {
         return ResponseEntity.ok(jobRepository.save(job));
     }
-
-    @java.lang.SuppressWarnings("all")
-    @lombok.Generated
-    public JobController(final JobRepository jobRepository) {
-        this.jobRepository = jobRepository;
-    }
 }
