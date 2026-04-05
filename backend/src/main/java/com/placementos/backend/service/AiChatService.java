@@ -106,11 +106,12 @@ public class AiChatService {
 
         String[] apiVersions = {"v1beta", "v1"};
         String[] modelsToTry = {
-                geminiModel, 
                 "gemini-1.5-flash-latest", 
                 "gemini-1.5-flash", 
+                "gemini-1.5-flash-8b",
                 "gemini-1.5-pro-latest", 
                 "gemini-1.5-pro", 
+                geminiModel, 
                 "gemini-pro", 
                 "gemini-1.0-pro"
         };
@@ -162,9 +163,25 @@ public class AiChatService {
             }
             // FINAL FALLBACK: If all models fail, don't return 502, return a friendly message.
             System.err.println("[DIAGNOSTIC] ALL Gemini models failed. Last error: " + lastError);
-            return "I'm currently having trouble connecting to my brain (Gemini API). This is usually due to a temporary quota limit or region restriction. Please try again in a few minutes, or ask your administrator to check the GEMINI_API_KEY.";
+            
+            String userErrorMsg = "I'm currently having trouble connecting to my Gemini brain.";
+            if (lastError.contains("429")) {
+                userErrorMsg += " (Quota Exceeded: Too many requests. Please try again in 60 seconds.)";
+            } else if (lastError.contains("400")) {
+                userErrorMsg += " (Invalid Request format or model mismatch.)";
+            } else if (lastError.contains("401") || lastError.contains("403")) {
+                userErrorMsg += " (Authentication Error: Your API key might be invalid or restricted.)";
+            } else if (lastError.contains("404")) {
+                userErrorMsg += " (Model Not Found: The selected models are not available in your region or version.)";
+            } else {
+                // Return a snippet of the error to help debug
+                String snippet = lastError.length() > 60 ? lastError.substring(0, 60) + "..." : lastError;
+                userErrorMsg += " (Technical Detail: " + snippet + ")";
+            }
+
+            return userErrorMsg + " Please ask your administrator to check the GEMINI_API_KEY or region availability.";
         } catch (IOException e) {
-            return "I'm experiencing a technical difficulty constructing my response. Please try again later.";
+            return "I'm experiencing a technical difficulty constructing my response. (IO Exception: " + e.getMessage() + ")";
         }
     }
 
