@@ -501,6 +501,24 @@ public class User {
 
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
+    public Set<String> getSkills() {
+        return this.skills;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public Set<String> getPreferredRoles() {
+        return this.preferredRoles;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public String getLocationPreference() {
+        return this.locationPreference;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
     public void setId(final Long id) {
         this.id = id;
     }
@@ -605,6 +623,24 @@ public class User {
     @lombok.Generated
     public void setLastLogin(final LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setSkills(final Set<String> skills) {
+        this.skills = skills;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setPreferredRoles(final Set<String> preferredRoles) {
+        this.preferredRoles = preferredRoles;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setLocationPreference(final String locationPreference) {
+        this.locationPreference = locationPreference;
     }
 
     @java.lang.Override

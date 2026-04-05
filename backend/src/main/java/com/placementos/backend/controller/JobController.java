@@ -1,3 +1,6 @@
+package com.placementos.backend.controller;
+
+import com.placementos.backend.entity.Job;
 import com.placementos.backend.entity.User;
 import com.placementos.backend.repository.JobRepository;
 import com.placementos.backend.repository.UserRepository;
