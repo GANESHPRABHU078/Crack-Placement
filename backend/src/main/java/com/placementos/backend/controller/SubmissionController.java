@@ -39,6 +39,7 @@ public class SubmissionController {
         
         Map<String, Integer> heatmap = new LinkedHashMap<>();
         for (Object[] result : results) {
+            if (result == null || result.length < 2 || result[0] == null || result[1] == null) continue;
             String date = result[0].toString();
             Integer count = ((Number) result[1]).intValue();
             heatmap.put(date, count);
