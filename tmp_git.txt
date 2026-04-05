@@ -1,0 +1,23 @@
+﻿commit 88467134ce94080fd6f39c73e7da3087b371e2bf
+Author: vasanth2052004 <vasanthbiotech158@gmail.com>
+Date:   Sun Apr 5 13:30:16 2026 +0530
+
+    more features
+
+ backend/build_errors_3.txt                               | Bin 0 -> 1922 bytes
+ .../placementos/backend/controller/JobController.java    |   6 ------
+ 2 files changed, 6 deletions(-)
+
+commit 5da6069eb3061b815d43ece9114f1d19ca271777
+Author: vasanth2052004 <vasanthbiotech158@gmail.com>
+Date:   Sun Apr 5 13:22:58 2026 +0530
+
+    more features
+
+ backend/build_errors.txt                           | Bin 0 -> 17244 bytes
+ backend/build_errors_2.txt                         | Bin 0 -> 1922 bytes
+ .../backend/controller/JobController.java          |   3 ++
+ .../java/com/placementos/backend/entity/User.java  |  36 +++++++++++++++++++++
+ .../backend/repository/ProjectStepRepository.java  |  10 ++++++
+ 5 files changed, 49 insertions(+)
+
