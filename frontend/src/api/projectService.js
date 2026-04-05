@@ -6,7 +6,7 @@ export const projectService = {
     if (domain && domain !== 'All') params.domain = domain;
     if (difficulty && difficulty !== 'All') params.difficulty = difficulty;
     const response = await api.get('/projects', { params });
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getProjectById: async (id) => {
@@ -16,12 +16,12 @@ export const projectService = {
 
   getRecommendedProjects: async () => {
     const response = await api.get('/projects/recommended');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getUserProjectStatus: async () => {
     const response = await api.get('/projects/status');
-    return response.data;
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   updateProjectStatus: async (projectId, status) => {

@@ -41,23 +41,33 @@ const ProjectIdeas = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [allProjs, recProjs, progress] = await Promise.all([
-        projectService.getProjects(),
+      // Fetch main projects first to unblock the UI
+      const allProjs = await projectService.getProjects();
+      setProjects(Array.isArray(allProjs) ? allProjs : []);
+      setLoading(false);
+
+      // Fetch supplementary data in the background
+      Promise.allSettled([
         projectService.getRecommendedProjects(),
         projectService.getUserProjectStatus()
-      ]);
-      setProjects(allProjs);
-      setRecommended(recProjs);
-      setUserProgress(progress);
+      ]).then(([recResult, progressResult]) => {
+        if (recResult.status === 'fulfilled') {
+          setRecommended(Array.isArray(recResult.value) ? recResult.value : []);
+        }
+        if (progressResult.status === 'fulfilled') {
+          setUserProgress(Array.isArray(progressResult.value) ? progressResult.value : []);
+        }
+      });
     } catch (err) {
       console.error('Error fetching projects:', err);
-    } finally {
       setLoading(false);
+      setProjects([]);
     }
   };
 
   const getStatusForProject = (projectId) => {
-    const p = userProgress.find(up => up.projectIdea.id === projectId);
+    if (!Array.isArray(userProgress)) return null;
+    const p = userProgress.find(up => up.projectIdea?.id === projectId);
     return p ? p.status : null;
   };
 
@@ -65,13 +75,14 @@ const ProjectIdeas = () => {
     try {
       const updated = await projectService.updateProjectStatus(projectId, status);
       setUserProgress(prev => {
-        const idx = prev.findIndex(p => p.projectIdea.id === projectId);
+        const safePrev = Array.isArray(prev) ? prev : [];
+        const idx = safePrev.findIndex(p => p.projectIdea?.id === projectId);
         if (idx > -1) {
-          const newProgress = [...prev];
+          const newProgress = [...safePrev];
           newProgress[idx] = updated;
           return newProgress;
         }
-        return [...prev, updated];
+        return [...safePrev, updated];
       });
     } catch (err) {
       console.error('Error updating project status:', err);
@@ -87,11 +98,12 @@ const ProjectIdeas = () => {
     { id: 'CYBERSECURITY', label: 'Security', icon: ShieldCheck }
   ];
 
-  const filteredProjects = projects.filter(p => {
+  const filteredProjects = (Array.isArray(projects) ? projects : []).filter(p => {
+    if (!p) return false;
     const matchesDomain = filter === 'All' || p.domain === filter;
     const matchesDifficulty = difficulty === 'All' || p.difficulty === difficulty;
-    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase()) || 
-                         p.description.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = (p.title || '').toLowerCase().includes(search.toLowerCase()) || 
+                         (p.description || '').toLowerCase().includes(search.toLowerCase());
     return matchesDomain && matchesDifficulty && matchesSearch;
   });
 
@@ -126,42 +138,45 @@ const ProjectIdeas = () => {
       </div>
 
       {/* Recommended Section */}
-      {!loading && recommended.length > 0 && search === '' && filter === 'All' && (
+      {!loading && Array.isArray(recommended) && recommended.length > 0 && search === '' && filter === 'All' && (
         <section className="mb40">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <Sparkles size={20} color="var(--orange)" />
             <h2 className="card-title" style={{ fontSize: '18px' }}>Recommended for Your Stack</h2>
           </div>
           <div className="project-rec-grid">
-            {recommended.slice(0, 3).map((rec, idx) => (
-              <motion.div 
-                key={rec.project.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.1 }}
-                className="card project-rec-card"
-                onClick={() => setSelectedProject(rec.project)}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span className="badge" style={{ background: 'rgba(249,115,22,0.1)', color: 'var(--orange)' }}>
-                    {rec.matchPercent}% Match
-                  </span>
-                  <Trophy size={18} color="var(--orange)" opacity={0.6} />
-                </div>
-                <h3 className="card-title mb4">{rec.project.title}</h3>
-                <p className="card-sub mb16" style={{ fontSize: '13px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {rec.project.description}
-                </p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {rec.project.techStack.slice(0, 2).map(t => (
-                      <span key={t} className="tech-tag-sm">{t}</span>
-                    ))}
+            {recommended.slice(0, 3).map((rec, idx) => {
+              if (!rec || !rec.project) return null;
+              return (
+                <motion.div 
+                  key={rec.project.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="card project-rec-card"
+                  onClick={() => setSelectedProject(rec.project)}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span className="badge" style={{ background: 'rgba(249,115,22,0.1)', color: 'var(--orange)' }}>
+                      {rec.matchPercent}% Match
+                    </span>
+                    <Trophy size={18} color="var(--orange)" opacity={0.6} />
                   </div>
-                  <ArrowRight size={16} color="var(--t3)" />
-                </div>
-              </motion.div>
-            ))}
+                  <h3 className="card-title mb4">{rec.project.title}</h3>
+                  <p className="card-sub mb16" style={{ fontSize: '13px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {rec.project.description}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {Array.isArray(rec.project.techStack) && rec.project.techStack.slice(0, 2).map(t => (
+                        <span key={t} className="tech-tag-sm">{t}</span>
+                      ))}
+                    </div>
+                    <ArrowRight size={16} color="var(--t3)" />
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -239,7 +254,7 @@ const ProjectIdeas = () => {
               </p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
-                {p.techStack.slice(0, 3).map(t => (
+                {Array.isArray(p.techStack) && p.techStack.slice(0, 3).map(t => (
                   <span key={t} className="tech-tag">{t}</span>
                 ))}
               </div>
@@ -299,7 +314,7 @@ const ProjectIdeas = () => {
                     <section className="mb32">
                       <h3 className="section-sub mb12" style={{ color: 'var(--t1)', fontWeight: '700' }}>Learning Path</h3>
                       <div className="step-list">
-                        {selectedProject.steps.map((step, idx) => (
+                        {Array.isArray(selectedProject.steps) && selectedProject.steps.map((step, idx) => (
                           <div key={idx} className="step-item">
                             <div className="step-num">{idx + 1}</div>
                             <div className="step-content">
