@@ -33,6 +33,19 @@ public class User {
     private int level;
     private String league;
     private int globalRank;
+    
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "skill")
+    private Set<String> skills = new java.util.HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_preferred_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private Set<String> preferredRoles = new java.util.HashSet<>();
+
+    private String locationPreference;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;

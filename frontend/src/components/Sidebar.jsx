@@ -11,9 +11,12 @@ import {
   Award,
   Video,
   Target,
+  Sparkles,
   Building2,
   Info,
-  History
+  History,
+  Star,
+  Lightbulb
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -29,6 +32,8 @@ const Sidebar = () => {
 
     { label: 'OPPORTUNITIES', type: 'label' },
     { icon: Briefcase, label: 'Jobs & Interns', path: '/jobs' },
+    { icon: Sparkles, label: 'Recommended Jobs', path: '/recommendations' },
+    { icon: Lightbulb, label: 'Project Ideas', path: '/project-ideas' },
 
     { label: 'PLACEMENT PREP', type: 'label' },
     { icon: GraduationCap, label: 'Interview Exp', path: '/interviews' },

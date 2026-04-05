@@ -31,6 +31,20 @@ public class UserProfileController {
         user.setBranch(profile.getBranch());
         user.setGradYear(profile.getGradYear());
         user.setPrimaryGoal(profile.getPrimaryGoal());
+        
+        // Update skills and preferences
+        if (profile.getSkills() != null) {
+            user.getSkills().clear();
+            user.getSkills().addAll(profile.getSkills());
+        }
+        if (profile.getPreferredRoles() != null) {
+            user.getPreferredRoles().clear();
+            user.getPreferredRoles().addAll(profile.getPreferredRoles());
+        }
+        if (profile.getLocationPreference() != null) {
+            user.setLocationPreference(profile.getLocationPreference());
+        }
+        
         return ResponseEntity.ok(userRepository.save(user));
     }
 

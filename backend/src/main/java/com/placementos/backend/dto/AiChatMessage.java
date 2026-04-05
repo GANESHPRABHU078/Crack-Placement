@@ -1,7 +1,15 @@
 package com.placementos.backend.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
 
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AiChatMessage {
 
     @NotBlank
@@ -10,19 +18,4 @@ public class AiChatMessage {
     @NotBlank
     private String content;
 
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
 }
