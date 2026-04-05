@@ -22,6 +22,7 @@ const Community = lazy(() => import('./pages/Community'));
 const CourseCatalog = lazy(() => import('./pages/CourseCatalog'));
 const CommunicationLab = lazy(() => import('./pages/CommunicationLab'));
 const About = lazy(() => import('./pages/About'));
+const Profile = lazy(() => import('./pages/Profile'));
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -86,6 +87,7 @@ function App() {
             <Route path="/courses" element={<P><CourseCatalog /></P>} />
             <Route path="/communication" element={<P><CommunicationLab /></P>} />
             <Route path="/about" element={<P><About /></P>} />
+            <Route path="/profile" element={<P><Profile /></P>} />
 
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

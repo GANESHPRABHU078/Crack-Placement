@@ -88,6 +88,9 @@ const Login = () => {
           return;
         }
 
+        console.log("[DIAGNOSTIC] Initializing Google with ID:", googleClientId ? googleClientId.substring(0, 10) + "..." : "MISSING");
+        console.log("[DIAGNOSTIC] Current Origin:", window.location.origin);
+
         window.google.accounts.id.initialize({
           client_id: googleClientId,
           callback: async ({ credential }) => {
@@ -114,7 +117,7 @@ const Login = () => {
           theme: 'outline',
           size: 'large',
           shape: 'pill',
-          text: 'signin_with',
+          text: 'continue_with',
           width: 320,
         });
       } catch (scriptError) {
@@ -127,7 +130,7 @@ const Login = () => {
     return () => {
       cancelled = true;
     };
-  }, [googleClientId, isLogin, loginWithGoogle, navigate]);
+  }, [googleClientId, loginWithGoogle, navigate]);
 
   return (
     <div className="screen active" id="s-auth">
@@ -291,25 +294,21 @@ const Login = () => {
               <div className="btn-spinner"></div>
             </button>
 
-            {isLogin && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '18px 0 10px' }}>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
-                  <span style={{ color: 'var(--t4)', fontSize: '11px', letterSpacing: '.14em', textTransform: 'uppercase' }}>Or continue with</span>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
-                </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '18px 0 10px' }}>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
+              <span style={{ color: 'var(--t4)', fontSize: '11px', letterSpacing: '.14em', textTransform: 'uppercase' }}>Or continue with</span>
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }}></div>
+            </div>
 
-                {googleClientId ? (
-                  <div
-                    ref={googleButtonRef}
-                    style={{ display: 'flex', justifyContent: 'center', minHeight: '44px' }}
-                  />
-                ) : (
-                  <div className="field-err show" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#bfdbfe' }}>
-                    Set `VITE_GOOGLE_CLIENT_ID` to enable Google sign-in.
-                  </div>
-                )}
-              </>
+            {googleClientId ? (
+              <div
+                ref={googleButtonRef}
+                style={{ display: 'flex', justifyContent: 'center', minHeight: '44px' }}
+              />
+            ) : (
+              <div className="field-err show" style={{ background: 'rgba(59, 130, 246, 0.12)', color: '#bfdbfe' }}>
+                Set `VITE_GOOGLE_CLIENT_ID` to enable Google sign-in.
+              </div>
             )}
           </form>
         </div>

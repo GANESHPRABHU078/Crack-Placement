@@ -70,8 +70,13 @@ public class DataSeeder implements CommandLineRunner {
         } else {
             log.info("Practice content already exists, skipping reseed.");
         }
-        seedCompanyPrepContent();
-        log.info("Synced company prep content.");
+        
+        if (companyPrepProfileRepository.count() == 0) {
+            seedCompanyPrepContent();
+            log.info("Synced company prep content.");
+        } else {
+            log.info("Company prep content already exists, skipping.");
+        }
     }
 
     private void seedJobs() {
