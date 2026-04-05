@@ -59,6 +59,7 @@ public class RoadmapProgressController {
     }
 
     @PutMapping("/api/roadmap-progress")
+    @Transactional
     public ResponseEntity<Map<String, Object>> updateRoadmapProgress(
             @Valid @RequestBody RoadmapProgressUpdateRequest request,
             Authentication authentication

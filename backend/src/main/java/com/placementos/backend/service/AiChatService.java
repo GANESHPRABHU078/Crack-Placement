@@ -105,7 +105,15 @@ public class AiChatService {
         }
 
         String[] apiVersions = {"v1beta", "v1"};
-        String[] modelsToTry = {geminiModel, "gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"};
+        String[] modelsToTry = {
+                geminiModel, 
+                "gemini-1.5-flash-latest", 
+                "gemini-1.5-flash", 
+                "gemini-1.5-pro-latest", 
+                "gemini-1.5-pro", 
+                "gemini-pro", 
+                "gemini-1.0-pro"
+        };
         String lastError = "";
 
         try {
@@ -145,15 +153,18 @@ public class AiChatService {
                             }
                         } else {
                             lastError = response.body();
+                            System.out.println("[DIAGNOSTIC] Failed " + version + "/" + cleanedModel + ": " + response.statusCode());
                         }
                     } catch (Exception e) {
                         lastError = e.getMessage();
                     }
                 }
             }
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini failed after trying multiple models: " + lastError);
+            // FINAL FALLBACK: If all models fail, don't return 502, return a friendly message.
+            System.err.println("[DIAGNOSTIC] ALL Gemini models failed. Last error: " + lastError);
+            return "I'm currently having trouble connecting to my brain (Gemini API). This is usually due to a temporary quota limit or region restriction. Please try again in a few minutes, or ask your administrator to check the GEMINI_API_KEY.";
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini request construction failed.");
+            return "I'm experiencing a technical difficulty constructing my response. Please try again later.";
         }
     }
 

@@ -42,10 +42,39 @@ const Navbar = () => {
       <div className="tb-right">
         <span className="free-badge">Pro Plan</span>
 
-        <button className="notif-btn">
-          <Bell size={18} />
-          <div className="notif-dot"></div>
-        </button>
+        <div style={{ position: 'relative' }}>
+          <button 
+            className="notif-btn"
+            onClick={() => {
+              const el = document.getElementById('notif-status');
+              if (el) {
+                el.style.display = 'block';
+                setTimeout(() => { el.style.display = 'none'; }, 3000);
+              }
+            }}
+          >
+            <Bell size={18} />
+            <div className="notif-dot"></div>
+          </button>
+          <div id="notif-status" style={{
+            display: 'none',
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            background: 'var(--bg1)',
+            border: '1px solid var(--b1)',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            fontSize: '12px',
+            color: 'var(--t2)',
+            marginTop: '8px',
+            whiteSpace: 'nowrap',
+            zIndex: 1000,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+          }}>
+            No new notifications
+          </div>
+        </div>
 
         <div className="streak-chip">
           <Flame size={14} fill="currentColor" />
