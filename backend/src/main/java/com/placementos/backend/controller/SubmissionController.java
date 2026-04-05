@@ -35,7 +35,7 @@ public class SubmissionController {
         
         // Fetch data for the last 365 days
         LocalDateTime startDate = LocalDateTime.now().minusDays(365).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        List<Object[]> results = submissionRepository.getDailyAcceptedSubmissionCounts(user.getId(), startDate, com.placementos.backend.entity.Submission.Status.Accepted);
+        List<Object[]> results = submissionRepository.getDailyAcceptedSubmissionCounts(user.getId(), startDate, com.placementos.backend.entity.Submission.Status.Accepted.name());
         
         Map<String, Integer> heatmap = new LinkedHashMap<>();
         for (Object[] result : results) {
