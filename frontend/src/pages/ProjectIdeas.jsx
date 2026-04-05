@@ -5,7 +5,7 @@ import {
   Filter, 
   Zap, 
   Clock, 
-  Github, 
+  Code2, 
   ExternalLink, 
   Bookmark, 
   CheckCircle, 
@@ -15,7 +15,6 @@ import {
   Trophy,
   ArrowRight,
   BookOpen,
-  Code2,
   Cpu,
   Smartphone,
   ShieldCheck,
@@ -368,7 +367,7 @@ const ProjectIdeas = () => {
                         <h4 className="mb12" style={{ fontSize: '13px', fontWeight: '700' }}>Resources</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           <a href={selectedProject.githubLink} target="_blank" className="resource-link">
-                            <Github size={16} /> Source Code <ExternalLink size={14} />
+                            <Code2 size={16} /> Source Code <ExternalLink size={14} />
                           </a>
                           <a href="#" className="resource-link">
                             <Layers size={16} /> Reference Docs <ExternalLink size={14} />
