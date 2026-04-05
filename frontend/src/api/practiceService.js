@@ -35,4 +35,19 @@ export const practiceService = {
     const response = await apiClient.put(`/practice-progress/${problemId}`, { completed });
     return response.data;
   },
+
+  getRevisions: async () => {
+    const response = await apiClient.get('/practice/revisions');
+    return response.data;
+  },
+
+  completeRevision: async (problemId) => {
+    const response = await apiClient.post(`/practice/revisions/${problemId}/complete`);
+    return response.data;
+  },
+
+  getHeatmapData: async () => {
+    const response = await apiClient.get('/submissions/heatmap');
+    return response.data;
+  },
 };

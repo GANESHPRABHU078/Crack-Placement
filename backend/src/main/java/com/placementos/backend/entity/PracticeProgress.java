@@ -23,6 +23,9 @@ public class PracticeProgress {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime nextRevisionDate;
+    private Integer revisionStep;
+    private LocalDateTime lastRevisedAt;
 
     @PrePersist
     protected void onCreate() {
@@ -61,6 +64,9 @@ public class PracticeProgress {
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         private LocalDateTime updatedAt;
+        private LocalDateTime nextRevisionDate;
+        private Integer revisionStep;
+        private LocalDateTime lastRevisedAt;
 
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
@@ -137,10 +143,25 @@ public class PracticeProgress {
             return this;
         }
 
+        public PracticeProgress.PracticeProgressBuilder nextRevisionDate(final LocalDateTime nextRevisionDate) {
+            this.nextRevisionDate = nextRevisionDate;
+            return this;
+        }
+
+        public PracticeProgress.PracticeProgressBuilder revisionStep(final Integer revisionStep) {
+            this.revisionStep = revisionStep;
+            return this;
+        }
+
+        public PracticeProgress.PracticeProgressBuilder lastRevisedAt(final LocalDateTime lastRevisedAt) {
+            this.lastRevisedAt = lastRevisedAt;
+            return this;
+        }
+
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         public PracticeProgress build() {
-            return new PracticeProgress(this.id, this.user, this.problem, this.completed, this.completedAt, this.createdAt, this.updatedAt);
+            return new PracticeProgress(this.id, this.user, this.problem, this.completed, this.completedAt, this.createdAt, this.updatedAt, this.nextRevisionDate, this.revisionStep, this.lastRevisedAt);
         }
 
         @java.lang.Override
@@ -201,6 +222,24 @@ public class PracticeProgress {
 
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
+    public LocalDateTime getNextRevisionDate() {
+        return this.nextRevisionDate;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public Integer getRevisionStep() {
+        return this.revisionStep;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public LocalDateTime getLastRevisedAt() {
+        return this.lastRevisedAt;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
     public void setId(final Long id) {
         this.id = id;
     }
@@ -239,6 +278,24 @@ public class PracticeProgress {
     @lombok.Generated
     public void setUpdatedAt(final LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setNextRevisionDate(final LocalDateTime nextRevisionDate) {
+        this.nextRevisionDate = nextRevisionDate;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setRevisionStep(final Integer revisionStep) {
+        this.revisionStep = revisionStep;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setLastRevisedAt(final LocalDateTime lastRevisedAt) {
+        this.lastRevisedAt = lastRevisedAt;
     }
 
     @java.lang.Override
@@ -313,7 +370,7 @@ public class PracticeProgress {
 
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
-    public PracticeProgress(final Long id, final User user, final PracticeProblem problem, final boolean completed, final LocalDateTime completedAt, final LocalDateTime createdAt, final LocalDateTime updatedAt) {
+    public PracticeProgress(final Long id, final User user, final PracticeProblem problem, final boolean completed, final LocalDateTime completedAt, final LocalDateTime createdAt, final LocalDateTime updatedAt, final LocalDateTime nextRevisionDate, final Integer revisionStep, final LocalDateTime lastRevisedAt) {
         this.id = id;
         this.user = user;
         this.problem = problem;
@@ -321,5 +378,8 @@ public class PracticeProgress {
         this.completedAt = completedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.nextRevisionDate = nextRevisionDate;
+        this.revisionStep = revisionStep;
+        this.lastRevisedAt = lastRevisedAt;
     }
 }

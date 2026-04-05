@@ -19,6 +19,10 @@ import {
   ArrowLeftRight,
   SortAsc,
   Crosshair,
+  Zap,
+  Calculator,
+  Maximize,
+  Brain,
   GitFork,
 } from 'lucide-react';
 import { practiceService } from '../api/practiceService';
@@ -37,6 +41,11 @@ const iconMap = {
   'binary-search': Crosshair,
   'two-pointers': ArrowLeftRight,
   backtracking: GitFork,
+  'sliding-window': Maximize,
+  greedy: Crosshair,
+  'bit-manipulation': Zap,
+  math: Calculator,
+  trie: Brain,
 };
 
 const DIFFICULTY_STYLES = {

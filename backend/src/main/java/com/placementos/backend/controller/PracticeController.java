@@ -120,8 +120,20 @@ public class PracticeController {
         PracticeProgress progress = practiceProgressRepository.findByUserIdAndProblemId(user.getId(), problemId)
                 .orElseGet(() -> PracticeProgress.builder().user(user).problem(problem).completed(false).build());
         
+        boolean wasCompleted = progress.isCompleted();
         progress.setCompleted(request.getCompleted());
         progress.setCompletedAt(Boolean.TRUE.equals(request.getCompleted()) ? LocalDateTime.now() : null);
+        
+        // Initialize Spaced Repetition on first completion
+        if (Boolean.TRUE.equals(request.getCompleted()) && !wasCompleted) {
+            progress.setRevisionStep(0);
+            progress.setNextRevisionDate(LocalDateTime.now().plusDays(1));
+        } else if (Boolean.FALSE.equals(request.getCompleted())) {
+            progress.setNextRevisionDate(null);
+            progress.setRevisionStep(null);
+            progress.setLastRevisedAt(null);
+        }
+        
         practiceProgressRepository.save(progress);
         
         long completedCount = practiceProgressRepository.countByUserIdAndCompletedTrue(user.getId());
@@ -133,6 +145,71 @@ public class PracticeController {
         response.put("completed", progress.isCompleted());
         response.put("completedCount", completedCount);
         response.put("remainingCount", Math.max(0, practiceProblemRepository.count() - completedCount));
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/practice/revisions")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> getRevisions(Authentication authentication) {
+        User user = requireUser(authentication);
+        List<PracticeProgress> revisions = practiceProgressRepository.findByUserIdAndCompletedTrue(user.getId());
+        
+        List<Map<String, Object>> response = revisions.stream()
+                .filter(p -> p.getNextRevisionDate() != null)
+                .sorted(Comparator.comparing(PracticeProgress::getNextRevisionDate))
+                .map(p -> {
+                    Map<String, Object> map = toProblemResponse(p.getProblem());
+                    map.put("nextRevisionDate", p.getNextRevisionDate());
+                    map.put("revisionStep", p.getRevisionStep());
+                    map.put("lastRevisedAt", p.getLastRevisedAt());
+                    map.put("isDue", p.getNextRevisionDate().isBefore(LocalDateTime.now()));
+                    return map;
+                }).toList();
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/api/practice/revisions/{problemId}/complete")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> completeRevision(@PathVariable Long problemId, Authentication authentication) {
+        User user = requireUser(authentication);
+        PracticeProgress progress = practiceProgressRepository.findByUserIdAndProblemId(user.getId(), problemId)
+                .orElseThrow(() -> new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Progress not found"));
+        
+        if (!progress.isCompleted()) {
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Problem must be completed before revision");
+        }
+        
+        int currentStep = Optional.ofNullable(progress.getRevisionStep()).orElse(0);
+        int nextStep = currentStep + 1;
+        
+        // Spaced Repetition Logic (Days): 1, 3, 7, 14, 30, 60...
+        long baseDays = switch (currentStep) {
+            case 0 -> 3;
+            case 1 -> 7;
+            case 2 -> 14;
+            case 3 -> 30;
+            default -> 60;
+        };
+        
+        // Difficulty Multiplier
+        double multiplier = switch (progress.getProblem().getDifficulty()) {
+            case Easy -> 1.5;
+            case Medium -> 1.0;
+            case Hard -> 0.7;
+        };
+        
+        long finalDays = Math.max(1, Math.round(baseDays * multiplier));
+        
+        progress.setRevisionStep(nextStep);
+        progress.setLastRevisedAt(LocalDateTime.now());
+        progress.setNextRevisionDate(LocalDateTime.now().plusDays(finalDays));
+        practiceProgressRepository.save(progress);
+        
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("problemId", problemId);
+        response.put("nextRevisionDate", progress.getNextRevisionDate());
+        response.put("revisionStep", nextStep);
         return ResponseEntity.ok(response);
     }
 
