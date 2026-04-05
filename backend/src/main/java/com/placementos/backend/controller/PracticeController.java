@@ -158,13 +158,19 @@ public class PracticeController {
                 .filter(p -> p.getNextRevisionDate() != null)
                 .sorted(Comparator.comparing(PracticeProgress::getNextRevisionDate))
                 .map(p -> {
-                    Map<String, Object> map = toProblemResponse(p.getProblem());
-                    map.put("nextRevisionDate", p.getNextRevisionDate());
-                    map.put("revisionStep", p.getRevisionStep());
-                    map.put("lastRevisedAt", p.getLastRevisedAt());
-                    map.put("isDue", p.getNextRevisionDate().isBefore(LocalDateTime.now()));
-                    return map;
-                }).toList();
+                    try {
+                        Map<String, Object> map = toProblemResponse(p.getProblem());
+                        map.put("nextRevisionDate", p.getNextRevisionDate());
+                        map.put("revisionStep", p.getRevisionStep());
+                        map.put("lastRevisedAt", p.getLastRevisedAt());
+                        map.put("isDue", p.getNextRevisionDate().isBefore(LocalDateTime.now()));
+                        return map;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .toList();
         
         return ResponseEntity.ok(response);
     }

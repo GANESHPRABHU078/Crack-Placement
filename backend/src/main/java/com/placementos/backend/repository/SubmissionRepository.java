@@ -12,11 +12,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByUserIdAndProblemId(Long userId, Long problemId);
     boolean existsByUserIdAndProblemIdAndStatus(Long userId, Long problemId, Submission.Status status);
 
-    @Query("SELECT FUNCTION('DATE', s.submittedAt) as date, COUNT(s) as count " +
+    @Query("SELECT cast(s.submittedAt as date) as date, COUNT(s) as count " +
            "FROM Submission s " +
            "WHERE s.user.id = :userId AND s.status = :status " +
            "AND s.submittedAt >= :startDate " +
-           "GROUP BY FUNCTION('DATE', s.submittedAt) " +
-           "ORDER BY date ASC")
+           "GROUP BY cast(s.submittedAt as date) " +
+           "ORDER BY cast(s.submittedAt as date) ASC")
     List<Object[]> getDailyAcceptedSubmissionCounts(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate, @Param("status") Submission.Status status);
 }
