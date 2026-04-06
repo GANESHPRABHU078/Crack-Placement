@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  GitBranch as GithubIcon, 
   Code2, 
   RefreshCcw, 
-  Star, 
-  ArrowUpRight,
   Zap,
   Layout,
   Target,
@@ -13,16 +10,14 @@ import {
   CheckCircle2,
   AlertTriangle,
   ExternalLink,
-  Trophy,
   BookOpen,
-  BarChart2
+  BarChart2,
+  ArrowUpRight
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, Legend
 } from 'recharts';
-import CalendarHeatmap from 'react-calendar-heatmap';
-import 'react-calendar-heatmap/dist/styles.css';
 import { developerService } from '../api/developerService';
 import { practiceService } from '../api/practiceService';
 import { useAuth } from '../context/AuthContext';
@@ -38,11 +33,10 @@ const DevInsightsPage = () => {
     const [analysisLoading, setAnalysisLoading] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [showLinkModal, setShowLinkModal] = useState(false);
-    const [githubUser, setGithubUser] = useState('');
     const [leetcodeUser, setLeetcodeUser] = useState('');
     const [platformStats, setPlatformStats] = useState({ solved: 0, xp: 0, streak: 0, level: 1 });
     const [platformActivities, setPlatformActivities] = useState([]);
-    const [activeTab, setActiveTab] = useState('overview'); // overview | analysis
+    const [activeTab, setActiveTab] = useState('overview');
 
     useEffect(() => {
         if (user?.id) {
@@ -90,7 +84,6 @@ const DevInsightsPage = () => {
         try {
             const data = await developerService.syncProfile(user.id);
             setProfile(data);
-            // Also refresh analysis if we have it
             if (analysis) await fetchAnalysis();
         } catch (e) { console.error('Sync failed', e); }
         finally { setSyncing(false); }
@@ -100,49 +93,40 @@ const DevInsightsPage = () => {
         e.preventDefault();
         setSyncing(true);
         try {
-            const data = await developerService.linkProfile(user.id, githubUser, leetcodeUser);
+            const data = await developerService.linkProfile(user.id, null, leetcodeUser);
             setProfile(data);
             setShowLinkModal(false);
         } catch (e) { console.error('Link failed', e); }
         finally { setSyncing(false); }
     };
 
-    if (loading) return <div className="p24 color-t2 faic jcc" style={{ minHeight: 300 }}><RefreshCcw size={20} className="spin mr8" /> Loading developer insights...</div>;
+    if (loading) return (
+        <div className="p24 color-t2 faic jcc" style={{ minHeight: 300 }}>
+            <RefreshCcw size={20} className="spin mr8" /> Loading developer insights...
+        </div>
+    );
 
-    // Derived chart data
+    // LeetCode chart data
     const leetcodeData = profile ? [
         { name: 'Easy',   value: profile.leetcodeEasySolved   || 0, color: '#10b981' },
         { name: 'Medium', value: profile.leetcodeMediumSolved || 0, color: '#f59e0b' },
         { name: 'Hard',   value: profile.leetcodeHardSolved   || 0, color: '#ef4444' },
     ] : [];
 
-    const githubLangs = profile?.githubLanguages ? (() => { try { return JSON.parse(profile.githubLanguages); } catch(e) { return {}; } })() : {};
-    const langData = Object.entries(githubLangs).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 8);
-
-    const today = new Date();
-    const heatmapValues = Array.from({ length: 90 }, (_, i) => {
-        const date = new Date(); date.setDate(today.getDate() - i);
-        return { date: date.toISOString().split('T')[0], count: Math.floor(Math.random() * 5) };
-    });
-
     const progressData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(name => ({
-        name, problems: Math.floor(Math.random() * 10) + 3, contributions: Math.floor(Math.random() * 12) + 1
+        name,
+        problems: Math.floor(Math.random() * 10) + 3,
+        contributions: Math.floor(Math.random() * 12) + 1
     }));
 
     // Analysis chart data
-    const topicChartData = analysis?.topics?.map(t => ({
+    const topicChartData = (analysis?.topics || []).map(t => ({
         name: t.topic.length > 15 ? t.topic.slice(0, 13) + '…' : t.topic,
         fullName: t.topic,
         solved: t.solved,
         expected: t.expected,
         strength: t.strength,
-        color: STRENGTH_COLORS[t.strength]
-    })) || [];
-
-    const CustomTopicBar = (props) => {
-        const { x, y, width, height, strength } = props;
-        return <rect x={x} y={y} width={width} height={height} rx={4} fill={STRENGTH_COLORS[strength] || '#6366f1'} />;
-    };
+    }));
 
     return (
         <div className="p28">
@@ -150,7 +134,7 @@ const DevInsightsPage = () => {
             <div className="faic jsb mb24">
                 <div>
                     <h1 className="section-title">Developer Dashboard</h1>
-                    <p className="section-sub">Unified insights from your Platform, GitHub and LeetCode activity.</p>
+                    <p className="section-sub">Track your LeetCode progress and identify weak areas to improve faster.</p>
                 </div>
                 <div className="faic gap12">
                     {profile && (
@@ -165,57 +149,54 @@ const DevInsightsPage = () => {
                     )}
                     <button className={`btn ${syncing ? 'btn-ghost' : 'btn-primary'} faic gap8`} onClick={handleSync} disabled={syncing}>
                         <RefreshCcw size={15} className={syncing ? 'spin' : ''} />
-                        {syncing ? 'Syncing…' : 'Refresh Data'}
+                        {syncing ? 'Syncing…' : 'Refresh'}
                     </button>
-                    <button className="btn btn-ghost" onClick={() => setShowLinkModal(true)}>Update Profiles</button>
+                    <button className="btn btn-ghost" onClick={() => setShowLinkModal(true)}>Update Profile</button>
                 </div>
             </div>
 
             {/* ── Tabs ── */}
             {profile && analysis && (
-                <div className="faic gap4 mb24" style={{ borderBottom: '1px solid var(--b1)', paddingBottom: 0 }}>
-                    {[{ id: 'overview', label: 'Overview', icon: Layout }, { id: 'analysis', label: 'Weakness Analyzer', icon: BarChart2 }].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                <div className="faic gap4 mb24" style={{ borderBottom: '1px solid var(--b1)' }}>
+                    {[
+                        { id: 'overview',  label: 'Overview',          icon: Layout   },
+                        { id: 'analysis',  label: 'Weakness Analyzer', icon: BarChart2 }
+                    ].map(tab => (
+                        <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                             className={`btn btn-ghost faic gap8 fs13 ${activeTab === tab.id ? 'color-p fw700' : 'color-t3'}`}
-                            style={{ borderBottom: activeTab === tab.id ? '2px solid var(--p)' : '2px solid transparent', borderRadius: 0, paddingBottom: 12 }}
-                        >
+                            style={{ borderBottom: activeTab === tab.id ? '2px solid var(--p)' : '2px solid transparent', borderRadius: 0, paddingBottom: 12 }}>
                             <tab.icon size={15} /> {tab.label}
                         </button>
                     ))}
                 </div>
             )}
 
+            {/* ── No Profile ── */}
             {!profile ? (
                 <div className="card text-center p48">
                     <Layout size={48} className="mb16 color-t3 mx-auto" />
-                    <h3>No Profile Linked</h3>
-                    <p className="color-t3 mb24">Connect your GitHub and LeetCode to see your developer insights.</p>
-                    <button className="btn btn-primary" onClick={() => setShowLinkModal(true)}>Connect Profiles</button>
+                    <h3>No LeetCode Profile Linked</h3>
+                    <p className="color-t3 mb24">Connect your LeetCode account to see your developer insights and track weak topics.</p>
+                    <button className="btn btn-primary" onClick={() => setShowLinkModal(true)}>Connect LeetCode</button>
                 </div>
+
+            /* ── Analysis Tab ── */
             ) : activeTab === 'analysis' && analysis ? (
-                /* ═══════════════════════════════════════════════
-                   ANALYSIS TAB
-                ═══════════════════════════════════════════════ */
                 <div>
                     {/* Summary Row */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-20 mb32">
-                        <div className="card text-center" style={{ background: 'linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.02))' }}>
-                            <div className="fs32 fw900" style={{ color: '#ef4444' }}>{analysis.weakTopics?.length || 0}</div>
-                            <div className="fs13 color-t3 mt4">Weak Topics</div>
-                            <div className="badge mt12" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none' }}>Need Practice</div>
-                        </div>
-                        <div className="card text-center" style={{ background: 'linear-gradient(135deg,rgba(245,158,11,0.08),rgba(245,158,11,0.02))' }}>
-                            <div className="fs32 fw900" style={{ color: '#f59e0b' }}>{analysis.mediumTopics?.length || 0}</div>
-                            <div className="fs13 color-t3 mt4">Improving Topics</div>
-                            <div className="badge mt12" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: 'none' }}>In Progress</div>
-                        </div>
-                        <div className="card text-center" style={{ background: 'linear-gradient(135deg,rgba(16,185,129,0.08),rgba(16,185,129,0.02))' }}>
-                            <div className="fs32 fw900" style={{ color: '#10b981' }}>{analysis.strongTopics?.length || 0}</div>
-                            <div className="fs13 color-t3 mt4">Strong Topics</div>
-                            <div className="badge mt12" style={{ background: 'rgba(16,185,129,0.15)', color: '#10b981', border: 'none' }}>Mastered</div>
-                        </div>
+                        {[
+                            { label: 'Weak Topics',      count: analysis.weakTopics?.length   || 0, color: '#ef4444', badge: 'Need Practice' },
+                            { label: 'Improving Topics', count: analysis.mediumTopics?.length || 0, color: '#f59e0b', badge: 'In Progress'    },
+                            { label: 'Strong Topics',    count: analysis.strongTopics?.length || 0, color: '#10b981', badge: 'Mastered'       },
+                        ].map(s => (
+                            <div key={s.label} className="card text-center"
+                                style={{ background: `linear-gradient(135deg,${s.color}12,${s.color}04)` }}>
+                                <div className="fs32 fw900" style={{ color: s.color }}>{s.count}</div>
+                                <div className="fs13 color-t3 mt4">{s.label}</div>
+                                <div className="badge mt12" style={{ background: `${s.color}22`, color: s.color, border: 'none' }}>{s.badge}</div>
+                            </div>
+                        ))}
                     </div>
 
                     {/* Topic Bar Chart */}
@@ -225,8 +206,7 @@ const DevInsightsPage = () => {
                             <div className="faic gap16 mt12">
                                 {Object.entries(STRENGTH_COLORS).map(([s, c]) => (
                                     <div key={s} className="faic gap6 fs12 color-t2">
-                                        <div style={{ width: 10, height: 10, borderRadius: 3, background: c }} />
-                                        {s}
+                                        <div style={{ width: 10, height: 10, borderRadius: 3, background: c }} /> {s}
                                     </div>
                                 ))}
                             </div>
@@ -239,61 +219,68 @@ const DevInsightsPage = () => {
                                     <YAxis tick={{ fontSize: 11, fill: 'var(--t3)' }} axisLine={false} tickLine={false} />
                                     <Tooltip
                                         contentStyle={{ background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: 8, fontSize: 12 }}
-                                        formatter={(val, name, props) => [`${val} solved / ${props.payload.expected} expected`, props.payload.fullName]}
+                                        formatter={(val, _n, props) => [`${val} solved / ${props.payload.expected} expected`, props.payload.fullName]}
                                     />
-                                    <Bar dataKey="solved" radius={[4, 4, 0, 0]} maxBarSize={32} shape={(props) => <CustomTopicBar {...props} strength={props.strength || props?.payload?.strength} />} />
+                                    <Bar dataKey="solved" radius={[4, 4, 0, 0]} maxBarSize={32}
+                                        shape={(props) => (
+                                            <rect {...props} rx={4}
+                                                fill={STRENGTH_COLORS[props?.payload?.strength] || '#6366f1'}
+                                            />
+                                        )}
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
-                    {/* Two columns: Weak Highlights + Insights */}
+                    {/* Weak Highlights + Insights */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb32">
-                        {/* Weak Topics */}
                         <div className="card">
                             <div className="card-hdr mb16">
-                                <div className="card-title faic gap8"><AlertTriangle size={16} style={{ color: '#ef4444' }} /> Weak Areas — Action Required</div>
+                                <div className="card-title faic gap8">
+                                    <AlertTriangle size={16} style={{ color: '#ef4444' }} /> Weak Areas — Action Required
+                                </div>
                             </div>
                             <div className="g1 gap10">
                                 {(analysis.weakTopics || []).slice(0, 8).map((topic, i) => {
                                     const t = analysis.topics?.find(x => x.topic === topic);
                                     return (
-                                        <div key={i} className="faic jsb p12 rounded-lg" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                                        <div key={i} className="faic jsb p12 rounded-lg"
+                                            style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
                                             <div>
                                                 <div className="fs13 fw700 color-t1">{topic}</div>
                                                 <div className="fs11 color-t4">{t?.solved || 0} / {t?.expected || 0} problems solved</div>
                                             </div>
-                                            <div className="badge" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', fontSize: 11 }}>Weak</div>
+                                            <span className="badge" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', fontSize: 11 }}>Weak</span>
                                         </div>
                                     );
                                 })}
-                                {(analysis.weakTopics || []).length === 0 && (
+                                {!(analysis.weakTopics?.length) && (
                                     <div className="p20 text-center color-t4 fs13">No weak topics! You are well-rounded.</div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Insights */}
                         <div className="card">
                             <div className="card-hdr mb16">
                                 <div className="card-title faic gap8"><Zap size={16} className="color-orange" /> AI-Generated Insights</div>
                             </div>
-                            <div className="g1 gap12 p4">
+                            <div className="g1 gap10 p4">
                                 {(analysis.insights || []).map((msg, i) => {
                                     const isStrong = msg.includes('strong');
                                     const isWeak = msg.includes('improvement') || msg.includes('Easy');
                                     const color = isStrong ? '#10b981' : isWeak ? '#ef4444' : '#6366f1';
                                     const bg = isStrong ? 'rgba(16,185,129,0.07)' : isWeak ? 'rgba(239,68,68,0.07)' : 'rgba(99,102,241,0.07)';
                                     return (
-                                        <div key={i} className="p14 rounded-lg faic gap12" style={{ background: bg, border: `1px solid ${color}22` }}>
+                                        <div key={i} className="p14 rounded-lg faic gap12"
+                                            style={{ background: bg, border: `1px solid ${color}22` }}>
                                             <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
                                             <span className="fs13 color-t1">{msg}</span>
                                         </div>
                                     );
                                 })}
                             </div>
-
-                            {/* Difficulty Breakdown */}
+                            {/* Difficulty bars */}
                             <div className="mt20 pt16" style={{ borderTop: '1px solid var(--b1)' }}>
                                 <div className="fs12 fw700 color-t2 mb12">Difficulty Distribution</div>
                                 {[
@@ -330,16 +317,18 @@ const DevInsightsPage = () => {
                                 {analysis.recommendations.map((rec, i) => (
                                     <div key={i} className="p16 rounded-xl" style={{ background: 'var(--bg2)', border: '1px solid var(--b1)' }}>
                                         <div className="faic gap8 mb12">
-                                            <div className="badge" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', fontSize: 11 }}>Weak</div>
+                                            <span className="badge" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', fontSize: 11 }}>Weak</span>
                                             <span className="fs13 fw700 color-t1">{rec.topic}</span>
                                         </div>
                                         <div className="faic gap8">
                                             <a href={rec.leetcode} target="_blank" rel="noopener noreferrer"
-                                               className="btn btn-primary faic gap6" style={{ flex: 1, justifyContent: 'center', fontSize: 12, padding: '8px 12px' }}>
+                                               className="btn btn-primary faic gap6"
+                                               style={{ flex: 1, justifyContent: 'center', fontSize: 12, padding: '8px 12px' }}>
                                                 <Code2 size={13} /> LeetCode <ExternalLink size={11} />
                                             </a>
                                             <a href={rec.gfg} target="_blank" rel="noopener noreferrer"
-                                               className="btn btn-outline faic gap6" style={{ flex: 1, justifyContent: 'center', fontSize: 12, padding: '8px 12px' }}>
+                                               className="btn btn-outline faic gap6"
+                                               style={{ flex: 1, justifyContent: 'center', fontSize: 12, padding: '8px 12px' }}>
                                                 <BookOpen size={13} /> GFG <ExternalLink size={11} />
                                             </a>
                                         </div>
@@ -387,13 +376,13 @@ const DevInsightsPage = () => {
                         </div>
                     </div>
                 </div>
+
+            /* ── Overview Tab ── */
             ) : (
-                /* ═══════════════════════════════════════════════
-                   OVERVIEW TAB
-                ═══════════════════════════════════════════════ */
                 <>
-                    {/* Top Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb32">
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-20 mb32">
+                        {/* Dev Score */}
                         <div className="card text-center" style={{ background: 'linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%)' }}>
                             <div className="faic jcc mb12">
                                 <div className="badge-lg" style={{ background: 'rgba(249,115,22,0.1)', color: 'var(--orange)' }}><Zap size={24} /></div>
@@ -403,6 +392,7 @@ const DevInsightsPage = () => {
                             <span className="badge" style={{ background: 'var(--orange)', color: '#fff', border: 'none' }}>{profile.developerLevel}</span>
                         </div>
 
+                        {/* Platform Mastery */}
                         <div className="card">
                             <div className="faic gap12 mb16">
                                 <div className="si-g p6 rounded-lg"><CheckCircle2 size={18} /></div>
@@ -417,42 +407,34 @@ const DevInsightsPage = () => {
                             </div>
                         </div>
 
-                        <div className="card">
-                            <div className="faic gap12 mb16">
-                                <div className="si-b p6 rounded-lg"><GithubIcon size={18} /></div>
-                                <div className="fw800">GitHub Pulse</div>
-                            </div>
-                            <div className="g2">
-                                <div><div className="fs20 fw800">{profile.githubRepos}</div><div className="fs12 color-t3">Repositories</div></div>
-                                <div><div className="fs20 fw800">{profile.githubStars}</div><div className="fs12 color-t3">Stars</div></div>
-                            </div>
-                            <div className="mt12 pt12 border-t border-gray-100 fs11 color-t3">
-                                Followers: <span className="color-blue fw700">{profile.githubFollowers}</span>
-                            </div>
-                        </div>
-
+                        {/* LeetCode Pulse */}
                         <div className="card">
                             <div className="faic gap12 mb16">
                                 <div className="si-c p6 rounded-lg"><Code2 size={18} /></div>
                                 <div className="fw800">LeetCode Pulse</div>
                             </div>
                             <div className="g2">
-                                <div><div className="fs20 fw800">{profile.leetcodeTotalSolved}</div><div className="fs12 color-t3">Solved</div></div>
+                                <div><div className="fs20 fw800">{profile.leetcodeTotalSolved}</div><div className="fs12 color-t3">Total Solved</div></div>
                                 <div><div className="fs20 fw800">#{profile.leetcodeRanking?.toLocaleString()}</div><div className="fs12 color-t3">Rank</div></div>
                             </div>
-                            <div className="mt12 pt12 border-t border-gray-100 fs11 color-t3">
-                                Level: <span className="text-emerald-500 fw700">Competitor</span>
+                            <div className="mt12 pt12 border-t border-gray-100 fs11">
+                                <span style={{ color: '#10b981' }} className="fw600">{profile.leetcodeEasySolved} Easy</span>
+                                <span className="color-t4 mx8">·</span>
+                                <span style={{ color: '#f59e0b' }} className="fw600">{profile.leetcodeMediumSolved} Med</span>
+                                <span className="color-t4 mx8">·</span>
+                                <span style={{ color: '#ef4444' }} className="fw600">{profile.leetcodeHardSolved} Hard</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Analyze CTA (if not yet analyzed) */}
+                    {/* Analyze CTA */}
                     {!analysis && (
-                        <div className="card mb32 faic gap20 p24" style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.06),rgba(139,92,246,0.04))', border: '1px dashed rgba(99,102,241,0.3)' }}>
+                        <div className="card mb32 faic gap20 p24"
+                            style={{ background: 'linear-gradient(135deg,rgba(99,102,241,0.06),rgba(139,92,246,0.04))', border: '1px dashed rgba(99,102,241,0.3)' }}>
                             <div className="badge-lg" style={{ background: 'rgba(99,102,241,0.12)', color: 'var(--p)', flexShrink: 0 }}><BarChart2 size={24} /></div>
                             <div className="flex-1">
                                 <div className="fs15 fw800 color-t1 mb4">Discover Your Weak Topics</div>
-                                <div className="fs13 color-t3">Run the AI analyzer to get topic-wise breakdowns, weakness highlights, and personalized recommendations.</div>
+                                <div className="fs13 color-t3">Run the analyzer to get topic-wise breakdowns, weakness highlights, and personalized recommendations.</div>
                             </div>
                             <button className="btn btn-primary faic gap8" onClick={fetchAnalysis} disabled={analysisLoading}>
                                 <TrendingUp size={15} className={analysisLoading ? 'spin' : ''} />
@@ -461,16 +443,15 @@ const DevInsightsPage = () => {
                         </div>
                     )}
 
-                    {/* Middle: Activity + Blueprint */}
+                    {/* Activity + Blueprint */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb32">
                         <div className="card">
                             <div className="card-hdr faic jsb mb16">
-                                <div className="card-title faic gap8"><History size={18} className="color-blue" />Recent Platform Activity</div>
-                                <div className="fs11 color-t3">Submissions</div>
+                                <div className="card-title faic gap8"><History size={18} className="color-blue" /> Recent Platform Activity</div>
                             </div>
                             <div className="p6">
                                 {platformActivities.length > 0 ? platformActivities.slice(0, 5).map((act, i) => (
-                                    <div key={i} className="faic gap12 p10 hover-bg-gray2 rounded-lg transition-all border-b border-gray-100 last:border-0">
+                                    <div key={i} className="faic gap12 p10 hover-bg-gray2 rounded-lg border-b border-gray-100 last:border-0">
                                         <div className="stat-ico si-g w32 h32"><Target size={14} /></div>
                                         <div className="flex-1">
                                             <div className="fs13 fw700 color-t1">{act.title}</div>
@@ -479,26 +460,26 @@ const DevInsightsPage = () => {
                                         <div className="fs11 color-t4">{act.completedAt ? new Date(act.completedAt).toLocaleDateString() : 'Today'}</div>
                                     </div>
                                 )) : (
-                                    <div className="p20 text-center color-t4 fs13">No recent platform activity found.</div>
+                                    <div className="p20 text-center color-t4 fs13">No recent platform activity. Start practicing!</div>
                                 )}
                             </div>
                         </div>
 
                         <div className="card">
                             <div className="card-hdr mb16">
-                                <div className="card-title faic gap8"><TrendingUp size={18} className="color-emerald" />Preparation Blueprint</div>
+                                <div className="card-title faic gap8"><TrendingUp size={18} className="color-emerald" /> Preparation Blueprint</div>
                             </div>
                             <div className="g1 gap16 p12">
                                 {[
-                                    { label: 'DSA Mastery', value: platformStats.solved > 50 ? 85 : Math.min(40, platformStats.solved * 2), color: 'var(--blue)' },
-                                    { label: 'System Design', value: 30, color: 'var(--p)' },
-                                    { label: 'Aptitude Ready', value: 65, color: 'var(--orange)' },
-                                    { label: 'Project Impact', value: profile.githubRepos > 5 ? 90 : Math.min(80, profile.githubRepos * 15), color: '#10b981' }
+                                    { label: 'DSA Mastery',    value: Math.min(100, platformStats.solved * 2),                   color: 'var(--blue)'   },
+                                    { label: 'Easy Problems',  value: Math.min(100, (profile.leetcodeEasySolved / 50) * 100),    color: '#10b981'       },
+                                    { label: 'Medium Problems',value: Math.min(100, (profile.leetcodeMediumSolved / 30) * 100),  color: '#f59e0b'       },
+                                    { label: 'Hard Problems',  value: Math.min(100, (profile.leetcodeHardSolved / 10) * 100),    color: '#ef4444'       },
                                 ].map((skill, idx) => (
                                     <div key={idx}>
                                         <div className="faic jsb mb6 fs12">
                                             <span className="fw600 color-t2">{skill.label}</span>
-                                            <span className="fw800 color-t1">{skill.value}%</span>
+                                            <span className="fw800 color-t1">{Math.round(skill.value)}%</span>
                                         </div>
                                         <div style={{ height: 8, background: 'var(--bg4)', borderRadius: 10, overflow: 'hidden' }}>
                                             <div style={{ height: '100%', width: `${skill.value}%`, background: skill.color, borderRadius: 10, transition: 'width 1s ease' }} />
@@ -509,62 +490,39 @@ const DevInsightsPage = () => {
                         </div>
                     </div>
 
-                    {/* Charts */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb32">
-                        <div className="card">
-                            <div className="card-hdr"><div className="card-title">LeetCode Difficulty Breakdown</div></div>
-                            <div style={{ height: 280 }}>
+                    {/* LeetCode Difficulty Donut */}
+                    <div className="card mb32">
+                        <div className="card-hdr mb16"><div className="card-title">LeetCode Difficulty Breakdown</div></div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                            <div style={{ height: 260 }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
-                                        <Pie data={leetcodeData} innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value">
+                                        <Pie data={leetcodeData} innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value">
                                             {leetcodeData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                                         </Pie>
-                                        <Tooltip />
+                                        <Tooltip contentStyle={{ background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: 8 }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
-                            <div className="faic jcc gap20 mt4">
+                            <div className="faic flex-col jcc gap16 p12">
                                 {leetcodeData.map(d => (
-                                    <div key={d.name} className="faic gap6 fs12 color-t2">
-                                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: d.color }} />
-                                        {d.name}: {d.value}
+                                    <div key={d.name} className="faic jsb w100">
+                                        <div className="faic gap10">
+                                            <div style={{ width: 12, height: 12, borderRadius: 3, background: d.color }} />
+                                            <span className="fs14 fw600 color-t2">{d.name}</span>
+                                        </div>
+                                        <span className="fs18 fw900 color-t1">{d.value}</span>
                                     </div>
                                 ))}
-                            </div>
-                        </div>
-
-                        <div className="card">
-                            <div className="card-hdr"><div className="card-title">Project Languages (GitHub)</div></div>
-                            <div style={{ height: 280 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={langData} layout="vertical">
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                        <XAxis type="number" hide />
-                                        <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
-                                        <Tooltip />
-                                        <Bar dataKey="value" fill="var(--blue)" radius={[0, 4, 4, 0]} barSize={18} />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                                <div className="faic jsb w100 pt12" style={{ borderTop: '1px solid var(--b1)' }}>
+                                    <span className="fs13 fw600 color-t3">Total Solved</span>
+                                    <span className="fs20 fw900 color-t1">{profile.leetcodeTotalSolved}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Heatmap */}
-                    <div className="card mb32">
-                        <div className="card-hdr faic jsb">
-                            <div className="card-title faic gap8"><Star size={18} className="color-orange" /> GitHub Activity (Last 90 Days)</div>
-                        </div>
-                        <div className="p20" style={{ minHeight: 160 }}>
-                            <CalendarHeatmap
-                                startDate={new Date(today.getTime() - 90 * 24 * 60 * 60 * 1000)}
-                                endDate={today}
-                                values={heatmapValues}
-                                classForValue={(v) => (!v || v.count === 0) ? 'color-empty' : `color-scale-${Math.min(v.count, 4)}`}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Trends */}
+                    {/* Weekly Trends */}
                     <div className="card mb32">
                         <div className="card-hdr">
                             <div className="card-title faic gap8"><ArrowUpRight size={18} className="color-blue" /> Weekly Consistency Trends</div>
@@ -587,8 +545,8 @@ const DevInsightsPage = () => {
                                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--t3)' }} />
                                     <Tooltip contentStyle={{ background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: 8 }} />
                                     <Legend />
-                                    <Area type="monotone" dataKey="problems" name="Problems" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#gProblems)" />
-                                    <Area type="monotone" dataKey="contributions" name="Contributions" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#gContribs)" />
+                                    <Area type="monotone" dataKey="problems" name="Problems Solved" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#gProblems)" />
+                                    <Area type="monotone" dataKey="contributions" name="Platform Activity" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#gContribs)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
@@ -599,29 +557,25 @@ const DevInsightsPage = () => {
             {/* ── Link Modal ── */}
             {showLinkModal && (
                 <div className="modal-overlay" onClick={() => setShowLinkModal(false)}>
-                    <div className="modal-content" style={{ maxWidth: 450 }} onClick={e => e.stopPropagation()}>
+                    <div className="modal-content" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
                         <div className="modal-hdr">
-                            <div className="modal-title">Link Your Coding Profiles</div>
-                            <p className="fs13 color-t3 mt4">Connect GitHub & LeetCode for full analytics</p>
+                            <div className="modal-title">Link Your LeetCode Profile</div>
+                            <p className="fs13 color-t3 mt4">Connect your LeetCode account for full topic analytics</p>
                         </div>
                         <form onSubmit={handleLink} className="p24">
-                            <div className="mb20">
-                                <label className="fs13 mb8 db fw600">GitHub Username</label>
-                                <div className="input-wrap">
-                                    <GithubIcon size={16} style={{ position: 'absolute', left: 12, top: 12 }} className="color-t3" />
-                                    <input type="text" className="input pl36" placeholder="e.g. torvalds" value={githubUser} onChange={e => setGithubUser(e.target.value)} required />
-                                </div>
-                            </div>
                             <div className="mb24">
                                 <label className="fs13 mb8 db fw600">LeetCode Username</label>
                                 <div className="input-wrap">
                                     <Code2 size={16} style={{ position: 'absolute', left: 12, top: 12 }} className="color-t3" />
-                                    <input type="text" className="input pl36" placeholder="e.g. luser123" value={leetcodeUser} onChange={e => setLeetcodeUser(e.target.value)} required />
+                                    <input type="text" className="input pl36" placeholder="e.g. luser123"
+                                        value={leetcodeUser} onChange={e => setLeetcodeUser(e.target.value)} required />
                                 </div>
                             </div>
                             <div className="faic jse gap12">
                                 <button type="button" className="btn btn-ghost" onClick={() => setShowLinkModal(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary" disabled={syncing}>{syncing ? 'Syncing…' : 'Link & Sync'}</button>
+                                <button type="submit" className="btn btn-primary" disabled={syncing}>
+                                    {syncing ? 'Connecting…' : 'Connect & Sync'}
+                                </button>
                             </div>
                         </form>
                     </div>
