@@ -16,7 +16,8 @@ import {
   Info,
   History,
   Star,
-  Lightbulb
+  Lightbulb,
+  Layout
 } from 'lucide-react';
 
 const Sidebar = () => {

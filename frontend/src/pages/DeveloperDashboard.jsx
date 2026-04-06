@@ -11,7 +11,12 @@ import {
   ArrowUpRight,
   Shield,
   Zap,
-  Layout
+  Layout,
+  Target,
+  Award,
+  TrendingUp,
+  History,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -30,6 +35,7 @@ import {
 import CalendarHeatmap from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { developerService } from '../api/developerService';
+import { practiceService } from '../api/practiceService';
 import { useAuth } from '../context/AuthContext';
 
 const DeveloperDashboard = () => {
@@ -40,10 +46,33 @@ const DeveloperDashboard = () => {
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [githubUser, setGithubUser] = useState('');
     const [leetcodeUser, setLeetcodeUser] = useState('');
+    const [platformStats, setPlatformStats] = useState({ solved: 0, xp: 0, streak: 0, level: 1 });
+    const [platformActivities, setPlatformActivities] = useState([]);
 
     useEffect(() => {
-        if (user?.id) fetchProfile();
+        if (user?.id) {
+            fetchProfile();
+            fetchPlatformData();
+        }
     }, [user]);
+
+    const fetchPlatformData = async () => {
+        try {
+            const [progress, recent] = await Promise.all([
+                practiceService.getInsights(),
+                practiceService.getRecentActivity()
+            ]);
+            setPlatformStats({
+                solved: user?.problemsSolved || 0,
+                xp: user?.xp || 0,
+                streak: user?.currentStreak || 0,
+                level: user?.level || 1
+            });
+            setPlatformActivities(recent || []);
+        } catch (error) {
+            console.error('Failed to fetch platform data', error);
+        }
+    };
 
     const fetchProfile = async () => {
         try {
@@ -116,7 +145,7 @@ const DeveloperDashboard = () => {
             <div className="faic jsb mb24">
                 <div>
                     <h1 className="section-title">Developer Dashboard</h1>
-                    <p className="section-sub">Unified insights from your GitHub and LeetCode activity.</p>
+                    <p className="section-sub">Unified insights from your Platform, GitHub and LeetCode activity.</p>
                 </div>
                 <div className="faic gap12">
                     <button 
@@ -134,74 +163,193 @@ const DeveloperDashboard = () => {
             </div>
 
             {profile ? (
-                <div className="g3 mb32">
-                    {/* Score Card */}
-                    <div className="card text-center" style={{ background: 'linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%)' }}>
-                        <div className="faic jcc mb12">
-                            <div className="badge-lg" style={{ background: 'rgba(249,115,22,0.1)', color: 'var(--orange)' }}>
-                                <Zap size={24} />
-                            </div>
-                        </div>
-                        <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--t1)' }}>{profile.developerScore}</div>
-                        <div className="color-t3 fs12 mb16">Developer Score</div>
-                        <div className="faic jcc">
-                            <span className="badge" style={{ background: 'var(--orange)', color: '#fff', border: 'none' }}>
-                                {profile.developerLevel}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* GitHub Quick Stats */}
-                    <div className="card">
-                        <div className="faic gap12 mb16">
-                            <Github size={20} className="color-t2" />
-                            <div className="fw800">GitHub Pulse</div>
-                        </div>
-                        <div className="g2">
-                            <div>
-                                <div className="fs20 fw800">{profile.githubRepos}</div>
-                                <div className="fs12 color-t3">Repositories</div>
-                            </div>
-                            <div>
-                                <div className="fs20 fw800">{profile.githubStars}</div>
-                                <div className="fs12 color-t3">Total Stars</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* LeetCode Quick Stats */}
-                    <div className="card">
-                        <div className="faic gap12 mb16">
-                            <Code2 size={20} className="color-t2" />
-                            <div className="fw800">LeetCode Progress</div>
-                        </div>
-                        <div className="g2">
-                            <div>
-                                <div className="fs20 fw800">{profile.leetcodeTotalSolved}</div>
-                                <div className="fs12 color-t3">Solved</div>
-                            </div>
-                            <div>
-                                <div className="fs20 fw800">#{profile.leetcodeRanking?.toLocaleString()}</div>
-                                <div className="fs12 color-t3">Global Rank</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                <div className="card text-center p40 mb32">
-                    <Layout size={48} className="mb16 color-t3 mx-auto" />
-                    <h3>No Profile Linked</h3>
-                    <p className="color-t3 mb24">Connect your GitHub and LeetCode to see your developer insights.</p>
-                    <button className="btn btn-primary" onClick={() => setShowLinkModal(true)}>Connect Profiles</button>
-                </div>
-            )}
-
-            )}
-
-            {profile && (
                 <>
-                    {/* Activity Heatmap */}
-                    <div className="card mt32">
+                    {/* Top Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb32">
+                        <div className="card text-center" style={{ background: 'linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%)' }}>
+                            <div className="faic jcc mb12">
+                                <div className="badge-lg" style={{ background: 'rgba(249,115,22,0.1)', color: 'var(--orange)' }}>
+                                    <Zap size={24} />
+                                </div>
+                            </div>
+                            <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--t1)' }}>{profile.developerScore}</div>
+                            <div className="color-t3 fs12 mb16">Developer Score</div>
+                            <div className="faic jcc">
+                                <span className="badge" style={{ background: 'var(--orange)', color: '#fff', border: 'none' }}>
+                                    {profile.developerLevel}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="faic gap12 mb16">
+                                <div className="si-g p6 rounded-lg"><CheckCircle2 size={18} /></div>
+                                <div className="fw800">Platform Mastery</div>
+                            </div>
+                            <div className="g2">
+                                <div>
+                                    <div className="fs20 fw800">{platformStats.solved}</div>
+                                    <div className="fs12 color-t3">Problems</div>
+                                </div>
+                                <div>
+                                    <div className="fs20 fw800">{platformStats.xp}</div>
+                                    <div className="fs12 color-t3">XP Gained</div>
+                                </div>
+                            </div>
+                            <div className="mt12 pt12 border-t border-gray-100 fs11 color-t3">
+                                Current Streak: <span className="color-orange fw700">{platformStats.streak} Days</span>
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="faic gap12 mb16">
+                                <div className="si-b p6 rounded-lg"><Github size={18} /></div>
+                                <div className="fw800">GitHub Pulse</div>
+                            </div>
+                            <div className="g2">
+                                <div>
+                                    <div className="fs20 fw800">{profile.githubRepos}</div>
+                                    <div className="fs12 color-t3">Repositories</div>
+                                </div>
+                                <div>
+                                    <div className="fs20 fw800">{profile.githubStars}</div>
+                                    <div className="fs12 color-t3">Stars</div>
+                                </div>
+                            </div>
+                            <div className="mt12 pt12 border-t border-gray-100 fs11 color-t3">
+                                Followers: <span className="color-blue fw700">{profile.githubFollowers}</span>
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="faic gap12 mb16">
+                                <div className="si-c p6 rounded-lg"><Code2 size={18} /></div>
+                                <div className="fw800">LeetCode Pulse</div>
+                            </div>
+                            <div className="g2">
+                                <div>
+                                    <div className="fs20 fw800">{profile.leetcodeTotalSolved}</div>
+                                    <div className="fs12 color-t3">Solved</div>
+                                </div>
+                                <div>
+                                    <div className="fs20 fw800">#{profile.leetcodeRanking?.toLocaleString()}</div>
+                                    <div className="fs12 color-t3">Rank</div>
+                                </div>
+                            </div>
+                            <div className="mt12 pt12 border-t border-gray-100 fs11 color-t3">
+                                Level: <span className="text-emerald-500 fw700">Competitor</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Middle Section: Insights & Trends */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb32">
+                        <div className="card">
+                            <div className="card-hdr faic jsb mb16">
+                                <div className="card-title faic gap8">
+                                    <History size={18} className="color-blue" />
+                                    Recent Platform Activity
+                                </div>
+                                <div className="fs11 color-t3">Submissions</div>
+                            </div>
+                            <div className="p6">
+                                {platformActivities.length > 0 ? platformActivities.slice(0, 5).map((act, i) => (
+                                    <div key={i} className="faic gap12 p10 hover-bg-gray2 rounded-lg transition-all border-b border-gray-100 last:border-0">
+                                        <div className="stat-ico si-g w32 h32"><Target size={14} /></div>
+                                        <div className="flex-1">
+                                            <div className="fs13 fw700 color-t1">{act.title}</div>
+                                            <div className="fs11 color-t3">{act.topic?.name} - {act.difficulty}</div>
+                                        </div>
+                                        <div className="fs11 color-t4">{act.completedAt ? new Date(act.completedAt).toLocaleDateString() : 'Today'}</div>
+                                    </div>
+                                )) : (
+                                    <div className="p20 text-center color-t4 fs13">No recent platform activity found.</div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="card-hdr mb16">
+                                <div className="card-title faic gap8">
+                                    <TrendingUp size={18} className="color-emerald" />
+                                    Preparation Blueprint
+                                </div>
+                            </div>
+                            <div className="g1 gap16 p12">
+                                {[
+                                    { label: 'DSA Mastery', value: platformStats.solved > 50 ? 85 : 40, color: 'var(--blue)' },
+                                    { label: 'System Design', value: 30, color: 'var(--p)' },
+                                    { label: 'Aptitude Ready', value: 65, color: 'var(--orange)' },
+                                    { label: 'Project Impact', value: profile.githubRepos > 5 ? 90 : 20, color: 'var(--hard)' }
+                                ].map((skill, idx) => (
+                                    <div key={idx}>
+                                        <div className="faic jsb mb6 fs12">
+                                            <span className="fw600 color-t2">{skill.label}</span>
+                                            <span className="fw800 color-t1">{skill.value}%</span>
+                                        </div>
+                                        <div className="ptrack h8 shadow-inner" style={{ background: 'var(--bg4)', borderRadius: 10 }}>
+                                            <div className="pfill transition-all duration-1000 ease-out" style={{ width: `${skill.value}%`, backgroundColor: skill.color, borderRadius: 10 }}></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Charts Section */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb32">
+                        <div className="card">
+                            <div className="card-hdr">
+                                <div className="card-title">LeetCode Difficulty Breakdown</div>
+                            </div>
+                            <div style={{ height: 300 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={leetcodeData}
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                        >
+                                            {leetcodeData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="faic jcc gap20 mt16">
+                                {leetcodeData.map(d => (
+                                    <div key={d.name} className="faic gap8 fs12 color-t2">
+                                        <div style={{ width: 10, height: 10, borderRadius: '50%', background: d.color }}></div>
+                                        {d.name}: {d.value}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <div className="card-hdr">
+                                <div className="card-title">Project Languages (GitHub)</div>
+                            </div>
+                            <div style={{ height: 300 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={langData} layout="vertical">
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                        <XAxis type="number" hide />
+                                        <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
+                                        <Tooltip />
+                                        <Bar dataKey="value" fill="var(--blue)" radius={[0, 4, 4, 0]} barSize={20} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Activity & Trends */}
+                    <div className="card mb32">
                         <div className="card-hdr faic jsb">
                             <div className="card-title faic gap8">
                                 <Star size={18} className="color-orange" />
@@ -222,8 +370,7 @@ const DeveloperDashboard = () => {
                         </div>
                     </div>
 
-                    {/* Performance Trends */}
-                    <div className="card mt24">
+                    <div className="card mb32">
                         <div className="card-hdr">
                             <div className="card-title faic gap8">
                                 <ArrowUpRight size={18} className="color-blue" />
@@ -256,6 +403,13 @@ const DeveloperDashboard = () => {
                         </div>
                     </div>
                 </>
+            ) : (
+                <div className="card text-center p40 mb32">
+                    <Layout size={48} className="mb16 color-t3 mx-auto" />
+                    <h3>No Profile Linked</h3>
+                    <p className="color-t3 mb24">Connect your GitHub and LeetCode to see your developer insights.</p>
+                    <button className="btn btn-primary" onClick={() => setShowLinkModal(true)}>Connect Profiles</button>
+                </div>
             )}
 
             {/* Link Modal */}
