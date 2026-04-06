@@ -20,7 +20,7 @@ public class DeveloperProfileController {
     @GetMapping("/profile")
     public ResponseEntity<DeveloperProfile> getProfile(@RequestParam Long userId) {
         try {
-            return ResponseEntity.ok(profileService.sync(userId));
+            return ResponseEntity.ok(profileService.getProfile(userId));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -44,6 +44,15 @@ public class DeveloperProfileController {
             return ResponseEntity.ok(profileService.sync(userId));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/analysis")
+    public ResponseEntity<Map<String, Object>> getTopicAnalysis(@RequestParam Long userId) {
+        try {
+            return ResponseEntity.ok(profileService.getTopicAnalysis(userId));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }

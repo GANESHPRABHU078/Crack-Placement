@@ -14,5 +14,10 @@ export const developerService = {
   syncProfile: async (userId) => {
     const response = await apiClient.post(`/developer/sync?userId=${userId}`);
     return response.data;
+  },
+
+  getAnalysis: async (userId) => {
+    const response = await apiClient.get(`/developer/analysis?userId=${userId}`);
+    return response.data;
   }
 };

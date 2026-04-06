@@ -33,6 +33,8 @@ public class DeveloperProfile {
     private int leetcodeHardSolved;
     private int leetcodeRanking;
     private double leetcodeContestRating;
+    @Column(columnDefinition = "TEXT")
+    private String leetcodeTopicStats; // JSON: {topic -> count}
 
     // Overall Progress
     private int developerScore; // 0-1000
