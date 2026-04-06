@@ -39,13 +39,12 @@ const ProjectIdeas = () => {
   }, []);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       // Fetch main projects first to unblock the UI
-      const allProjs = await projectService.getProjects();
+      const allProjs = await projectService.getAll();
       setProjects(Array.isArray(allProjs) ? allProjs : []);
-      setLoading(false);
-
+      
       // Fetch supplementary data in the background
       Promise.allSettled([
         projectService.getRecommendedProjects(),
@@ -59,15 +58,15 @@ const ProjectIdeas = () => {
         }
       });
     } catch (err) {
-      console.error('Error fetching projects:', err);
+      console.error('Error fetching data:', err);
+    } finally {
       setLoading(false);
-      setProjects([]);
     }
   };
 
   const getStatusForProject = (projectId) => {
     if (!Array.isArray(userProgress)) return null;
-    const p = userProgress.find(up => up.projectIdea?.id === projectId);
+    const p = userProgress.find(up => up.id === projectId || up.projectIdea?.id === projectId);
     return p ? p.status : null;
   };
 
@@ -92,9 +91,11 @@ const ProjectIdeas = () => {
   const domains = [
     { id: 'All', label: 'All Domains', icon: Layers },
     { id: 'WEB_DEV', label: 'Web Dev', icon: Code2 },
-    { id: 'AI_ML', label: 'AI / ML', icon: Cpu },
     { id: 'SYSTEM_DESIGN', label: 'System Design', icon: Server },
+    { id: 'AI_ML', label: 'AI / ML', icon: Sparkles },
     { id: 'MOBILE_APP', label: 'Mobile Apps', icon: Smartphone },
+    { id: 'DATA_SCIENCE', label: 'Data Science', icon: Cpu },
+    { id: 'BLOCKCHAIN', label: 'Blockchain', icon: ShieldCheck },
     { id: 'CYBERSECURITY', label: 'Security', icon: ShieldCheck }
   ];
 

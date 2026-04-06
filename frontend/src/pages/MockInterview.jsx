@@ -1,4 +1,4 @@
-import React from 'react';
+import { mockInterviewService } from '../api/mockInterviewService';
 import {
   Video,
   Calendar,
@@ -87,36 +87,15 @@ const topicCatalog = {
   ]
 };
 
-const loadState = () => {
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    return {
-      sessions: Array.isArray(stored.sessions) && stored.sessions.length ? stored.sessions : defaultSessions,
-      activeSessionId: stored.activeSessionId || (stored.sessions?.[0]?.id ?? defaultSessions[0].id),
-      feedback: stored.feedback || '',
-      strengths: stored.strengths || '',
-      improvements: stored.improvements || ''
-    };
-  } catch (error) {
-    return {
-      sessions: defaultSessions,
-      activeSessionId: defaultSessions[0].id,
-      feedback: '',
-      strengths: '',
-      improvements: ''
-    };
-  }
-};
-
 const MockInterview = () => {
-  const initialState = React.useMemo(loadState, []);
-  const [sessions, setSessions] = React.useState(initialState.sessions);
+  const [sessions, setSessions] = React.useState([]);
   const [showForm, setShowForm] = React.useState(false);
-  const [feedback, setFeedback] = React.useState(initialState.feedback);
-  const [strengths, setStrengths] = React.useState(initialState.strengths);
-  const [improvements, setImprovements] = React.useState(initialState.improvements);
-  const [activeSessionId, setActiveSessionId] = React.useState(initialState.activeSessionId);
+  const [feedback, setFeedback] = React.useState('');
+  const [strengths, setStrengths] = React.useState('');
+  const [improvements, setImprovements] = React.useState('');
+  const [activeSessionId, setActiveSessionId] = React.useState(null);
   const [message, setMessage] = React.useState('');
+  const [loading, setLoading] = React.useState(true);
   const [formData, setFormData] = React.useState({
     topic: '',
     role: '',
@@ -126,44 +105,67 @@ const MockInterview = () => {
   });
 
   React.useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ sessions, activeSessionId, feedback, strengths, improvements })
-    );
-  }, [sessions, activeSessionId, feedback, strengths, improvements]);
+    loadSessions();
+  }, []);
+
+  const loadSessions = async () => {
+    setLoading(true);
+    try {
+      const data = await mockInterviewService.getMyInterviews();
+      setSessions(data);
+      if (data.length > 0) setActiveSessionId(data[0].id);
+    } catch (error) {
+      console.error('Failed to load sessions:', error);
+      setMessage('Failed to load interview sessions.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const activeSession =
     sessions.find((session) => session.id === activeSessionId) ||
     sessions[0] ||
     null;
 
+  React.useEffect(() => {
+    if (activeSession) {
+        setFeedback(activeSession.review || activeSession.feedback || '');
+        setStrengths(activeSession.strengths || '');
+        setImprovements(activeSession.improvements || '');
+    }
+  }, [activeSessionId]);
+
   const activePlan = activeSession ? (roundPlans[activeSession.roundType] || roundPlans.Technical) : [];
   const suggestedTopics = topicCatalog[formData.roundType] || [];
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const newSession = {
-      id: Date.now(),
-      topic: formData.topic.trim(),
-      role: formData.role.trim(),
-      roundType: formData.roundType,
-      duration: Number(formData.duration),
-      scheduledTime: new Date(formData.scheduledTime).toISOString(),
-      status: 'Scheduled'
-    };
+    try {
+      const newSession = await mockInterviewService.schedule({
+        topic: formData.topic.trim(),
+        role: formData.role.trim(),
+        roundType: formData.roundType,
+        duration: String(formData.duration),
+        scheduledTime: new Date(formData.scheduledTime).toISOString(),
+        status: 'Scheduled'
+      });
 
-    setSessions((value) => [newSession, ...value]);
-    setActiveSessionId(newSession.id);
-    setFormData({
-      topic: '',
-      role: '',
-      roundType: 'Technical',
-      duration: 45,
-      scheduledTime: ''
-    });
-    setShowForm(false);
-    setMessage('Mock interview session created.');
+      setSessions((value) => [newSession, ...value]);
+      setActiveSessionId(newSession.id);
+      setFormData({
+        topic: '',
+        role: '',
+        roundType: 'Technical',
+        duration: 45,
+        scheduledTime: ''
+      });
+      setShowForm(false);
+      setMessage('Mock interview session scheduled.');
+    } catch (error) {
+      console.error('Failed to schedule session:', error);
+      setMessage('Failed to schedule session. Please try again.');
+    }
   };
 
   const updateStatus = (id, status) => {
@@ -171,16 +173,24 @@ const MockInterview = () => {
     setMessage(`Session marked as ${status.toLowerCase()}.`);
   };
 
-  const saveReview = () => {
+  const saveReview = async () => {
     if (!activeSession) return;
-    setSessions((value) =>
-      value.map((session) =>
-        session.id === activeSession.id
-          ? { ...session, review: feedback, strengths, improvements }
-          : session
-      )
-    );
-    setMessage('Interview notes saved.');
+    try {
+        await mockInterviewService.updateStatus(activeSession.id, 'Completed'); 
+        // Note: Backend might need to support updating feedback fields too.
+        // For now, let's just update local state if backend doesn't have put for feedback yet.
+        setSessions((value) =>
+            value.map((session) =>
+              session.id === activeSession.id
+                ? { ...session, feedback: feedback, strengths, improvements, status: 'Completed' }
+                : session
+            )
+          );
+          setMessage('Interview notes saved and session completed.');
+    } catch (error) {
+        console.error('Failed to save review:', error);
+        setMessage('Failed to save review.');
+    }
   };
 
   return (

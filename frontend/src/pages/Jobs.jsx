@@ -6,25 +6,23 @@ const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchJobs();
-  }, [filter]);
+  }, [filter, search]);
 
   const fetchJobs = async () => {
     setLoading(true);
     try {
       const data = await jobService.getAll(filter);
-      if (!data || data.length === 0) throw new Error('Empty jobs data');
-      setJobs(data);
+      const filtered = (data || []).filter(j => 
+        (!search || j.title.toLowerCase().includes(search.toLowerCase()) || j.company.toLowerCase().includes(search.toLowerCase()))
+      );
+      setJobs(filtered);
     } catch (err) {
-      console.warn('Backend unavailable, using mock jobs.', err);
-      setJobs([
-        { id: '1', title: 'Software Engineering Intern', company: 'Google', location: 'Bangalore', type: 'Internship', salary: '₹1,00,000/mo', skills: ['C++', 'Python', 'DSA'], logoEmoji: '🚀', applyLink: '#', new: true },
-        { id: '2', title: 'SDE-1 (Frontend)', company: 'Amazon', location: 'Hyderabad', type: 'FullTime', salary: '₹24 - 32 LPA', skills: ['React', 'JavaScript', 'AWS'], logoEmoji: '📦', applyLink: '#', new: true },
-        { id: '3', title: 'Backend Developer', company: 'Microsoft', location: 'Remote', type: 'FullTime', salary: '₹20 - 28 LPA', skills: ['C#', 'SQL', '.NET'], logoEmoji: '💻', applyLink: '#', new: false },
-        { id: '4', title: 'Data Science Intern', company: 'Uber', location: 'Remote', type: 'Internship', salary: '₹80,000/mo', skills: ['Python', 'SQL', 'ML'], logoEmoji: '🚗', applyLink: '#', new: false }
-      ].filter(j => !filter || j.type === filter));
+      console.error('Failed to fetch jobs:', err);
+      setJobs([]);
     } finally {
       setLoading(false);
     }
@@ -43,7 +41,13 @@ const Jobs = () => {
         <div style={{ display: 'flex', gap: '12px' }}>
           <div className="input-wrap" style={{ flex: 1 }}>
             <span className="input-ico"><Search size={14} /></span>
-            <input type="text" placeholder="Search by role, company, or keywords..." style={{ paddingLeft: '38px' }} />
+            <input 
+              type="text" 
+              placeholder="Search by role, company, or keywords..." 
+              style={{ paddingLeft: '38px' }} 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
             {['All', 'FullTime', 'Internship', 'Remote'].map((f) => (
