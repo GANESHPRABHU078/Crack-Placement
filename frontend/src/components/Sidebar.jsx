@@ -39,6 +39,7 @@ const Sidebar = () => {
     { icon: GraduationCap, label: 'Interview Exp', path: '/interviews' },
     { icon: Video, label: 'Mock Interviews', path: '/mock-interviews' },
     { icon: MessageSquare, label: 'Communication', path: '/communication' },
+    { icon: Layout, label: 'Dev Dashboard', path: '/developer-dashboard' },
     { icon: MessageSquare, label: 'AI Assistant', path: '/ai' },
     { icon: Info, label: 'About', path: '/about' },
   ];

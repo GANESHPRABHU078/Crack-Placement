@@ -25,6 +25,11 @@ public class User {
     private String branch;
     private String gradYear;
     private String primaryGoal;
+    private String githubUsername;
+    private String leetcodeUsername;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private DeveloperProfile developerProfile;
     // Stats
     private int problemsSolved;
     private int currentStreak;
@@ -122,6 +127,12 @@ public class User {
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         private String primaryGoal;
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
+        private String githubUsername;
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
+        private String leetcodeUsername;
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         private boolean problemsSolved$set;
@@ -268,6 +279,26 @@ public class User {
          */
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
+        public User.UserBuilder githubUsername(final String githubUsername) {
+            this.githubUsername = githubUsername;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
+        public User.UserBuilder leetcodeUsername(final String leetcodeUsername) {
+            this.leetcodeUsername = leetcodeUsername;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
         public User.UserBuilder problemsSolved(final int problemsSolved) {
             this.problemsSolved$value = problemsSolved;
             problemsSolved$set = true;
@@ -374,14 +405,14 @@ public class User {
             if (!this.level$set) level$value = User.$default$level();
             String league$value = this.league$value;
             if (!this.league$set) league$value = User.$default$league();
-            return new User(this.id, this.firstName, this.lastName, this.email, this.password, this.college, this.branch, this.gradYear, this.primaryGoal, problemsSolved$value, currentStreak$value, bestStreak$value, xp$value, level$value, league$value, this.globalRank, this.createdAt, this.lastLogin);
+            return new User(this.id, this.firstName, this.lastName, this.email, this.password, this.college, this.branch, this.gradYear, this.primaryGoal, this.githubUsername, this.leetcodeUsername, problemsSolved$value, currentStreak$value, bestStreak$value, xp$value, level$value, league$value, this.globalRank, this.createdAt, this.lastLogin);
         }
 
         @java.lang.Override
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         public java.lang.String toString() {
-            return "User.UserBuilder(id=" + this.id + ", firstName=" + this.firstName + ", lastName=" + this.lastName + ", email=" + this.email + ", password=" + this.password + ", college=" + this.college + ", branch=" + this.branch + ", gradYear=" + this.gradYear + ", primaryGoal=" + this.primaryGoal + ", problemsSolved$value=" + this.problemsSolved$value + ", currentStreak$value=" + this.currentStreak$value + ", bestStreak$value=" + this.bestStreak$value + ", xp$value=" + this.xp$value + ", level$value=" + this.level$value + ", league$value=" + this.league$value + ", globalRank=" + this.globalRank + ", createdAt=" + this.createdAt + ", lastLogin=" + this.lastLogin + ")";
+            return "User.UserBuilder(id=" + this.id + ", firstName=" + this.firstName + ", lastName=" + this.lastName + ", email=" + this.email + ", password=" + this.password + ", college=" + this.college + ", branch=" + this.branch + ", gradYear=" + this.gradYear + ", primaryGoal=" + this.primaryGoal + ", githubUsername=" + this.githubUsername + ", leetcodeUsername=" + this.leetcodeUsername + ", problemsSolved$value=" + this.problemsSolved$value + ", currentStreak$value=" + this.currentStreak$value + ", bestStreak$value=" + this.bestStreak$value + ", xp$value=" + this.xp$value + ", level$value=" + this.level$value + ", league$value=" + this.league$value + ", globalRank=" + this.globalRank + ", createdAt=" + this.createdAt + ", lastLogin=" + this.lastLogin + ")";
         }
     }
 
@@ -443,6 +474,24 @@ public class User {
     @lombok.Generated
     public String getPrimaryGoal() {
         return this.primaryGoal;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public String getGithubUsername() {
+        return this.githubUsername;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public String getLeetcodeUsername() {
+        return this.leetcodeUsername;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public DeveloperProfile getDeveloperProfile() {
+        return this.developerProfile;
     }
 
     @java.lang.SuppressWarnings("all")
@@ -573,6 +622,24 @@ public class User {
 
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
+    public void setGithubUsername(final String githubUsername) {
+        this.githubUsername = githubUsername;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setLeetcodeUsername(final String leetcodeUsername) {
+        this.leetcodeUsername = leetcodeUsername;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setDeveloperProfile(final DeveloperProfile developerProfile) {
+        this.developerProfile = developerProfile;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
     public void setProblemsSolved(final int problemsSolved) {
         this.problemsSolved = problemsSolved;
     }
@@ -684,6 +751,12 @@ public class User {
         final java.lang.Object this$primaryGoal = this.getPrimaryGoal();
         final java.lang.Object other$primaryGoal = other.getPrimaryGoal();
         if (this$primaryGoal == null ? other$primaryGoal != null : !this$primaryGoal.equals(other$primaryGoal)) return false;
+        final java.lang.Object this$githubUsername = this.getGithubUsername();
+        final java.lang.Object other$githubUsername = other.getGithubUsername();
+        if (this$githubUsername == null ? other$githubUsername != null : !this$githubUsername.equals(other$githubUsername)) return false;
+        final java.lang.Object this$leetcodeUsername = this.getLeetcodeUsername();
+        final java.lang.Object other$leetcodeUsername = other.getLeetcodeUsername();
+        if (this$leetcodeUsername == null ? other$leetcodeUsername != null : !this$leetcodeUsername.equals(other$leetcodeUsername)) return false;
         final java.lang.Object this$league = this.getLeague();
         final java.lang.Object other$league = other.getLeague();
         if (this$league == null ? other$league != null : !this$league.equals(other$league)) return false;
@@ -732,6 +805,10 @@ public class User {
         result = result * PRIME + ($gradYear == null ? 43 : $gradYear.hashCode());
         final java.lang.Object $primaryGoal = this.getPrimaryGoal();
         result = result * PRIME + ($primaryGoal == null ? 43 : $primaryGoal.hashCode());
+        final java.lang.Object $githubUsername = this.getGithubUsername();
+        result = result * PRIME + ($githubUsername == null ? 43 : $githubUsername.hashCode());
+        final java.lang.Object $leetcodeUsername = this.getLeetcodeUsername();
+        result = result * PRIME + ($leetcodeUsername == null ? 43 : $leetcodeUsername.hashCode());
         final java.lang.Object $league = this.getLeague();
         result = result * PRIME + ($league == null ? 43 : $league.hashCode());
         final java.lang.Object $createdAt = this.getCreatedAt();
@@ -745,7 +822,7 @@ public class User {
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
     public java.lang.String toString() {
-        return "User(id=" + this.getId() + ", firstName=" + this.getFirstName() + ", lastName=" + this.getLastName() + ", email=" + this.getEmail() + ", password=" + this.getPassword() + ", college=" + this.getCollege() + ", branch=" + this.getBranch() + ", gradYear=" + this.getGradYear() + ", primaryGoal=" + this.getPrimaryGoal() + ", problemsSolved=" + this.getProblemsSolved() + ", currentStreak=" + this.getCurrentStreak() + ", bestStreak=" + this.getBestStreak() + ", xp=" + this.getXp() + ", level=" + this.getLevel() + ", league=" + this.getLeague() + ", globalRank=" + this.getGlobalRank() + ", createdAt=" + this.getCreatedAt() + ", lastLogin=" + this.getLastLogin() + ")";
+        return "User(id=" + this.getId() + ", firstName=" + this.getFirstName() + ", lastName=" + this.getLastName() + ", email=" + this.getEmail() + ", password=" + this.getPassword() + ", college=" + this.getCollege() + ", branch=" + this.getBranch() + ", gradYear=" + this.getGradYear() + ", primaryGoal=" + this.getPrimaryGoal() + ", githubUsername=" + this.getGithubUsername() + ", leetcodeUsername=" + this.getLeetcodeUsername() + ", problemsSolved=" + this.getProblemsSolved() + ", currentStreak=" + this.getCurrentStreak() + ", bestStreak=" + this.getBestStreak() + ", xp=" + this.getXp() + ", level=" + this.getLevel() + ", league=" + this.getLeague() + ", globalRank=" + this.getGlobalRank() + ", createdAt=" + this.getCreatedAt() + ", lastLogin=" + this.getLastLogin() + ")";
     }
 
     @java.lang.SuppressWarnings("all")
@@ -761,7 +838,7 @@ public class User {
 
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
-    public User(final Long id, final String firstName, final String lastName, final String email, final String password, final String college, final String branch, final String gradYear, final String primaryGoal, final int problemsSolved, final int currentStreak, final int bestStreak, final int xp, final int level, final String league, final int globalRank, final LocalDateTime createdAt, final LocalDateTime lastLogin) {
+    public User(final Long id, final String firstName, final String lastName, final String email, final String password, final String college, final String branch, final String gradYear, final String primaryGoal, final String githubUsername, final String leetcodeUsername, final int problemsSolved, final int currentStreak, final int bestStreak, final int xp, final int level, final String league, final int globalRank, final LocalDateTime createdAt, final LocalDateTime lastLogin) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -771,6 +848,8 @@ public class User {
         this.branch = branch;
         this.gradYear = gradYear;
         this.primaryGoal = primaryGoal;
+        this.githubUsername = githubUsername;
+        this.leetcodeUsername = leetcodeUsername;
         this.problemsSolved = problemsSolved;
         this.currentStreak = currentStreak;
         this.bestStreak = bestStreak;
