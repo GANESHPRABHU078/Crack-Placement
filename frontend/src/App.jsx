@@ -23,7 +23,7 @@ const About = lazy(() => import('./pages/About'));
 const Profile = lazy(() => import('./pages/Profile'));
 const JobRecommendations = lazy(() => import('./pages/JobRecommendations'));
 const ProjectIdeas = lazy(() => import('./pages/ProjectIdeas'));
-const DeveloperDashboard = lazy(() => import('./pages/DeveloperDashboard'));
+const DevInsightsPage = lazy(() => import('./pages/DeveloperDashboard'));
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -85,7 +85,7 @@ function App() {
             <Route path="/mock-interviews" element={<P><MockInterview /></P>} />
             <Route path="/roadmap" element={<P><Roadmap /></P>} />
             <Route path="/revision-scheduler" element={<P><RevisionScheduler /></P>} />
-            <Route path="/developer-dashboard" element={<P><DeveloperDashboard /></P>} />
+            <Route path="/developer-dashboard" element={<P><DevInsightsPage /></P>} />
             <Route path="/ai" element={<P><AIAssistant /></P>} />
             <Route path="/communication" element={<P><CommunicationLab /></P>} />
             <Route path="/about" element={<P><About /></P>} />
