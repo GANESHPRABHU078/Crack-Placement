@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Github, 
+  GitBranch as GithubIcon, 
   Code2, 
   ExternalLink, 
   RefreshCcw, 
@@ -38,7 +38,7 @@ import { developerService } from '../api/developerService';
 import { practiceService } from '../api/practiceService';
 import { useAuth } from '../context/AuthContext';
 
-const DeveloperDashboard = () => {
+const DevInsightsPage = () => {
     const { user } = useAuth();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -203,7 +203,7 @@ const DeveloperDashboard = () => {
 
                         <div className="card">
                             <div className="faic gap12 mb16">
-                                <div className="si-b p6 rounded-lg"><Github size={18} /></div>
+                                <div className="si-b p6 rounded-lg"><GithubIcon size={18} /></div>
                                 <div className="fw800">GitHub Pulse</div>
                             </div>
                             <div className="g2">
@@ -423,7 +423,7 @@ const DeveloperDashboard = () => {
                             <div className="mb20">
                                 <label className="fs13 mb8 db fw600">GitHub Username</label>
                                 <div className="input-wrap">
-                                    <Github size={16} style={{ position: 'absolute', left: 12, top: 12 }} className="color-t3" />
+                                    <GithubIcon size={16} style={{ position: 'absolute', left: 12, top: 12 }} className="color-t3" />
                                     <input 
                                         type="text" 
                                         className="input pl36" 
@@ -462,4 +462,4 @@ const DeveloperDashboard = () => {
     );
 };
 
-export default DeveloperDashboard;
+export default DevInsightsPage;
