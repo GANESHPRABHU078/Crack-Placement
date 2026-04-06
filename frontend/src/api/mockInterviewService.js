@@ -15,5 +15,10 @@ export const mockInterviewService = {
   updateStatus: async (id, status) => {
     const response = await apiClient.put(`/interviews/mock/${id}/status`, null, { params: { status } });
     return response.data;
+  },
+
+  updateFeedback: async (id, feedbackData) => {
+    const response = await apiClient.put(`/interviews/mock/${id}/feedback`, feedbackData);
+    return response.data;
   }
 };

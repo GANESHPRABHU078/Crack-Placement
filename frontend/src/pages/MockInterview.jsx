@@ -10,8 +10,15 @@ import {
   ClipboardCheck,
   MessageSquareQuote,
   Save,
-  Sparkles
+  Sparkles,
+  ArrowLeft,
+  Send,
+  Loader2,
+  Trophy,
+  Target,
+  LineChart
 } from 'lucide-react';
+import { aiService } from '../api/aiService';
 
 const STORAGE_KEY = 'mock_interview_workspace';
 
@@ -104,6 +111,7 @@ const MockInterview = () => {
     duration: 45,
     scheduledTime: ''
   });
+  const [isInterviewing, setIsInterviewing] = React.useState(false);
 
   React.useEffect(() => {
     loadSessions();
@@ -177,13 +185,16 @@ const MockInterview = () => {
   const saveReview = async () => {
     if (!activeSession) return;
     try {
-        await mockInterviewService.updateStatus(activeSession.id, 'Completed'); 
-        // Note: Backend might need to support updating feedback fields too.
-        // For now, let's just update local state if backend doesn't have put for feedback yet.
+        await mockInterviewService.updateFeedback(activeSession.id, {
+            feedback,
+            strengths,
+            improvements,
+            rating: 4 // Default rating for now
+        });
         setSessions((value) =>
             value.map((session) =>
               session.id === activeSession.id
-                ? { ...session, feedback: feedback, strengths, improvements, status: 'Completed' }
+                ? { ...session, feedback, strengths, improvements, status: 'Completed' }
                 : session
             )
           );
@@ -193,6 +204,18 @@ const MockInterview = () => {
         setMessage('Failed to save review.');
     }
   };
+
+  if (isInterviewing && activeSession) {
+    return (
+      <InterviewWorkspace 
+        session={activeSession} 
+        onClose={() => {
+            setIsInterviewing(false);
+            loadSessions();
+        }} 
+      />
+    );
+  }
 
   return (
     <div className="app-page on" style={{ padding: '28px 28px 40px' }}>
@@ -385,8 +408,8 @@ const MockInterview = () => {
 
                   <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 10 }}>{activeSession.topic}</div>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
-                    <button className="btn btn-primary btn-sm" onClick={() => updateStatus(activeSession.id, 'In Progress')}>
-                      <PlayCircle size={14} /> Start Session
+                    <button className="btn btn-primary btn-sm" onClick={() => setIsInterviewing(true)}>
+                      <PlayCircle size={14} /> Start Workspace
                     </button>
                     <button className="btn btn-ghost btn-sm" onClick={() => updateStatus(activeSession.id, 'Completed')}>
                       <CheckCircle2 size={14} /> Mark Completed
@@ -480,6 +503,228 @@ const MockInterview = () => {
       </div>
     </div>
   );
+};
+
+const InterviewWorkspace = ({ session, onClose }) => {
+    const [messages, setMessages] = React.useState([]);
+    const [userInput, setUserInput] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [isFinished, setIsFinished] = React.useState(false);
+    const [summary, setSummary] = React.useState(null);
+    const scrollRef = React.useRef(null);
+
+    React.useEffect(() => {
+        startInterview();
+    }, []);
+
+    React.useEffect(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }, [messages]);
+
+    const startInterview = async () => {
+        setIsLoading(true);
+        try {
+            const prompt = `You are a professional ${session.role} interviewer. Start a ${session.roundType} interview about ${session.topic}. 
+            Start by welcoming the candidate and asking the first technical or behavioral question. 
+            Keep your response concise yet professional.`;
+            
+            const response = await aiService.chat([{ role: 'user', content: prompt }]);
+            setMessages([{ role: 'assistant', content: response.reply }]);
+        } catch (error) {
+            console.error('Failed to start interview:', error);
+            setMessages([{ role: 'assistant', content: "I'm sorry, I encountered an error starting the interview. Please try again." }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSend = async () => {
+        if (!userInput.trim() || isLoading) return;
+
+        const currentInput = userInput;
+        setUserInput('');
+        setMessages(prev => [...prev, { role: 'user', content: currentInput }]);
+        setIsLoading(true);
+
+        try {
+            const lastQuestion = [...messages].reverse().find(m => m.role === 'assistant')?.content;
+            
+            // Get feedback for current answer
+            const feedbackRes = await aiService.analyzeInterview(lastQuestion, currentInput);
+            
+            // Get next question
+            const nextPrompt = `The candidate answered: "${currentInput}". 
+            Feedback on their answer: "${feedbackRes.reply}". 
+            Now, provide a very brief feedback on their response, and then ask the NEXT question for this ${session.roundType} interview on ${session.topic}. 
+            If you have asked 3-4 questions already, you can conclude the interview.`;
+
+            const response = await aiService.chat([...messages, { role: 'user', content: nextPrompt }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: response.reply }]);
+        } catch (error) {
+            console.error('Failed to get AI response:', error);
+            setMessages(prev => [...prev, { role: 'assistant', content: "I apologize, but I lost connection for a moment. Could you please repeat that?" }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const finishInterview = async () => {
+        setIsLoading(true);
+        try {
+            const summaryPrompt = `Based on the following interview transcript for a ${session.role} role on the topic ${session.topic}, 
+            provide a final summary in EXACTLY this JSON format:
+            {
+                "feedback": "overall summary",
+                "strengths": "key strengths found",
+                "improvements": "areas to work on",
+                "rating": 1-5
+            }
+            
+            TRANSCRIPT:
+            ${messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}`;
+
+            const response = await aiService.chat([{ role: 'user', content: summaryPrompt }]);
+            
+            let data;
+            try {
+                // Try to parse JSON from AI response
+                const jsonMatch = response.reply.match(/\{.*\}/s);
+                data = JSON.parse(jsonMatch ? jsonMatch[0] : response.reply);
+            } catch (e) {
+                data = {
+                    feedback: response.reply,
+                    strengths: "Evaluated during session",
+                    improvements: "Refer to session notes",
+                    rating: 4
+                };
+            }
+
+            setSummary(data);
+            await mockInterviewService.updateFeedback(session.id, data);
+            setIsFinished(true);
+        } catch (error) {
+            console.error('Failed to finish interview:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isFinished && summary) {
+        return (
+            <div className="app-page on" style={{ padding: '28px' }}>
+                <div style={{ maxWidth: 800, margin: '0 auto' }}>
+                    <div className="faic gap12 mb24" style={{ cursor: 'pointer', color: 'var(--t3)' }} onClick={onClose}>
+                        <ArrowLeft size={16} /> Back to Dashboard
+                    </div>
+
+                    <div className="card text-center mb24" style={{ padding: '40px 20px' }}>
+                        <div className="faic jcc mb16">
+                            <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(249,115,22,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Trophy size={32} style={{ color: 'var(--orange)' }} />
+                            </div>
+                        </div>
+                        <h1 className="section-title">Interview Completed!</h1>
+                        <p className="section-sub">Excellent work. You've completed your practice session for {session.topic}.</p>
+                    </div>
+
+                    <div className="g2">
+                        <div className="card">
+                            <div className="card-hdr">
+                                <div className="card-title faic gap8"><Target size={16} color="var(--orange)" /> Key Strengths</div>
+                            </div>
+                            <p style={{ color: 'var(--t2)', fontSize: 14, lineHeight: 1.6 }}>{summary.strengths}</p>
+                        </div>
+                        <div className="card">
+                            <div className="card-hdr">
+                                <div className="card-title faic gap8"><LineChart size={16} color="var(--blue)" /> Areas to Improve</div>
+                            </div>
+                            <p style={{ color: 'var(--t2)', fontSize: 14, lineHeight: 1.6 }}>{summary.improvements}</p>
+                        </div>
+                    </div>
+
+                    <div className="card mt24">
+                        <div className="card-hdr">
+                            <div className="card-title">Overall Feedback</div>
+                        </div>
+                        <div style={{ whiteSpace: 'pre-wrap', color: 'var(--t2)', fontSize: 14, lineHeight: 1.7 }} className="markdown-content">
+                            {summary.feedback}
+                        </div>
+                        <div className="mt24">
+                            <button className="btn btn-primary fw" onClick={onClose}>Done</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="app-page on" style={{ padding: 0, height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--b1)', background: 'var(--bg1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="faic gap12">
+                    <button className="btn btn-ghost btn-sm" onClick={onClose}><ArrowLeft size={16} /></button>
+                    <div>
+                        <div style={{ fontSize: 14, fontWeight: 800 }}>{session.topic}</div>
+                        <div style={{ fontSize: 12, color: 'var(--t3)' }}>{session.role} • {session.roundType}</div>
+                    </div>
+                </div>
+                <button className="btn btn-ghost btn-sm color-orange" onClick={finishInterview}>Finish & Result</button>
+            </div>
+
+            <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {messages.map((msg, index) => (
+                    <div key={index} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                        <div style={{ 
+                            maxWidth: '80%', 
+                            padding: '14px 18px', 
+                            borderRadius: 18, 
+                            background: msg.role === 'user' ? 'var(--orange)' : 'var(--bg2)',
+                            color: msg.role === 'user' ? '#fff' : 'var(--t1)',
+                            border: msg.role === 'user' ? 'none' : '1px solid var(--b1)',
+                            fontSize: 14,
+                            lineHeight: 1.6,
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                        }}>
+                            {msg.content}
+                        </div>
+                    </div>
+                ))}
+                {isLoading && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        <div style={{ padding: '14px 18px', borderRadius: 18, background: 'var(--bg2)', border: '1px solid var(--b1)' }}>
+                            <Loader2 size={18} className="spin" style={{ color: 'var(--t3)' }} />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div style={{ padding: '20px 24px', background: 'var(--bg1)', borderTop: '1px solid var(--b1)' }}>
+                <div style={{ maxWidth: 800, margin: '0 auto', display: 'flex', gap: 12 }}>
+                    <div className="input-wrap" style={{ flex: 1 }}>
+                        <input 
+                            type="text" 
+                            placeholder="Type your response here..." 
+                            value={userInput} 
+                            onChange={(e) => setUserInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                            style={{ height: 48, borderRadius: 24 }}
+                        />
+                    </div>
+                    <button 
+                        className="btn btn-primary" 
+                        style={{ width: 48, height: 48, borderRadius: '50%', padding: 0, minWidth: 48 }}
+                        onClick={handleSend}
+                        disabled={isLoading || !userInput.trim()}
+                    >
+                        <Send size={18} />
+                    </button>
+                </div>
+                <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--t3)', marginTop: 12 }}>
+                    Try to use frameworks like STAR or PREP for structured answers.
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default MockInterview;

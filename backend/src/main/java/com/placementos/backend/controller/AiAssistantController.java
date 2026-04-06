@@ -25,4 +25,12 @@ public class AiAssistantController {
         String reply = aiChatService.generateReply(request.getMessages());
         return ResponseEntity.ok(new AiChatResponse(reply));
     }
+
+    @PostMapping("/analyze-interview")
+    public ResponseEntity<AiChatResponse> analyzeInterview(@RequestBody Map<String, String> request) {
+        String question = request.get("question");
+        String answer = request.get("answer");
+        String feedback = aiChatService.analyzeInterviewResponse(question, answer);
+        return ResponseEntity.ok(new AiChatResponse(feedback));
+    }
 }

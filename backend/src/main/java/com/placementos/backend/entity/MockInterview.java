@@ -28,6 +28,10 @@ public class MockInterview {
     private InterviewStatus status;
     @Column(columnDefinition = "TEXT")
     private String feedback;
+    @Column(columnDefinition = "TEXT")
+    private String strengths;
+    @Column(columnDefinition = "TEXT")
+    private String improvements;
     private int rating; // 1-5
     private LocalDateTime createdAt;
 
@@ -81,6 +85,12 @@ public class MockInterview {
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         private String feedback;
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
+        private String strengths;
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
+        private String improvements;
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         private int rating;
@@ -198,6 +208,26 @@ public class MockInterview {
          */
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
+        public MockInterview.MockInterviewBuilder strengths(final String strengths) {
+            this.strengths = strengths;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
+        public MockInterview.MockInterviewBuilder improvements(final String improvements) {
+            this.improvements = improvements;
+            return this;
+        }
+
+        /**
+         * @return {@code this}.
+         */
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
         public MockInterview.MockInterviewBuilder rating(final int rating) {
             this.rating = rating;
             return this;
@@ -216,14 +246,14 @@ public class MockInterview {
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         public MockInterview build() {
-            return new MockInterview(this.id, this.interviewer, this.interviewee, this.topic, this.scheduledTime, this.scheduledAt, this.duration, this.role, this.roundType, this.focusArea, this.status, this.feedback, this.rating, this.createdAt);
+            return new MockInterview(this.id, this.interviewer, this.interviewee, this.topic, this.scheduledTime, this.scheduledAt, this.duration, this.role, this.roundType, this.focusArea, this.status, this.feedback, this.strengths, this.improvements, this.rating, this.createdAt);
         }
 
         @java.lang.Override
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         public java.lang.String toString() {
-            return "MockInterview.MockInterviewBuilder(id=" + this.id + ", interviewer=" + this.interviewer + ", interviewee=" + this.interviewee + ", topic=" + this.topic + ", scheduledTime=" + this.scheduledTime + ", scheduledAt=" + this.scheduledAt + ", duration=" + this.duration + ", focusArea=" + this.focusArea + ", status=" + this.status + ", feedback=" + this.feedback + ", rating=" + this.rating + ", createdAt=" + this.createdAt + ")";
+            return "MockInterview.MockInterviewBuilder(id=" + this.id + ", interviewer=" + this.interviewer + ", interviewee=" + this.interviewee + ", topic=" + this.topic + ", scheduledTime=" + this.scheduledTime + ", scheduledAt=" + this.scheduledAt + ", duration=" + this.duration + ", focusArea=" + this.focusArea + ", status=" + this.status + ", feedback=" + this.feedback + ", strengths=" + this.strengths + ", improvements=" + this.improvements + ", rating=" + this.rating + ", createdAt=" + this.createdAt + ")";
         }
     }
 
@@ -303,6 +333,18 @@ public class MockInterview {
     @lombok.Generated
     public String getFeedback() {
         return this.feedback;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public String getStrengths() {
+        return this.strengths;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public String getImprovements() {
+        return this.improvements;
     }
 
     @java.lang.SuppressWarnings("all")
@@ -391,6 +433,18 @@ public class MockInterview {
 
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
+    public void setStrengths(final String strengths) {
+        this.strengths = strengths;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setImprovements(final String improvements) {
+        this.improvements = improvements;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
     public void setRating(final int rating) {
         this.rating = rating;
     }
@@ -440,6 +494,12 @@ public class MockInterview {
         final java.lang.Object this$feedback = this.getFeedback();
         final java.lang.Object other$feedback = other.getFeedback();
         if (this$feedback == null ? other$feedback != null : !this$feedback.equals(other$feedback)) return false;
+        final java.lang.Object this$strengths = this.getStrengths();
+        final java.lang.Object other$strengths = other.getStrengths();
+        if (this$strengths == null ? other$strengths != null : !this$strengths.equals(other$strengths)) return false;
+        final java.lang.Object this$improvements = this.getImprovements();
+        final java.lang.Object other$improvements = other.getImprovements();
+        if (this$improvements == null ? other$improvements != null : !this$improvements.equals(other$improvements)) return false;
         final java.lang.Object this$createdAt = this.getCreatedAt();
         final java.lang.Object other$createdAt = other.getCreatedAt();
         if (this$createdAt == null ? other$createdAt != null : !this$createdAt.equals(other$createdAt)) return false;
@@ -479,6 +539,10 @@ public class MockInterview {
         result = result * PRIME + ($status == null ? 43 : $status.hashCode());
         final java.lang.Object $feedback = this.getFeedback();
         result = result * PRIME + ($feedback == null ? 43 : $feedback.hashCode());
+        final java.lang.Object $strengths = this.getStrengths();
+        result = result * PRIME + ($strengths == null ? 43 : $strengths.hashCode());
+        final java.lang.Object $improvements = this.getImprovements();
+        result = result * PRIME + ($improvements == null ? 43 : $improvements.hashCode());
         final java.lang.Object $createdAt = this.getCreatedAt();
         result = result * PRIME + ($createdAt == null ? 43 : $createdAt.hashCode());
         return result;
@@ -488,7 +552,7 @@ public class MockInterview {
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
     public java.lang.String toString() {
-        return "MockInterview(id=" + this.getId() + ", interviewer=" + this.getInterviewer() + ", interviewee=" + this.getInterviewee() + ", topic=" + this.getTopic() + ", scheduledTime=" + this.getScheduledTime() + ", scheduledAt=" + this.getScheduledAt() + ", duration=" + this.getDuration() + ", focusArea=" + this.getFocusArea() + ", status=" + this.getStatus() + ", feedback=" + this.getFeedback() + ", rating=" + this.getRating() + ", createdAt=" + this.getCreatedAt() + ")";
+        return "MockInterview(id=" + this.getId() + ", interviewer=" + this.getInterviewer() + ", interviewee=" + this.getInterviewee() + ", topic=" + this.getTopic() + ", scheduledTime=" + this.getScheduledTime() + ", scheduledAt=" + this.getScheduledAt() + ", duration=" + this.getDuration() + ", focusArea=" + this.getFocusArea() + ", status=" + this.getStatus() + ", feedback=" + this.getFeedback() + ", strengths=" + this.getStrengths() + ", improvements=" + this.getImprovements() + ", rating=" + this.getRating() + ", createdAt=" + this.getCreatedAt() + ")";
     }
 
     @java.lang.SuppressWarnings("all")
@@ -498,7 +562,7 @@ public class MockInterview {
 
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
-    public MockInterview(final Long id, final User interviewer, final User interviewee, final String topic, final LocalDateTime scheduledTime, final String scheduledAt, final String duration, final String role, final String roundType, final String focusArea, final InterviewStatus status, final String feedback, final int rating, final LocalDateTime createdAt) {
+    public MockInterview(final Long id, final User interviewer, final User interviewee, final String topic, final LocalDateTime scheduledTime, final String scheduledAt, final String duration, final String role, final String roundType, final String focusArea, final InterviewStatus status, final String feedback, final String strengths, final String improvements, final int rating, final LocalDateTime createdAt) {
         this.id = id;
         this.interviewer = interviewer;
         this.interviewee = interviewee;
@@ -511,6 +575,8 @@ public class MockInterview {
         this.focusArea = focusArea;
         this.status = status;
         this.feedback = feedback;
+        this.strengths = strengths;
+        this.improvements = improvements;
         this.rating = rating;
         this.createdAt = createdAt;
     }
