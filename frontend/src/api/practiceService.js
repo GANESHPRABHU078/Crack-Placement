@@ -50,4 +50,9 @@ export const practiceService = {
     const response = await apiClient.get('/submissions/heatmap');
     return response.data;
   },
+
+  getRecentActivity: async () => {
+    const response = await apiClient.get('/practice/recent');
+    return response.data;
+  },
 };

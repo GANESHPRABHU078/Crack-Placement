@@ -491,104 +491,104 @@ public class DataSeeder implements CommandLineRunner {
             "Integrate MetaMask for digital identity verification."
         ));
 
-        // Personal Finance Tracker
-        ProjectIdea finance = ProjectIdea.builder()
-                .title("SpendWise")
-                .description("Automatically track expenses from SMS alerts and provide budget insights.")
-                .domain(ProjectIdea.ProjectDomain.MOBILE_APP)
-                .difficulty(ProjectIdea.ProjectDifficulty.BEGINNER)
-                .techStack(Arrays.asList("React Native", "SQLite", "Expo"))
-                .estimatedTime("3 Weeks")
-                .realWorldUseCase("Consumer fintech apps for financial literacy.")
-                .resumeImpactScore(7)
-                .githubLink("https://github.com/example/spendwise")
+        // AI/ML - Financial Fraud Detection
+        ProjectIdea fraud = ProjectIdea.builder()
+                .title("SafeGuard AI")
+                .description("Advanced real-time anomaly detection system for credit card transactions using isolation forests.")
+                .domain(ProjectIdea.ProjectDomain.AI_ML)
+                .difficulty(ProjectIdea.ProjectDifficulty.ADVANCED)
+                .techStack(Arrays.asList("Python", "Scikit-Learn", "FastAPI", "Redis"))
+                .estimatedTime("8 Weeks")
+                .realWorldUseCase("Used by fintech companies to prevent fraudulent transactions instantly.")
+                .resumeImpactScore(9)
+                .githubLink("https://github.com/example/safeguard-ai")
                 .build();
-        projectIdeaRepository.save(finance);
-        seedSteps(finance, Arrays.asList(
-            "Build a category-based expense logger UI.",
-            "Implement local storage using SQLite for offline access.",
-            "Create monthly spending charts using React Native SVG Charts.",
-            "Implement a 'Budget Alert' system using local notifications."
+        projectIdeaRepository.save(fraud);
+        seedSteps(fraud, Arrays.asList(
+            "Clean and normalize transaction datasets using Pandas.",
+            "Train an Isolation Forest model for unsupervised anomaly detection.",
+            "Build a low-latency API to serve predictions under 50ms.",
+            "Implement a feedback loop for model retraining."
         ));
 
-        // Distributed Key-Value Store
+        // Distributed Systems - Raft KV Store
         ProjectIdea kvstore = ProjectIdea.builder()
-                .title("Titan KV Store")
-                .description("Build a highly available and consistent key-value store from scratch.")
+                .title("Titan KV")
+                .description("A distributed, highly available Key-Value store implementing the Raft consensus algorithm.")
                 .domain(ProjectIdea.ProjectDomain.SYSTEM_DESIGN)
                 .difficulty(ProjectIdea.ProjectDifficulty.ADVANCED)
-                .techStack(Arrays.asList("C++", "Raft Consensus", "gRPC"))
-                .estimatedTime("10-14 Weeks")
-                .realWorldUseCase("Core component of Redis and Etcd clusters.")
+                .techStack(Arrays.asList("Go", "gRPC", "Protobuf", "Etcd-Raft"))
+                .estimatedTime("12 Weeks")
+                .realWorldUseCase("Foundation for services like Kubernetes (etcd) and CockroachDB.")
                 .resumeImpactScore(10)
                 .githubLink("https://github.com/example/titan-kv")
                 .build();
         projectIdeaRepository.save(kvstore);
         seedSteps(kvstore, Arrays.asList(
-            "Implement the Raft consensus algorithm for leader election.",
-            "Build a log replication system for data consistency.",
-            "Implement data persistence using LSM trees for high write-throughput.",
-            "Add a gRPC client library for external service interaction."
+            "Implement basic RPC communication between nodes.",
+            "Integrate the Raft consensus module for leader election.",
+            "Build a persistent log store with snapshots and compaction.",
+            "Expose a client API for consistent read/write operations."
         ));
 
-        // Cybersecurity Threat Map
-        ProjectIdea threatmap = ProjectIdea.builder()
-                .title("CyberSentinel Map")
-                .description("Visualize real-time cyber threats and DDoS attacks globally.")
-                .domain(ProjectIdea.ProjectDomain.CYBERSECURITY)
-                .difficulty(ProjectIdea.ProjectDifficulty.INTERMEDIATE)
-                .techStack(Arrays.asList("Go", "ELK Stack", "Leaflet.js", "Redis"))
-                .estimatedTime("5 Weeks")
-                .realWorldUseCase("Used in Security Operations Centers (SOCs) for threat intelligence.")
-                .resumeImpactScore(9)
-                .githubLink("https://github.com/example/cybersentinel")
-                .build();
-        projectIdeaRepository.save(threatmap);
-        seedSteps(threatmap, Arrays.asList(
-            "Ingest honeypot data using Go-based log listeners.",
-            "Geolocate IP addresses using MaxMind database.",
-            "Stream data to a web frontend using Server-Sent Events (SSE).",
-            "Build an interactive 3D globe visualization in WebGL."
-        ));
-
-        // Recommendation Engine for Movies
-        ProjectIdea movies = ProjectIdea.builder()
-                .title("CineMatch AI")
-                .description("A movie recommendation system using collaborative filtering and content-based algorithms.")
-                .domain(ProjectIdea.ProjectDomain.AI_ML)
-                .difficulty(ProjectIdea.ProjectDifficulty.BEGINNER)
-                .techStack(Arrays.asList("Python", "Surprise Library", "FastAPI", "MongoDB"))
-                .estimatedTime("4 Weeks")
-                .realWorldUseCase("Personalization algorithms used by Netflix and YouTube.")
-                .resumeImpactScore(8)
-                .githubLink("https://github.com/example/cinematch")
-                .build();
-        projectIdeaRepository.save(movies);
-        seedSteps(movies, Arrays.asList(
-            "Preprocess MovieLens dataset using Pandas.",
-            "Implement Singular Value Decomposition (SVD) for matrix factorization.",
-            "Build a REST API to serve user-specific recommendations.",
-            "Deploy the model using Docker on AWS App Runner."
-        ));
-
-        // Inventory Management System
-        ProjectIdea inventory = ProjectIdea.builder()
-                .title("StockMaster")
-                .description("Real-time inventory tracking for warehouses with barcode scanning support.")
+        // Web Dev - Multi-tenant SaaS Dashboard
+        ProjectIdea saas = ProjectIdea.builder()
+                .title("Nexus Dashboard")
+                .description("A production-ready multi-tenant analytics dashboard with real-time data visualization.")
                 .domain(ProjectIdea.ProjectDomain.WEB_DEV)
-                .difficulty(ProjectIdea.ProjectDifficulty.BEGINNER)
-                .techStack(Arrays.asList("Java", "Spring Boot", "MySQL", "React"))
-                .estimatedTime("4 Weeks")
-                .realWorldUseCase("Retail and logistics supply chain management.")
-                .resumeImpactScore(7)
-                .githubLink("https://github.com/example/stockmaster")
+                .difficulty(ProjectIdea.ProjectDifficulty.INTERMEDIATE)
+                .techStack(Arrays.asList("Next.js", "TypeScript", "Tailwind CSS", "Supabase"))
+                .estimatedTime("6 Weeks")
+                .realWorldUseCase("Modern B2B analytics platforms.")
+                .resumeImpactScore(8)
+                .githubLink("https://github.com/example/nexus-saas")
                 .build();
-        projectIdeaRepository.save(inventory);
-        seedSteps(inventory, Arrays.asList(
-            "Design a DB schema for Products, Warehouses, and Transactions.",
-            "Implement REST endpoints for CRUD operations on inventory.",
-            "Build a frontend dashboard with low-stock alerts.",
-            "Integrate a JS-based barcode scanner library."
+        projectIdeaRepository.save(saas);
+        seedSteps(saas, Arrays.asList(
+            "Implement multi-tenant auth with organization switching.",
+            "Build dynamic charts using Recharts or D3.js.",
+            "Enable real-time data sync using WebSockets or Supabase.",
+            "Design a responsive, accessible UI with Dark Mode support."
+        ));
+
+        // Data Science - E-commerce Recommendation Engine
+        ProjectIdea reco = ProjectIdea.builder()
+                .title("Pulse Reco")
+                .description("Personalized product recommendation engine using hybrid filtering and deep learning.")
+                .domain(ProjectIdea.ProjectDomain.DATA_SCIENCE)
+                .difficulty(ProjectIdea.ProjectDifficulty.INTERMEDIATE)
+                .techStack(Arrays.asList("Python", "TensorFlow", "PostgreSQL", "Flask"))
+                .estimatedTime("5 Weeks")
+                .realWorldUseCase("Essential for e-commerce platforms like Amazon and Flipkart.")
+                .resumeImpactScore(9)
+                .githubLink("https://github.com/example/pulse-reco")
+                .build();
+        projectIdeaRepository.save(reco);
+        seedSteps(reco, Arrays.asList(
+            "Perform Exploratory Data Analysis (EDA) on user clickstreams.",
+            "Build a hybrid filtering model (Collaborative + Content-based).",
+            "Develop a recommendation service with Top-K item retrieval.",
+            "A/B test the model against a baseline popularity strategy."
+        ));
+
+        // Blockchain - Decentralized Voting Protocol
+        ProjectIdea voting = ProjectIdea.builder()
+                .title("EtherVote")
+                .description("Transparent and secure voting system built on Ethereum with Solidity smart contracts.")
+                .domain(ProjectIdea.ProjectDomain.BLOCKCHAIN)
+                .difficulty(ProjectIdea.ProjectDifficulty.ADVANCED)
+                .techStack(Arrays.asList("Solidity", "Hardhat", "React", "Ethers.js"))
+                .estimatedTime("6 Weeks")
+                .realWorldUseCase("DAO governance and municipal voting trials.")
+                .resumeImpactScore(9)
+                .githubLink("https://github.com/example/ethervote")
+                .build();
+        projectIdeaRepository.save(voting);
+        seedSteps(voting, Arrays.asList(
+            "Write secure Solidity contracts for ballot management.",
+            "Unit test contracts for edge cases and reentrancy.",
+            "Build a web3 frontend to connect with MetaMask.",
+            "Deploy to a testnet like Sepolia or Arbitrum Goerli."
         ));
     }
 

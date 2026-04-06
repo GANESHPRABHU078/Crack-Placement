@@ -2,6 +2,7 @@ package com.placementos.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
@@ -47,6 +48,9 @@ public class ProjectIdea {
     @Builder.Default
     @OneToMany(mappedBy = "projectIdea", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("stepNumber ASC")
+    @JsonManagedReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<ProjectStep> steps = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)

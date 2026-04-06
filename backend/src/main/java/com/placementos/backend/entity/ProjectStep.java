@@ -2,6 +2,7 @@ package com.placementos.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "project_steps")
@@ -16,6 +17,9 @@ public class ProjectStep {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
+    @JsonBackReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private ProjectIdea projectIdea;
     
     private int stepNumber;

@@ -219,6 +219,24 @@ public class PracticeController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/api/practice/recent")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> getRecentActivity(Authentication authentication) {
+        User user = requireUser(authentication);
+        List<PracticeProgress> recent = practiceProgressRepository.findByUserIdAndCompletedTrue(user.getId()).stream()
+                .sorted(Comparator.comparing(PracticeProgress::getCompletedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .limit(5)
+                .toList();
+        
+        List<Map<String, Object>> response = recent.stream().map(p -> {
+            Map<String, Object> map = toProblemResponse(p.getProblem());
+            map.put("completedAt", p.getCompletedAt());
+            return map;
+        }).toList();
+        
+        return ResponseEntity.ok(response);
+    }
+
     private Map<String, Object> toProblemResponse(PracticeProblem problem) {
         PracticeTopic topic = problem.getTopic();
         Map<String, Object> item = new LinkedHashMap<>();

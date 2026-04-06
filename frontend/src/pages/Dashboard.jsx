@@ -1,6 +1,7 @@
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { practiceService } from '../api/practiceService';
+import { mockInterviewService } from '../api/mockInterviewService';
 import { motion } from 'framer-motion';
 import {
   Zap, CheckCircle2, Target, TrendingUp,
@@ -21,8 +22,12 @@ const itemVars = {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [solvedCount, setSolvedCount] = React.useState(0);
   const [heatmapData, setHeatmapData] = React.useState({});
+  const [activities, setActivities] = React.useState([]);
+  const [preparationProgress, setPreparationProgress] = React.useState([]);
+  const [todayFocus, setTodayFocus] = React.useState([]);
 
   React.useEffect(() => {
     const loadSolvedCount = async () => {
@@ -43,8 +48,55 @@ const Dashboard = () => {
       }
     };
 
+    const loadRecentActivity = async () => {
+      try {
+        const data = await practiceService.getRecentActivity();
+        setActivities(data.map(a => ({
+          label: a.title,
+          tag: a.topic.name,
+          diff: a.difficulty,
+          time: a.completedAt ? new Date(a.completedAt).toLocaleDateString() : 'Recently',
+          icon: Code2,
+          color: a.difficulty === 'Easy' ? 'var(--easy)' : (a.difficulty === 'Medium' ? 'var(--med)' : 'var(--hard)')
+        })));
+      } catch (error) {
+        console.error('Failed to load record activities:', error);
+      }
+    };
+
+    const loadPreparationInsights = async () => {
+      try {
+        const insights = await practiceService.getInsights();
+        setPreparationProgress(insights.topicInsights.map(t => ({
+          label: t.name,
+          pct: t.completionRate,
+          cls: t.completionRate > 50 ? 'pg' : (t.completionRate > 20 ? 'po' : 'pp')
+        })).slice(0, 3));
+      } catch (error) {
+        console.error('Failed to load insights:', error);
+      }
+    };
+
+    const loadMockInterviews = async () => {
+        try {
+          const sessions = await mockInterviewService.getMyInterviews();
+          const upcoming = sessions.filter(s => s.status === 'Scheduled').slice(0, 3);
+          setTodayFocus(upcoming.map(s => ({
+            time: new Date(s.scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            label: s.topic,
+            status: '',
+            color: 'var(--orange)'
+          })));
+        } catch (error) {
+            console.error('Failed to load mock interviews:', error);
+        }
+    };
+
     loadSolvedCount();
     loadHeatmapData();
+    loadRecentActivity();
+    loadPreparationInsights();
+    loadMockInterviews();
   }, [user?.problemsSolved]);
 
   React.useEffect(() => {
@@ -65,12 +117,6 @@ const Dashboard = () => {
     { cls: 'g', Icon: CheckCircle2, val: solvedCount || user.problemsSolved, lbl: 'Solved', delta: `Top 15% in ${user.college || 'your college'}`, deltaUp: true },
     { cls: 'a', Icon: Target, val: user.xp, lbl: 'Platform XP', delta: `Lv.${user.level} · ${user.league}` },
     { cls: 'p', Icon: TrendingUp, val: `#${user.globalRank || '---'}`, lbl: 'Global Rank', delta: 'All universities' },
-  ];
-
-  const activities = [
-    { label: 'Binary Search', tag: 'Arrays', diff: 'Easy', time: '2h ago', icon: Code2, color: 'var(--easy)' },
-    { label: 'LRU Cache', tag: 'Design', diff: 'Medium', time: '1d ago', icon: Cpu, color: 'var(--med)' },
-    { label: 'Serialize Tree', tag: 'Trees', diff: 'Hard', time: '2d ago', icon: BookOpen, color: 'var(--hard)' },
   ];
 
   const weekData = [40, 70, 45, 90, 65, 30, 50];
@@ -118,11 +164,11 @@ const Dashboard = () => {
               <ArrowUpRight size={16} style={{ color: 'var(--t3)' }} />
             </div>
 
-            {[
-              { label: 'Data Structures & Algorithms', pct: 65, cls: 'po' },
-              { label: 'Aptitude & Logical Reasoning', pct: 42, cls: 'pg' },
-              { label: 'System Design', pct: 28, cls: 'pp' },
-            ].map(({ label, pct, cls }) => (
+            {(preparationProgress.length > 0 ? preparationProgress : [
+              { label: 'DSA Topics', pct: 0, cls: 'po' },
+              { label: 'Aptitude Practice', pct: 0, cls: 'pg' },
+              { label: 'System Design', pct: 0, cls: 'pp' },
+            ]).map(({ label, pct, cls }) => (
               <div key={label} style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
                   <span style={{ color: 'var(--t2)' }}>{label}</span>
@@ -163,26 +209,35 @@ const Dashboard = () => {
                 <Clock size={15} style={{ color: 'var(--t3)' }} />
               </div>
 
-              {[
-                { time: '09:00', label: 'Tree Traversals', status: 'next', color: 'var(--orange)' },
-                { time: '11:30', label: 'Profit & Loss Quiz', status: '', color: 'var(--easy)' },
-                { time: '02:00', label: 'Mock Interview', status: '', color: 'var(--t4)' },
-              ].map(({ time, label, status, color }) => (
+              {todayFocus.length > 0 ? todayFocus.map(({ time, label, status, color }) => (
                 <div key={label} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '10px 12px', marginBottom: 6, borderRadius: 10, background: status === 'next' ? 'rgba(249,115,22,0.06)' : 'transparent', border: `1px solid ${status === 'next' ? 'rgba(249,115,22,0.15)' : 'transparent'}` }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, boxShadow: status === 'next' ? 'var(--orange-glow-sm)' : 'none', flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: 'var(--t3)', width: 46 }}>{time} AM</span>
+                  <span style={{ fontSize: 11, color: 'var(--t3)', width: 46 }}>{time}</span>
                   <span style={{ fontSize: 13, fontWeight: status === 'next' ? 700 : 500, color: status === 'next' ? 'var(--t1)' : 'var(--t2)', flex: 1 }}>{label}</span>
                   {status === 'next' && <span style={{ fontSize: 9, background: 'var(--orange)', color: '#000', fontWeight: 800, padding: '2px 6px', borderRadius: 4 }}>NEXT</span>}
                 </div>
-              ))}
+              )) : (
+                <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--t4)', fontSize: 12 }}>No upcoming sessions for today.</div>
+              )}
 
-              <button className="btn btn-ghost fw mt8 btn-sm" style={{ width: '100%', justifyContent: 'center', marginTop: 12 }}>View Roadmap <ChevronRight size={12} /></button>
+              <button 
+                className="btn btn-ghost fw mt8 btn-sm" 
+                style={{ width: '100%', justifyContent: 'center', marginTop: 12 }}
+                onClick={() => navigate('/mock-interviews')}
+              >
+                View Workspace <ChevronRight size={12} />
+              </button>
             </motion.div>
 
             <motion.div variants={itemVars} className="card">
               <div className="card-hdr">
                 <div className="card-title">Recent Activity</div>
-                <span style={{ fontSize: 11, color: 'var(--orange)', fontWeight: 600, cursor: 'pointer' }}>All →</span>
+                <span 
+                  style={{ fontSize: 11, color: 'var(--orange)', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={() => navigate('/practice')}
+                >
+                  All →
+                </span>
               </div>
               {activities.map(({ label, tag, diff, time, icon: Icon, color }) => (
                 <div key={label} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--b1)' }}>

@@ -21,6 +21,8 @@ public class MockInterview {
     private LocalDateTime scheduledTime; // Added for seeding
     private String scheduledAt;
     private String duration;
+    private String role;
+    private String roundType;
     private String focusArea;
     @Enumerated(EnumType.STRING)
     private InterviewStatus status;
@@ -64,6 +66,12 @@ public class MockInterview {
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         private String duration;
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
+        private String role;
+        @java.lang.SuppressWarnings("all")
+        @lombok.Generated
+        private String roundType;
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         private String focusArea;
@@ -208,7 +216,7 @@ public class MockInterview {
         @java.lang.SuppressWarnings("all")
         @lombok.Generated
         public MockInterview build() {
-            return new MockInterview(this.id, this.interviewer, this.interviewee, this.topic, this.scheduledTime, this.scheduledAt, this.duration, this.focusArea, this.status, this.feedback, this.rating, this.createdAt);
+            return new MockInterview(this.id, this.interviewer, this.interviewee, this.topic, this.scheduledTime, this.scheduledAt, this.duration, this.role, this.roundType, this.focusArea, this.status, this.feedback, this.rating, this.createdAt);
         }
 
         @java.lang.Override
@@ -265,6 +273,18 @@ public class MockInterview {
     @lombok.Generated
     public String getDuration() {
         return this.duration;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public String getRole() {
+        return this.role;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public String getRoundType() {
+        return this.roundType;
     }
 
     @java.lang.SuppressWarnings("all")
@@ -337,6 +357,18 @@ public class MockInterview {
     @lombok.Generated
     public void setDuration(final String duration) {
         this.duration = duration;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setRole(final String role) {
+        this.role = role;
+    }
+
+    @java.lang.SuppressWarnings("all")
+    @lombok.Generated
+    public void setRoundType(final String roundType) {
+        this.roundType = roundType;
     }
 
     @java.lang.SuppressWarnings("all")
@@ -466,7 +498,7 @@ public class MockInterview {
 
     @java.lang.SuppressWarnings("all")
     @lombok.Generated
-    public MockInterview(final Long id, final User interviewer, final User interviewee, final String topic, final LocalDateTime scheduledTime, final String scheduledAt, final String duration, final String focusArea, final InterviewStatus status, final String feedback, final int rating, final LocalDateTime createdAt) {
+    public MockInterview(final Long id, final User interviewer, final User interviewee, final String topic, final LocalDateTime scheduledTime, final String scheduledAt, final String duration, final String role, final String roundType, final String focusArea, final InterviewStatus status, final String feedback, final int rating, final LocalDateTime createdAt) {
         this.id = id;
         this.interviewer = interviewer;
         this.interviewee = interviewee;
@@ -474,6 +506,8 @@ public class MockInterview {
         this.scheduledTime = scheduledTime;
         this.scheduledAt = scheduledAt;
         this.duration = duration;
+        this.role = role;
+        this.roundType = roundType;
         this.focusArea = focusArea;
         this.status = status;
         this.feedback = feedback;
