@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/interviews/mock")
@@ -27,6 +28,24 @@ public class MockInterviewController {
         User user = userRepository.findByEmail(auth.getName()).orElseThrow();
         mock.setInterviewee(user);
         mock.setStatus(MockInterview.InterviewStatus.Scheduled);
+        return ResponseEntity.ok(repo.save(mock));
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<MockInterview> updateStatus(@PathVariable Long id, @RequestParam MockInterview.InterviewStatus status) {
+        MockInterview mock = repo.findById(id).orElseThrow();
+        mock.setStatus(status);
+        return ResponseEntity.ok(repo.save(mock));
+    }
+
+    @PutMapping("/{id}/feedback")
+    public ResponseEntity<MockInterview> updateFeedback(@PathVariable Long id, @RequestBody Map<String, Object> feedbackData) {
+        MockInterview mock = repo.findById(id).orElseThrow();
+        if (feedbackData.containsKey("feedback")) mock.setFeedback((String) feedbackData.get("feedback"));
+        if (feedbackData.containsKey("strengths")) mock.setStrengths((String) feedbackData.get("strengths"));
+        if (feedbackData.containsKey("improvements")) mock.setImprovements((String) feedbackData.get("improvements"));
+        if (feedbackData.containsKey("rating")) mock.setRating((Integer) feedbackData.get("rating"));
+        mock.setStatus(MockInterview.InterviewStatus.Completed);
         return ResponseEntity.ok(repo.save(mock));
     }
 
