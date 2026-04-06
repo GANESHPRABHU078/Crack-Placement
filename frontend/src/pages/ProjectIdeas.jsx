@@ -42,7 +42,7 @@ const ProjectIdeas = () => {
     setLoading(true);
     try {
       // Fetch main projects first to unblock the UI
-      const allProjs = await projectService.getAll();
+      const allProjs = await projectService.getProjects();
       setProjects(Array.isArray(allProjs) ? allProjs : []);
       
       // Fetch supplementary data in the background
