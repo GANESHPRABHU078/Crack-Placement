@@ -3,10 +3,19 @@ import { useAuth } from '../context/AuthContext';
 import { Bell, Flame, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+const getInitial = (value, fallback = '') => {
+  if (typeof value !== 'string') return fallback;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : fallback;
+};
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const firstInitial = getInitial(user?.firstName, getInitial(user?.email, 'U'));
+  const lastInitial = getInitial(user?.lastName);
+  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim() || 'User';
   const navItems = [
     { label: 'Explore', path: '/dashboard' },
     { label: 'Practice', path: '/practice' },
@@ -86,7 +95,7 @@ const Navbar = () => {
             title="User menu"
             style={{ cursor: 'pointer' }}
           >
-            {user.firstName[0]}{user.lastName[0]}
+            {firstInitial}{lastInitial}
           </button>
           {showUserMenu && (
             <div style={{
@@ -103,7 +112,7 @@ const Navbar = () => {
             }}>
               <div style={{ padding: '12px', borderBottom: '1px solid var(--b1)' }}>
                 <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--t1)' }}>
-                  {user.firstName} {user.lastName}
+                  {displayName}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '2px' }}>
                   {user.email}

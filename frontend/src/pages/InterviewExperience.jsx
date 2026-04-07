@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../api/apiClient';
 import { MessageSquare, Calendar, Building2, User, Send, Plus } from 'lucide-react';
 
+const getInitial = (value, fallback = '?') => {
+  if (typeof value !== 'string') return fallback;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : fallback;
+};
+
 const InterviewExperience = () => {
   const [exps, setExps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +105,7 @@ const InterviewExperience = () => {
             <div key={exp.id} className="card">
               <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                 <div className="auth-logo-ico" style={{ width: '40px', height: '40px', borderRadius: '10px' }}>
-                  {exp.company[0]}
+                  {getInitial(exp.company)}
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>

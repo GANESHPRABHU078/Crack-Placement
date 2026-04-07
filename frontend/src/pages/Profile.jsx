@@ -17,6 +17,12 @@ import { practiceService } from '../api/practiceService';
 
 import { profileService } from '../api/profileService';
 
+const getInitial = (value, fallback = '') => {
+  if (typeof value !== 'string') return fallback;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : fallback;
+};
+
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const [stats, setStats] = useState({
@@ -82,6 +88,10 @@ const Profile = () => {
 
   if (!user) return null;
 
+  const firstInitial = getInitial(user.firstName, getInitial(user.email, 'U'));
+  const lastInitial = getInitial(user.lastName);
+  const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim() || 'User';
+
   return (
     <div className="app-page on profile-page">
       <div className="profile-shell" style={{ maxWidth: 1000, margin: '0 auto', padding: '24px' }}>
@@ -117,13 +127,13 @@ const Profile = () => {
               color: '#fff',
               boxShadow: '0 0 40px rgba(99, 102, 241, 0.4)'
             }}>
-              {user.firstName[0]}{user.lastName[0]}
+              {firstInitial}{lastInitial}
             </div>
 
             <div className="profile-info-main" style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                 <h1 style={{ fontSize: '32px', fontWeight: '800', color: 'var(--t1)' }}>
-                  {user.firstName} {user.lastName}
+                  {displayName}
                 </h1>
                 <span className="profile-badge-pro" style={{
                   background: 'rgba(99, 102, 241, 0.15)',
