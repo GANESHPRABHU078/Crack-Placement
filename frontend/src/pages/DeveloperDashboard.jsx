@@ -221,13 +221,14 @@ const DevInsightsPage = () => {
                                         contentStyle={{ background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: 8, fontSize: 12 }}
                                         formatter={(val, _n, props) => [`${val} solved / ${props.payload.expected} expected`, props.payload.fullName]}
                                     />
-                                    <Bar dataKey="solved" radius={[4, 4, 0, 0]} maxBarSize={32}
-                                        shape={(props) => (
-                                            <rect {...props} rx={4}
-                                                fill={STRENGTH_COLORS[props?.payload?.strength] || '#6366f1'}
+                                    <Bar dataKey="solved" maxBarSize={32} radius={[4, 4, 0, 0]}>
+                                        {topicChartData.map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={STRENGTH_COLORS[entry.strength] || '#6366f1'}
                                             />
-                                        )}
-                                    />
+                                        ))}
+                                    </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
