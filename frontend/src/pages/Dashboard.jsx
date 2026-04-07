@@ -11,6 +11,14 @@ import {
 } from 'lucide-react';
 import Heatmap from '../components/Heatmap';
 
+const clampPercent = (value) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  return Math.max(0, Math.min(100, Math.round(numeric)));
+};
+
+const progressTone = (pct) => (pct > 50 ? 'pg' : (pct > 20 ? 'po' : 'pp'));
+
 const containerVars = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.06 } }
@@ -22,15 +30,25 @@ const itemVars = {
 };
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [solvedCount, setSolvedCount] = React.useState(0);
   const [heatmapData, setHeatmapData] = React.useState({});
   const [activities, setActivities] = React.useState([]);
   const [preparationProgress, setPreparationProgress] = React.useState([]);
   const [todayFocus, setTodayFocus] = React.useState([]);
+  const [profile, setProfile] = React.useState(user);
 
   React.useEffect(() => {
+    const loadLatestProfile = async () => {
+      try {
+        const latest = await refreshProfile();
+        setProfile(latest);
+      } catch (error) {
+        setProfile(user);
+      }
+    };
+
     const loadSolvedCount = async () => {
       try {
         const progress = await practiceService.getProgress();
@@ -68,11 +86,18 @@ const Dashboard = () => {
     const loadPreparationInsights = async () => {
       try {
         const insights = await practiceService.getInsights();
-        setPreparationProgress(insights.topicInsights.map(t => ({
-          label: t.name,
-          pct: t.completionRate,
-          cls: t.completionRate > 50 ? 'pg' : (t.completionRate > 20 ? 'po' : 'pp')
-        })).slice(0, 3));
+        const topicInsights = Array.isArray(insights?.topicInsights) ? insights.topicInsights : [];
+        const normalized = topicInsights
+          .map((t) => {
+            const pct = clampPercent(t.completionRate);
+            return {
+              label: t.name || 'Topic',
+              pct,
+              cls: progressTone(pct)
+            };
+          })
+          .slice(0, 3);
+        setPreparationProgress(normalized);
       } catch (error) {
         console.error('Failed to load insights:', error);
       }
@@ -93,12 +118,13 @@ const Dashboard = () => {
         }
     };
 
+    loadLatestProfile();
     loadSolvedCount();
     loadHeatmapData();
     loadRecentActivity();
     loadPreparationInsights();
     loadMockInterviews();
-  }, [user?.problemsSolved]);
+  }, [refreshProfile, user]);
 
   React.useEffect(() => {
     const handleProgressUpdated = (event) => {
@@ -113,11 +139,24 @@ const Dashboard = () => {
 
   if (!user) return null;
 
+  const currentUser = profile || user;
+  const solvedValue = solvedCount || currentUser?.problemsSolved || 0;
+  const streakValue = currentUser?.currentStreak || 0;
+  const xpValue = currentUser?.xp || 0;
+  const levelValue = currentUser?.level || 1;
+  const leagueValue = currentUser?.league || 'Starter';
+  const rankValue = currentUser?.globalRank ? `#${currentUser.globalRank}` : '#---';
+  const preparationItems = preparationProgress.length > 0 ? preparationProgress : [
+    { label: 'Practice Progress', pct: solvedValue > 0 ? clampPercent(solvedValue * 10) : 0, cls: progressTone(solvedValue * 10) },
+    { label: 'Aptitude Practice', pct: 0, cls: 'pg' },
+    { label: 'System Design', pct: 0, cls: 'pp' },
+  ];
+
   const stats = [
-    { cls: 'c', Icon: Zap, val: user.currentStreak, lbl: 'Day Streak', delta: '+1 today', deltaUp: true },
-    { cls: 'g', Icon: CheckCircle2, val: solvedCount || user.problemsSolved, lbl: 'Solved', delta: `Top 15% in ${user.college || 'your college'}`, deltaUp: true },
-    { cls: 'a', Icon: Target, val: user.xp, lbl: 'Platform XP', delta: `Lv.${user.level} · ${user.league}` },
-    { cls: 'p', Icon: TrendingUp, val: `#${user.globalRank || '---'}`, lbl: 'Global Rank', delta: 'All universities' },
+    { cls: 'c', Icon: Zap, val: streakValue, lbl: 'Day Streak', delta: '+1 today', deltaUp: true },
+    { cls: 'g', Icon: CheckCircle2, val: solvedValue, lbl: 'Solved', delta: `Top 15% in ${currentUser?.college || 'your college'}`, deltaUp: true },
+    { cls: 'a', Icon: Target, val: xpValue, lbl: 'Platform XP', delta: `Lv.${levelValue} · ${leagueValue}` },
+    { cls: 'p', Icon: TrendingUp, val: rankValue, lbl: 'Global Rank', delta: 'All universities' },
   ];
 
   const weekData = [40, 70, 45, 90, 65, 30, 50];
@@ -165,11 +204,7 @@ const Dashboard = () => {
               <ArrowUpRight size={16} style={{ color: 'var(--t3)' }} />
             </div>
 
-            {(preparationProgress.length > 0 ? preparationProgress : [
-              { label: 'DSA Topics', pct: 0, cls: 'po' },
-              { label: 'Aptitude Practice', pct: 0, cls: 'pg' },
-              { label: 'System Design', pct: 0, cls: 'pp' },
-            ]).map(({ label, pct, cls }) => (
+            {preparationItems.map(({ label, pct, cls }) => (
               <div key={label} style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
                   <span style={{ color: 'var(--t2)' }}>{label}</span>
