@@ -221,12 +221,9 @@ const DevInsightsPage = () => {
                                         contentStyle={{ background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: 8, fontSize: 12 }}
                                         formatter={(val, _n, props) => [`${val} solved / ${props.payload.expected} expected`, props.payload.fullName]}
                                     />
-                                    <Bar dataKey="solved" maxBarSize={32} radius={[4, 4, 0, 0]}>
+                                    <Bar dataKey="solved" maxBarSize={32}>
                                         {topicChartData.map((entry, index) => (
-                                            <Cell
-                                                key={`cell-${index}`}
-                                                fill={STRENGTH_COLORS[entry.strength] || '#6366f1'}
-                                            />
+                                            <Cell key={`cell-${index}`} fill={STRENGTH_COLORS[entry.strength] || '#6366f1'} />
                                         ))}
                                     </Bar>
                                 </BarChart>
@@ -491,33 +488,53 @@ const DevInsightsPage = () => {
                         </div>
                     </div>
 
-                    {/* LeetCode Difficulty Donut */}
+                    {/* LeetCode Difficulty Breakdown - CSS Donut */}
                     <div className="card mb32">
-                        <div className="card-hdr mb16"><div className="card-title">LeetCode Difficulty Breakdown</div></div>
+                        <div className="card-hdr mb20"><div className="card-title">LeetCode Difficulty Breakdown</div></div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-                            <div style={{ height: 260 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie data={leetcodeData} innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value">
-                                            {leetcodeData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                                        </Pie>
-                                        <Tooltip contentStyle={{ background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: 8 }} />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                            {/* CSS Donut Chart */}
+                            <div className="faic jcc" style={{ minHeight: 220 }}>
+                                {(() => {
+                                    const total = (profile.leetcodeEasySolved || 0) + (profile.leetcodeMediumSolved || 0) + (profile.leetcodeHardSolved || 0);
+                                    if (total === 0) return (
+                                        <div className="faic jcc flex-col gap8">
+                                            <div style={{ width: 140, height: 140, borderRadius: '50%', border: '18px solid var(--bg4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <span className="fs13 color-t4">No data</span>
+                                            </div>
+                                        </div>
+                                    );
+                                    const easy   = Math.round(((profile.leetcodeEasySolved   || 0) / total) * 100);
+                                    const medium = Math.round(((profile.leetcodeMediumSolved || 0) / total) * 100);
+                                    const hard   = 100 - easy - medium;
+                                    const conicStr = `conic-gradient(#10b981 0% ${easy}%, #f59e0b ${easy}% ${easy + medium}%, #ef4444 ${easy + medium}% 100%)`;
+                                    return (
+                                        <div style={{ position: 'relative', width: 160, height: 160 }}>
+                                            <div style={{ width: 160, height: 160, borderRadius: '50%', background: conicStr }} />
+                                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 100, height: 100, borderRadius: '50%', background: 'var(--bg1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                                <div className="fs22 fw900 color-t1">{total}</div>
+                                                <div className="fs11 color-t4">solved</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                             <div className="faic flex-col jcc gap16 p12">
-                                {leetcodeData.map(d => (
+                                {[
+                                    { name: 'Easy',   count: profile.leetcodeEasySolved   || 0, color: '#10b981' },
+                                    { name: 'Medium', count: profile.leetcodeMediumSolved || 0, color: '#f59e0b' },
+                                    { name: 'Hard',   count: profile.leetcodeHardSolved   || 0, color: '#ef4444' },
+                                ].map(d => (
                                     <div key={d.name} className="faic jsb w100">
                                         <div className="faic gap10">
                                             <div style={{ width: 12, height: 12, borderRadius: 3, background: d.color }} />
                                             <span className="fs14 fw600 color-t2">{d.name}</span>
                                         </div>
-                                        <span className="fs18 fw900 color-t1">{d.value}</span>
+                                        <span className="fs18 fw900 color-t1">{d.count}</span>
                                     </div>
                                 ))}
                                 <div className="faic jsb w100 pt12" style={{ borderTop: '1px solid var(--b1)' }}>
                                     <span className="fs13 fw600 color-t3">Total Solved</span>
-                                    <span className="fs20 fw900 color-t1">{profile.leetcodeTotalSolved}</span>
+                                    <span className="fs20 fw900 color-t1">{profile.leetcodeTotalSolved || 0}</span>
                                 </div>
                             </div>
                         </div>
