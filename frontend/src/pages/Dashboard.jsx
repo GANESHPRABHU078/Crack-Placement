@@ -19,6 +19,39 @@ const clampPercent = (value) => {
 
 const progressTone = (pct) => (pct > 50 ? 'pg' : (pct > 20 ? 'po' : 'pp'));
 
+const getDisplayName = (user) => {
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
+  if (fullName) return fullName;
+  if (user?.email) return user.email.split('@')[0];
+  return 'there';
+};
+
+const getTopicProgress = (topic) => {
+  const directRate = clampPercent(topic?.completionRate);
+  if (directRate > 0) return directRate;
+
+  const completed = Number(
+    topic?.completedCount ??
+    topic?.completed ??
+    topic?.solved ??
+    topic?.attemptedSolved ??
+    0
+  );
+  const total = Number(
+    topic?.totalQuestions ??
+    topic?.questionCount ??
+    topic?.total ??
+    topic?.expected ??
+    0
+  );
+
+  if (Number.isFinite(completed) && Number.isFinite(total) && total > 0) {
+    return clampPercent((completed / total) * 100);
+  }
+
+  return 0;
+};
+
 const containerVars = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.06 } }
@@ -89,7 +122,7 @@ const Dashboard = () => {
         const topicInsights = Array.isArray(insights?.topicInsights) ? insights.topicInsights : [];
         const normalized = topicInsights
           .map((t) => {
-            const pct = clampPercent(t.completionRate);
+            const pct = getTopicProgress(t);
             return {
               label: t.name || 'Topic',
               pct,
@@ -146,6 +179,7 @@ const Dashboard = () => {
   const levelValue = currentUser?.level || 1;
   const leagueValue = currentUser?.league || 'Starter';
   const rankValue = currentUser?.globalRank ? `#${currentUser.globalRank}` : '#---';
+  const displayName = getDisplayName(currentUser);
   const preparationItems = preparationProgress.length > 0 ? preparationProgress : [
     { label: 'Practice Progress', pct: solvedValue > 0 ? clampPercent(solvedValue * 10) : 0, cls: progressTone(solvedValue * 10) },
     { label: 'Aptitude Practice', pct: 0, cls: 'pg' },
@@ -174,7 +208,7 @@ const Dashboard = () => {
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
             <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-              Welcome back, <span style={{ color: 'var(--orange)' }}>{user.firstName}</span>!
+              Welcome back, <span style={{ color: 'var(--orange)' }}>{displayName}</span>!
             </h1>
             <p style={{ fontSize: 13, color: 'var(--t2)', marginTop: 5 }}>Keep your streak alive and your solved count moving.</p>
             <p style={{ fontSize: 12, color: 'var(--orange)', marginTop: 8 }}>
