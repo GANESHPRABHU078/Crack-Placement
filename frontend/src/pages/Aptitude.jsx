@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { aptitudeService } from '../api/aptitudeService';
-import { Timer, CheckCircle, XCircle, ChevronRight, RefreshCcw, TrendingUp, Award, Zap, BookOpen, Target, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Zap, Target, Clock } from 'lucide-react';
+
+const QUIZ_LENGTH = 15;
 
 const topicCatalog = [
     { id: 'quant', title: 'Quantitative Aptitude', desc: 'Number systems, Algebra, Geometry, Arithmetic, Permutation & Combination', icon: '➗', color: '#f59e0b', problems: 85, difficulty: 'Mixed', avgTime: 2.5, bestScore: 92 },
@@ -216,6 +218,32 @@ const allQuestions = {
   ]
 };
 
+const normalizeQuestions = (questions = [], topicId = 'general') =>
+  questions.map((question, index) => ({
+    ...question,
+    id: question.id || `${topicId}-${index}`,
+  }));
+
+const buildQuizSet = (questions = [], count = QUIZ_LENGTH, topicId = 'general') => {
+  const normalized = normalizeQuestions(questions, topicId);
+  if (normalized.length === 0) return [];
+  if (normalized.length >= count) return normalized.slice(0, count);
+
+  const expanded = [];
+  let round = 0;
+  while (expanded.length < count) {
+    normalized.forEach((question, index) => {
+      if (expanded.length >= count) return;
+      expanded.push({
+        ...question,
+        id: `${question.id}-r${round}-${index}`,
+      });
+    });
+    round += 1;
+  }
+  return expanded;
+};
+
 const Aptitude = () => {
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -227,7 +255,6 @@ const Aptitude = () => {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [timeLeft, setTimeLeft] = useState(900);
   const [timerActive, setTimerActive] = useState(false);
-  const [userStats, setUserStats] = useState({ total: 12, completed: 5, accuracy: 82, attempted: ['quant', 'verbal'] });
 
   useEffect(() => {
     if (quizStarted && selectedTopic) {
@@ -250,15 +277,20 @@ const Aptitude = () => {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      // Try to fetch from backend first
-      const data = await aptitudeService.getQuiz();
-      if (!data || data.length === 0) throw new Error('Empty quiz data');
-      setQuestions(data);
+      const data = await aptitudeService.getQuiz(selectedTopic);
+      const backendQuestions = Array.isArray(data) ? data : [];
+      if (backendQuestions.length >= QUIZ_LENGTH) {
+        setQuestions(buildQuizSet(backendQuestions, QUIZ_LENGTH, selectedTopic));
+      } else {
+        const fallbackQuestions = allQuestions[selectedTopic] || [];
+        const mergedQuestions = [...backendQuestions, ...fallbackQuestions];
+        if (mergedQuestions.length === 0) throw new Error('Empty quiz data');
+        setQuestions(buildQuizSet(mergedQuestions, QUIZ_LENGTH, selectedTopic));
+      }
     } catch (err) {
-      console.warn('Backend unavailable, using mock aptitude questions.', err);
-      // Use offline mock data based on selected topic
+      console.warn('Aptitude API unavailable, using local question bank.', err);
       const topicQuestions = allQuestions[selectedTopic] || [];
-      setQuestions(topicQuestions);
+      setQuestions(buildQuizSet(topicQuestions, QUIZ_LENGTH, selectedTopic));
     } finally {
       setLoading(false);
     }
@@ -307,35 +339,7 @@ const Aptitude = () => {
           <div className="section-hdr mb28">
             <div>
               <h1 className="section-title">Aptitude & Logic Mastery</h1>
-              <p className="section-sub">Master placement quizzes with 445+ real questions across 6 categories. Timed tests matching company patterns.</p>
-            </div>
-          </div>
-
-          {/* Stats Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 32 }}>
-            <div style={{ padding: '16px 20px', borderRadius: 12, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Award size={16} style={{ color: '#f59e0b' }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t2)' }}>Quizzes Completed</span>
-              </div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#f59e0b', marginBottom: 2 }}>{userStats.completed}</div>
-              <div style={{ fontSize: 11, color: 'var(--t3)' }}>of {userStats.total} available</div>
-            </div>
-            <div style={{ padding: '16px 20px', borderRadius: 12, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <TrendingUp size={16} style={{ color: '#10b981' }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t2)' }}>Avg Accuracy</span>
-              </div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#10b981', marginBottom: 2 }}>{userStats.accuracy}%</div>
-              <div style={{ fontSize: 11, color: 'var(--t3)' }}>Last 5 attempts</div>
-            </div>
-            <div style={{ padding: '16px 20px', borderRadius: 12, background: 'var(--bg3)', border: '1px solid var(--b1)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Target size={16} style={{ color: '#8b5cf6' }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--t2)' }}>Questions Ready</span>
-              </div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: '#8b5cf6', marginBottom: 2 }}>445+</div>
-              <div style={{ fontSize: 11, color: 'var(--t3)' }}>Across 6 categories</div>
+              <p className="section-sub">Choose a topic and start a timed 15-question aptitude session.</p>
             </div>
           </div>
 
@@ -396,15 +400,11 @@ const Aptitude = () => {
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 11, color: 'var(--t4)', marginBottom: 12, paddingTop: 12, borderTop: '1px solid var(--b1)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Target size={12} style={{ color: topic.color }} />
-                    <span>{topic.problems} Qs</span>
+                    <span>{QUIZ_LENGTH} questions</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Clock size={12} style={{ color: topic.color }} />
-                    <span>~{topic.avgTime}m</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <TrendingUp size={12} style={{ color: topic.color }} />
-                    <span>Best: {topic.bestScore}%</span>
+                    <span>~{Math.ceil(topic.avgTime * QUIZ_LENGTH)}m</span>
                   </div>
                 </div>
 
