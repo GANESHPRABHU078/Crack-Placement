@@ -24,6 +24,11 @@ import { useAuth } from '../context/AuthContext';
 
 const STRENGTH_COLORS = { Strong: '#10b981', Medium: '#f59e0b', Weak: '#ef4444' };
 const STRENGTH_BG    = { Strong: 'rgba(16,185,129,0.1)', Medium: 'rgba(245,158,11,0.1)', Weak: 'rgba(239,68,68,0.1)' };
+const clampPercent = (value) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+    return Math.max(0, Math.min(100, numeric));
+};
 
 const DevInsightsPage = () => {
     const { user } = useAuth();
@@ -34,8 +39,10 @@ const DevInsightsPage = () => {
     const [syncing, setSyncing] = useState(false);
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [leetcodeUser, setLeetcodeUser] = useState('');
-    const [platformStats, setPlatformStats] = useState({ solved: 0, xp: 0, streak: 0, level: 1 });
+    const [platformStats, setPlatformStats] = useState({ solved: 0, total: 0, xp: 0, streak: 0, level: 1 });
     const [platformActivities, setPlatformActivities] = useState([]);
+    const [topicInsights, setTopicInsights] = useState([]);
+    const [weeklyTrendData, setWeeklyTrendData] = useState([]);
     const [activeTab, setActiveTab] = useState('overview');
 
     useEffect(() => {
@@ -45,12 +52,43 @@ const DevInsightsPage = () => {
         }
     }, [user]);
 
+    useEffect(() => {
+        const handleProgressUpdated = (event) => {
+            if (typeof event.detail?.completedCount !== 'number') return;
+            setPlatformStats(prev => ({ ...prev, solved: event.detail.completedCount }));
+        };
+
+        window.addEventListener('practiceProgressUpdated', handleProgressUpdated);
+        return () => window.removeEventListener('practiceProgressUpdated', handleProgressUpdated);
+    }, []);
+
     const fetchPlatformData = async () => {
         try {
-            await practiceService.getInsights?.();
-            const recent = await practiceService.getRecentActivity?.();
-            setPlatformStats({ solved: user?.problemsSolved || 0, xp: user?.xp || 0, streak: user?.currentStreak || 0, level: user?.level || 1 });
-            setPlatformActivities(recent || []);
+            const [progress, insights, recent] = await Promise.all([
+                practiceService.getProgress?.(),
+                practiceService.getInsights?.(),
+                practiceService.getRecentActivity?.()
+            ]);
+
+            const insightTopics = Array.isArray(insights?.topicInsights) ? insights.topicInsights : [];
+            const solved = progress?.completedCount ?? user?.problemsSolved ?? 0;
+
+            setPlatformStats({
+                solved,
+                total: progress?.totalProblems ?? 0,
+                xp: user?.xp || 0,
+                streak: user?.currentStreak || 0,
+                level: user?.level || 1
+            });
+            setTopicInsights(insightTopics);
+            setPlatformActivities(Array.isArray(recent) ? recent : []);
+            setWeeklyTrendData(
+                insightTopics.slice(0, 7).map((topic) => ({
+                    name: topic.name,
+                    problems: topic.completedCount ?? topic.completed ?? 0,
+                    contributions: clampPercent(topic.completionRate)
+                }))
+            );
         } catch (e) { /* non-critical */ }
     };
 
@@ -113,12 +151,6 @@ const DevInsightsPage = () => {
         { name: 'Hard',   value: profile.leetcodeHardSolved   || 0, color: '#ef4444' },
     ] : [];
 
-    const progressData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(name => ({
-        name,
-        problems: Math.floor(Math.random() * 10) + 3,
-        contributions: Math.floor(Math.random() * 12) + 1
-    }));
-
     // Analysis chart data
     const topicChartData = (analysis?.topics || []).map(t => ({
         name: t.topic.length > 15 ? t.topic.slice(0, 13) + '…' : t.topic,
@@ -127,6 +159,25 @@ const DevInsightsPage = () => {
         expected: t.expected,
         strength: t.strength,
     }));
+
+    const blueprintData = topicInsights.length > 0 ? topicInsights.slice(0, 4).map((topic) => ({
+        label: topic.name,
+        value: clampPercent(topic.completionRate),
+        color: clampPercent(topic.completionRate) >= 60 ? '#10b981' : clampPercent(topic.completionRate) >= 30 ? '#f59e0b' : '#ef4444'
+    })) : [
+        { label: 'DSA Mastery', value: platformStats.total ? clampPercent((platformStats.solved / platformStats.total) * 100) : 0, color: 'var(--blue)' },
+        { label: 'Easy Problems', value: Math.min(100, ((profile?.leetcodeEasySolved || 0) / 50) * 100), color: '#10b981' },
+        { label: 'Medium Problems', value: Math.min(100, ((profile?.leetcodeMediumSolved || 0) / 30) * 100), color: '#f59e0b' },
+        { label: 'Hard Problems', value: Math.min(100, ((profile?.leetcodeHardSolved || 0) / 10) * 100), color: '#ef4444' },
+    ];
+
+    const chartData = weeklyTrendData.length > 0 ? weeklyTrendData : [
+        {
+            name: 'Progress',
+            problems: platformStats.solved,
+            contributions: platformStats.total ? clampPercent((platformStats.solved / platformStats.total) * 100) : 0
+        }
+    ];
 
     return (
         <div className="p28">
@@ -402,6 +453,9 @@ const DevInsightsPage = () => {
                             </div>
                             <div className="mt12 pt12 border-t border-gray-100 fs11 color-t3">
                                 Streak: <span className="color-orange fw700">{platformStats.streak} Days</span>
+                                {platformStats.total > 0 && (
+                                    <span className="ml8">• <span className="fw700 color-t2">{platformStats.total}</span> total tracked</span>
+                                )}
                             </div>
                         </div>
 
@@ -468,12 +522,7 @@ const DevInsightsPage = () => {
                                 <div className="card-title faic gap8"><TrendingUp size={18} className="color-emerald" /> Preparation Blueprint</div>
                             </div>
                             <div className="g1 gap16 p12">
-                                {[
-                                    { label: 'DSA Mastery',    value: Math.min(100, platformStats.solved * 2),                   color: 'var(--blue)'   },
-                                    { label: 'Easy Problems',  value: Math.min(100, (profile.leetcodeEasySolved / 50) * 100),    color: '#10b981'       },
-                                    { label: 'Medium Problems',value: Math.min(100, (profile.leetcodeMediumSolved / 30) * 100),  color: '#f59e0b'       },
-                                    { label: 'Hard Problems',  value: Math.min(100, (profile.leetcodeHardSolved / 10) * 100),    color: '#ef4444'       },
-                                ].map((skill, idx) => (
+                                {blueprintData.map((skill, idx) => (
                                     <div key={idx}>
                                         <div className="faic jsb mb6 fs12">
                                             <span className="fw600 color-t2">{skill.label}</span>
@@ -547,7 +596,7 @@ const DevInsightsPage = () => {
                         </div>
                         <div style={{ height: 280 }} className="p20">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={progressData}>
+                                <AreaChart data={chartData}>
                                     <defs>
                                         <linearGradient id="gProblems" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#f97316" stopOpacity={0.15} />
