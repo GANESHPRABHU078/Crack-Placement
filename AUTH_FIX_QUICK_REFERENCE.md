@@ -5,79 +5,88 @@
 1. ❌ **Cross-Origin-Opener-Policy error** - Fixed by adding security headers
 2. ❌ **500 errors on /api/auth/google** - Fixed by proper exception handling & env variables
 3. ❌ **500 errors on /api/auth/login** - Fixed by better error messages
+4. ❌ **App fails to start on Render** - Fixed by simplifying WebConfig
 
 ## What Changed
 
 ### Backend Code Changes
-- **NEW**: `backend/src/main/java/com/placementos/backend/config/WebConfig.java` - Adds COOP/COEP headers
+- **NEW**: `backend/src/main/java/com/placementos/backend/config/WebConfig.java` - Adds COOP/COEP headers (fixed version)
 - **UPDATED**: `backend/src/main/java/com/placementos/backend/exception/GlobalExceptionHandler.java` - Better auth error handling
 - **UPDATED**: `backend/render.yaml` - Added required environment variables
 
-## Action Required on Render Dashboard
+## 🚨 Immediate Actions Required
 
-### ⚠️ CRITICAL: Set These Environment Variables on Render
-
-1. Go to your Render Dashboard
-2. Select **crackplacement-backend** service
-3. Click **Environment** tab
-4. Add these variables with **Mark as Secret**:
-
-```
-GOOGLE_CLIENT_ID = <your-google-client-id>
-JWT_SECRET = <generate-random-secure-string>
-GEMINI_API_KEY = <your-gemini-api-key>
-OPENAI_API_KEY = <your-openai-api-key>
-```
-
-And these as normal variables:
-```
-CORS_ALLOWED_ORIGINS = https://crackplacement.vercel.app,https://*.vercel.app,http://localhost:5173
-AI_PROVIDER = gemini
-```
-
-5. Click **Manual Deploy** to apply changes
-6. Wait 2-3 minutes for deployment
-
-## How to Get Google Client ID
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create OAuth 2.0 Web Application credentials
-3. Copy the Client ID (ends with `.apps.googleusercontent.com`)
-4. Set as `GOOGLE_CLIENT_ID` on Render
-
-## Testing After Deployment
-
+### Step 1: Git Commit & Push
 ```bash
-# Test health endpoint
-curl https://your-backend.onrender.com/health
-
-# Test login
-curl -X POST https://your-backend.onrender.com/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"test123"}'
-```
-
-## If Still Having Issues
-
-1. **Clear browser cache** (Ctrl+Shift+Delete)
-2. **Hard refresh** (Ctrl+Shift+R)
-3. **Check Render logs**: Dashboard → Service → Logs
-4. **Verify variables are set**: Dashboard → Service → Environment
-5. **Make sure Git is deployed**: Check if latest code is deployed
-
-## Files That Need Deployment
-
-These backend files need to be in your Git repo for deployment to work:
-- `backend/src/main/java/com/placementos/backend/config/WebConfig.java`
-- `backend/src/main/java/com/placementos/backend/exception/GlobalExceptionHandler.java`
-- `backend/render.yaml` (already updated)
-
-**Make sure to commit and push these changes to GitHub!**
-
-```bash
+cd crackplacement
 git add .
 git commit -m "Fix: Add COOP headers and improve auth error handling"
 git push
 ```
 
-Then on Render: Click **Manual Deploy** to trigger the deployment.
+### Step 2: Set Environment Variables on Render Dashboard
+**CRITICAL**: These MUST be set or app won't start:
+
+1. Go to **crackplacement-backend** → **Environment** tab
+2. **Add these as Secret variables**:
+   - `GOOGLE_CLIENT_ID` = Your Google Client ID
+   - `JWT_SECRET` = Random secure string (min 32 chars)
+   - `GEMINI_API_KEY` = Your Gemini API key
+   - `OPENAI_API_KEY` = Your OpenAI API key
+
+3. **Add these as normal variables**:
+   - `CORS_ALLOWED_ORIGINS` = `https://crackplacement.vercel.app,https://*.vercel.app,http://localhost:5173`
+   - `AI_PROVIDER` = `gemini`
+
+### Step 3: Link Database (If Not Done)
+1. Go to **Environment** tab
+2. Click **"Link Database"** → Select **crackplacement-db**
+3. Verify `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` auto-fill
+
+### Step 4: Manual Deploy
+1. Click **"Manual Deploy"** button
+2. Wait 2-3 minutes for deployment
+3. Check **Logs** tab for any errors
+
+---
+
+## 🔍 Testing After Deployment
+
+```bash
+# Test health
+curl https://your-backend.onrender.com/health
+
+# Test login
+curl -X POST https://your-backend.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"test123"}'
+```
+
+---
+
+## ⚠️ If App Still Won't Start
+
+See **RENDER_DEPLOYMENT_DEBUG.md** for full troubleshooting guide
+
+Quick checks:
+1. Are ALL environment variables set? ✅
+2. Is database linked? ✅
+3. Did you do **Manual Deploy** (not auto-deploy)? ✅
+4. Check **Logs** for specific error message ✅
+
+---
+
+## Files That Must Be Deployed
+
+Make sure these files are in your Git repo:
+- ✅ `backend/src/main/java/com/placementos/backend/config/WebConfig.java`
+- ✅ `backend/src/main/java/com/placementos/backend/exception/GlobalExceptionHandler.java`
+- ✅ `backend/render.yaml`
+- ✅ `backend/pom.xml` (unchanged)
+
+Verify:
+```bash
+git status
+# Should show all files as committed
+```
+
