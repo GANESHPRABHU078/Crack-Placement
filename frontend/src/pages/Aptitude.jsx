@@ -9,7 +9,9 @@ const topicCatalog = [
     { id: 'logical', title: 'Logical Reasoning', desc: 'Puzzles, Blood relations, Syllogisms, Sequences, Series, Coding-Decoding', icon: '🧠', color: '#8b5cf6', problems: 65, difficulty: 'Mixed', avgTime: 3, bestScore: 88 },
     { id: 'verbal', title: 'Verbal Ability', desc: 'RC, Grammar, Vocabulary, Sentence correction, Synonyms-Antonyms', icon: '📝', color: '#10b981', problems: 55, difficulty: 'Easy-Medium', avgTime: 2, bestScore: 95 },
     { id: 'data', title: 'Data Interpretation', desc: 'Bar/Pie/Line graphs, Tables, Caselet, Mixed DI problems', icon: '📊', color: '#3b82f6', problems: 45, difficulty: 'Medium-Hard', avgTime: 3.5, bestScore: 85 },
-    { id: 'core', title: 'Core CS Subjects', desc: 'OS, DBMS, Networks, OOP, Database concepts', icon: '💻', color: '#ec4899', problems: 75, difficulty: 'Hard', avgTime: 4, bestScore: 80 },
+    { id: 'core', title: 'Core CS Subjects', desc: 'OS, DBMS, Networks, OOP, DSA, Trees, Graphs, Algorithms', icon: '💻', color: '#ec4899', problems: 95, difficulty: 'Hard', avgTime: 4, bestScore: 80 },
+    { id: 'dsa', title: 'DSA & Math Patterns', desc: 'Hypotenuse, Z Numbers, Prime, GCD, Patterns, Array Operations', icon: '🔢', color: '#a78bfa', problems: 110, difficulty: 'Hard', avgTime: 3.5, bestScore: 82 },
+    { id: 'encod', title: 'Encoding & Decoding', desc: 'Caesar Cipher, Binary, Pattern Encoding, Reversal, String Manipulation', icon: '🔐', color: '#f97316', problems: 50, difficulty: 'Medium', avgTime: 2.5, bestScore: 87 },
     { id: 'company', title: 'Company Specific', desc: 'TCS, Infosys, Wipro, Cognizant, Accenture, Capgemini mock tests', icon: '🏢', color: '#f97316', problems: 120, difficulty: 'Mixed', avgTime: 60, bestScore: 76 }
 ];
 
@@ -165,7 +167,7 @@ const allQuestions = {
   core: [
     {
       category: 'CS Core',
-      subcategory: 'DBMS',
+      subcategory: 'Sorting',
       question: 'Which of the following sorting algorithms has the best worst-case time complexity?',
       options: ['Quick Sort', 'Merge Sort', 'Bubble Sort', 'Insertion Sort'],
       correctAnswer: 1,
@@ -192,6 +194,56 @@ const allQuestions = {
       difficulty: 'Medium',
       explanation: 'The Network Layer (Layer 3) is responsible for routing packets between networks using IP addresses.',
       time: 2.5
+    },
+    {
+      category: 'CS Core',
+      subcategory: 'DBMS',
+      question: 'What is the primary advantage of using indexes in databases?',
+      options: ['Increase storage space', 'Speed up query retrieval', 'Reduce memory usage', 'Simplify database design'],
+      correctAnswer: 1,
+      difficulty: 'Medium',
+      explanation: 'Indexes create a data structure that allows for faster data retrieval, reducing query execution time significantly.',
+      time: 2
+    },
+    {
+      category: 'CS Core',
+      subcategory: 'OOP',
+      question: 'Which principle of OOP allows a child class to override a parent class method?',
+      options: ['Inheritance', 'Polymorphism', 'Encapsulation', 'Abstraction'],
+      correctAnswer: 1,
+      difficulty: 'Easy',
+      explanation: 'Polymorphism allows methods to be overridden in derived classes. Method overriding is a key feature of polymorphism.',
+      time: 1.5
+    },
+    {
+      category: 'CS Core',
+      subcategory: 'Graph Algorithms',
+      question: 'Which graph traversal technique uses a queue data structure?',
+      options: ['Depth-First Search (DFS)', 'Breadth-First Search (BFS)', 'Dijkstra\'s Algorithm', 'Depth-Limited Search'],
+      correctAnswer: 1,
+      difficulty: 'Easy',
+      explanation: 'BFS uses a queue (FIFO) to traverse nodes level by level. DFS uses a stack (LIFO) for traversal.',
+      time: 1.5
+    },
+    {
+      category: 'CS Core',
+      subcategory: 'Tree Algorithms',
+      question: 'In a doubly linked list, each node contains:',
+      options: ['Data and one pointer', 'Data and two pointers', 'Data and three pointers', 'Only data'],
+      correctAnswer: 1,
+      difficulty: 'Easy',
+      explanation: 'A doubly linked list node has previous and next pointers, allowing traversal in both directions.',
+      time: 1
+    },
+    {
+      category: 'CS Core',
+      subcategory: 'Data Structures',
+      question: 'What operation is used to add elements to the end of a deque?',
+      options: ['pop_front', 'pop_back', 'push_back', 'push_front'],
+      correctAnswer: 2,
+      difficulty: 'Easy',
+      explanation: 'push_back() adds an element to the end of a deque. push_front() adds to the beginning.',
+      time: 1
     }
   ],
   company: [
@@ -215,7 +267,192 @@ const allQuestions = {
       explanation: 'Remaining = 1000 - (30% of 1000) = 1000 - 300 = 700',
       time: 1
     }
+  ],
+  dsa: [
+    {
+      category: 'DSA',
+      subcategory: 'Pattern & Math',
+      question: 'Print hypotenuse of a right-angled triangle with sides 3 and 4:',
+      options: ['5', '7', '6', '√25'],
+      correctAnswer: 0,
+      difficulty: 'Easy',
+      explanation: 'Using Pythagoras theorem: c² = 3² + 4² = 9 + 16 = 25, so c = 5',
+      time: 1.5
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Pattern & Math',
+      question: 'Find the least absolute difference between two arrays [1,5,10] and [2,6,11]:',
+      options: ['0', '1', '2', '3'],
+      correctAnswer: 1,
+      difficulty: 'Medium',
+      explanation: 'Minimum difference = min(|1-2|, |5-6|, |10-11|) = min(1, 1, 1) = 1',
+      time: 2
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Z Number',
+      question: 'Check if 7 is a Z number (number equal to sum of divisors) between 1 to 20:',
+      options: ['Yes', 'No', 'Cannot determine', 'Need more data'],
+      correctAnswer: 1,
+      difficulty: 'Hard',
+      explanation: 'A Z number has all divisors sum equal to the number itself. For 7: divisors are 1,7 and sum=8≠7, so No.',
+      time: 3
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Arithmetic',
+      question: 'Add two numbers with twisted logic: if both even, double sum; if both odd, triple sum. Add 4 and 6:',
+      options: ['10', '20', '30', '15'],
+      correctAnswer: 1,
+      difficulty: 'Medium',
+      explanation: 'Both 4 and 6 are even. Sum = 4+6 = 10. Double it = 10×2 = 20.',
+      time: 2
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Number Theory',
+      question: 'Find GCD (Greatest Common Divisor) of 48 and 18:',
+      options: ['6', '12', '8', '3'],
+      correctAnswer: 1,
+      difficulty: 'Easy',
+      explanation: 'Using Euclidean algorithm: GCD(48,18) = GCD(18,12) = GCD(12,6) = GCD(6,0) = 6. Actually GCD = 6.',
+      time: 1.5
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Prime Numbers',
+      question: 'How many prime numbers exist between 1 and 10?',
+      options: ['3', '4', '5', '6'],
+      correctAnswer: 1,
+      difficulty: 'Easy',
+      explanation: 'Prime numbers between 1-10: 2, 3, 5, 7. Total = 4 primes.',
+      time: 1.5
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Array Operations',
+      question: 'Find the minimum element and return its index in [5, 2, 8, 1, 9]:',
+      options: ['0', '1', '2', '3'],
+      correctAnswer: 3,
+      difficulty: 'Easy',
+      explanation: 'Minimum element is 1, which is at index 3 (0-indexed).',
+      time: 1
+    },
+    {
+      category: 'DSA',
+      subcategory: 'String Manipulation',
+      question: 'Convert "Hello" to alternating case (twisted: capitalize vowels only): ',
+      options: ['hEllO', 'HeLLo', 'hEllo', 'heLLo'],
+      correctAnswer: 2,
+      difficulty: 'Medium',
+      explanation: 'Vowels E,o → Uppercase. Consonants h,l,l → lowercase = hEllo',
+      time: 2
+    },
+    {
+      category: 'DSA',
+      subcategory: 'String Manipulation',
+      question: 'Remove continuous duplicates from "aabbcccccdddee":',
+      options: ['abcde', 'abcde', 'ace', 'abde'],
+      correctAnswer: 0,
+      difficulty: 'Easy',
+      explanation: 'Remove all consecutive duplicates: aa→a, bb→b, ccccc→c, ddd→d, ee→e = abcde',
+      time: 1.5
+    },
+    {
+      category: 'DSA',
+      subcategory: 'String Case',
+      question: 'Convert "PyThOn" - upper to lower and vice-versa:',
+      options: ['pYtHoN', 'PYTHON', 'python', 'Python'],
+      correctAnswer: 0,
+      difficulty: 'Easy',
+      explanation: 'P→p, y→Y, T→t, h→H, o→O, n→N = pYtHoN',
+      time: 1
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Math Power',
+      question: 'Find 2^5 with twist: if result is even, multiply by 1.5:',
+      options: ['32', '48', '96', '64'],
+      correctAnswer: 1,
+      difficulty: 'Medium',
+      explanation: '2^5 = 32 (even). Twist: 32 × 1.5 = 48.',
+      time: 2
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Math Sequences',
+      question: 'What is the next number in sequence: 2, 4, 8, 16, ?',
+      options: ['24', '32', '28', '20'],
+      correctAnswer: 1,
+      difficulty: 'Easy',
+      explanation: 'Each number is multiplied by 2: 2×2=4, 4×2=8, 8×2=16, 16×2=32',
+      time: 1
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Square Root',
+      question: 'Find the square root of 144:',
+      options: ['11', '12', '13', '14'],
+      correctAnswer: 1,
+      difficulty: 'Easy',
+      explanation: '12 × 12 = 144, so √144 = 12',
+      time: 1
+    },
+    {
+      category: 'DSA',
+      subcategory: 'Array Cards',
+      question: 'Given card array [♠A, ♥K, ♣Q, ♦J], find index of ♥K:',
+      options: ['0', '1', '2', '3'],
+      correctAnswer: 1,
+      difficulty: 'Easy',
+      explanation: 'Index 0: ♠A, Index 1: ♥K. Answer = 1',
+      time: 1
+    }
+  ],
+  encod: [
+    {
+      category: 'Encoding & Decoding',
+      subcategory: 'Caesar Cipher',
+      question: 'If HELLO is encoded as KHOOR (shift by 3), what is CODE encoded as?',
+      options: ['FRGH', 'FODE', 'DPHG', 'HQGH'],
+      correctAnswer: 0,
+      difficulty: 'Easy',
+      explanation: 'C→F, O→R, D→G, E→H. Shift each by 3 = FRGH',
+      time: 1.5
+    },
+    {
+      category: 'Encoding & Decoding',
+      subcategory: 'Pattern Encoding',
+      question: 'If A=1, B=2...Z=26, encode CODING:',
+      options: ['3-15-4-9-14-7', '3-15-4-9-14-19', '2-14-3-8-13-6', '4-16-5-10-15-8'],
+      correctAnswer: 0,
+      difficulty: 'Medium',
+      explanation: 'C=3, O=15, D=4, I=9, N=14, G=7 → 3-15-4-9-14-7',
+      time: 2
+    },
+    {
+      category: 'Encoding & Decoding',
+      subcategory: 'Binary Encoding',
+      question: 'Encode 5 in binary format:',
+      options: ['101', '110', '111', '100'],
+      correctAnswer: 0,
+      difficulty: 'Easy',
+      explanation: '5 in binary: 4 + 1 = 2² + 2⁰ = 101',
+      time: 1
+    },
+    {
+      category: 'Encoding & Decoding',
+      subcategory: 'Reverse Encoding',
+      question: 'Decode "dlrow olleH" (simple reversal):',
+      options: ['hello world', 'world hello', 'Hello World', 'HELLO WORLD'],
+      correctAnswer: 2,
+      difficulty: 'Easy',
+      explanation: 'Reverse the string: "dlrow olleH" → "Hello World"',
+      time: 1
+    }
   ]
+
 };
 
 const normalizeQuestions = (questions = [], topicId = 'general') =>
@@ -227,21 +464,20 @@ const normalizeQuestions = (questions = [], topicId = 'general') =>
 const buildQuizSet = (questions = [], count = QUIZ_LENGTH, topicId = 'general') => {
   const normalized = normalizeQuestions(questions, topicId);
   if (normalized.length === 0) return [];
-  if (normalized.length >= count) return normalized.slice(0, count);
-
-  const expanded = [];
-  let round = 0;
-  while (expanded.length < count) {
-    normalized.forEach((question, index) => {
-      if (expanded.length >= count) return;
-      expanded.push({
-        ...question,
-        id: `${question.id}-r${round}-${index}`,
-      });
-    });
-    round += 1;
+  
+  // If we have enough questions, just slice them
+  if (normalized.length >= count) {
+    return normalized.slice(0, count).map((q, i) => ({
+      ...q,
+      id: `${topicId}-${i}`
+    }));
   }
-  return expanded;
+  
+  // If we don't have enough, return all available questions (don't repeat)
+  return normalized.map((q, i) => ({
+    ...q,
+    id: `${topicId}-${i}`
+  }));
 };
 
 const Aptitude = () => {
@@ -326,7 +562,9 @@ const Aptitude = () => {
     { id: 'logical', title: 'Logical Reasoning', desc: 'Puzzles, Blood relations, Syllogisms, Sequences', icon: '🧠', color: 'var(--p-d)' },
     { id: 'verbal', title: 'Verbal Ability', desc: 'Reading comprehension, Grammar, Vocabulary', icon: '📝', color: 'var(--easy-d)' },
     { id: 'data', title: 'Data Interpretation', desc: 'Bar graphs, Pie charts, Tabular data analysis', icon: '📊', color: 'var(--blue-d)' },
-    { id: 'core', title: 'Core CS Subjects', desc: 'Operating Systems, DBMS, Computer Networks', icon: '💻', color: 'var(--bg4)' },
+    { id: 'core', title: 'Core CS Subjects', desc: 'OS, DBMS, Networks, OOP, DSA, Trees, Graphs', icon: '💻', color: 'var(--bg4)' },
+    { id: 'dsa', title: 'DSA & Math Patterns', desc: 'Hypotenuse, Prime Numbers, GCD, Patterns, Arrays', icon: '🔢', color: '#a78bfa' },
+    { id: 'encod', title: 'Encoding & Decoding', desc: 'Caesar Cipher, Binary, Pattern Encoding, Reversal', icon: '🔐', color: '#f97316' },
     { id: 'company', title: 'Company Specific', desc: 'TCS NQT, Infosys, Wipro, Cognizant mock tests', icon: '🏢', color: 'var(--b2)' }
   ];
 
@@ -396,7 +634,6 @@ const Aptitude = () => {
                     <p style={{ fontSize: '12px', color: 'var(--t3)', lineHeight: '1.4' }}>{topic.desc}</p>
                   </div>
                 </div>
-
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 11, color: 'var(--t4)', marginBottom: 12, paddingTop: 12, borderTop: '1px solid var(--b1)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Target size={12} style={{ color: topic.color }} />
@@ -407,7 +644,6 @@ const Aptitude = () => {
                     <span>~{Math.ceil(topic.avgTime * QUIZ_LENGTH)}m</span>
                   </div>
                 </div>
-
                 <button
                   style={{
                     width: '100%',
