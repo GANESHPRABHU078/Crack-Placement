@@ -30,8 +30,6 @@ public class DatabaseConfig {
     @Primary
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
-        config.setDriverClassName("org.postgresql.Driver");
-
         // Prefer the DB_URL environment variable if present (Render often injects this)
         String envDbUrl = System.getenv("DB_URL");
         String actualUrl = (envDbUrl != null && !envDbUrl.isBlank()) ? envDbUrl : dbUrl;
@@ -51,6 +49,20 @@ public class DatabaseConfig {
                 config.setJdbcUrl(jdbcUrl);
                 config.setUsername(username);
                 config.setPassword(password);
+                config.setDriverClassName("org.postgresql.Driver");
+            } else if (actualUrl != null && actualUrl.startsWith("mysql://")) {
+                log.info("Detected mysql:// URL. Converting to jdbc:mysql://");
+                URI dbUri = new URI(actualUrl);
+                String username = dbUri.getUserInfo().split(":")[0];
+                String password = dbUri.getUserInfo().split(":")[1];
+                String jdbcUrl = "jdbc:mysql://" + dbUri.getHost() + ':' + 
+                                 (dbUri.getPort() != -1 ? dbUri.getPort() : 3306) + 
+                                 dbUri.getPath() + "?sslMode=REQUIRED";
+                
+                config.setJdbcUrl(jdbcUrl);
+                config.setUsername(username);
+                config.setPassword(password);
+                config.setDriverClassName("com.mysql.cj.jdbc.Driver");
             } else {
                 log.info("Using standard JDBC URL configuration.");
                 config.setJdbcUrl(actualUrl);
