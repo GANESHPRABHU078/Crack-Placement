@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Configuration
 public class DatabaseConfig {
@@ -54,15 +56,20 @@ public class DatabaseConfig {
                 log.info("Detected mysql:// URL. Converting to jdbc:mysql://");
                 URI dbUri = new URI(actualUrl);
                 String username = dbUri.getUserInfo().split(":")[0];
-                String password = dbUri.getUserInfo().split(":")[1];
-                String jdbcUrl = "jdbc:mysql://" + dbUri.getHost() + ':' + 
-                                 (dbUri.getPort() != -1 ? dbUri.getPort() : 3306) + 
-                                 dbUri.getPath() + "?sslMode=REQUIRED";
-                
-                config.setJdbcUrl(jdbcUrl);
-                config.setUsername(username);
-                config.setPassword(password);
-                config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+                Matcher matcher = Pattern.compile("mysql://([^:]+):([^@]+)@([^:]+):(\\d+)/(.*)").matcher(actualUrl);
+                if (matcher.matches()) {
+                    String dbAndParams = matcher.group(5).replace("ssl-mode", "sslMode");
+                    String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", matcher.group(3), matcher.group(4), dbAndParams);
+                    log.info("Converted JDBC URL: {}", jdbcUrl);
+                    config.setJdbcUrl(jdbcUrl);
+                    config.setUsername(matcher.group(1));
+                    config.setPassword(matcher.group(2));
+                    config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+                } else {
+                    config.setJdbcUrl(actualUrl);
+                    config.setUsername(dbUsername);
+                    config.setPassword(dbPassword);
+                }
             } else {
                 log.info("Using standard JDBC URL configuration.");
                 config.setJdbcUrl(actualUrl);
