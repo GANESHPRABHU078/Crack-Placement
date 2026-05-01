@@ -59,6 +59,9 @@ public class DatabaseConfig {
                 Matcher matcher = Pattern.compile("mysql://([^:]+):([^@]+)@([^:]+):(\\d+)/(.*)").matcher(actualUrl);
                 if (matcher.matches()) {
                     String dbAndParams = matcher.group(5).replace("ssl-mode", "sslMode");
+                    if (!dbAndParams.contains("sessionVariables=sql_require_primary_key=0")) {
+                        dbAndParams += (dbAndParams.contains("?") ? "&" : "?") + "sessionVariables=sql_require_primary_key=0";
+                    }
                     String jdbcUrl = String.format("jdbc:mysql://%s:%s/%s", matcher.group(3), matcher.group(4), dbAndParams);
                     log.info("Converted JDBC URL: {}", jdbcUrl);
                     config.setJdbcUrl(jdbcUrl);
