@@ -12,20 +12,10 @@ services:
         value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
       - key: PORT
         value: 8080
-      - key: DB_HOST
-        fromDatabase:
-          name: crackplacement-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: crackplacement-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: crackplacement-db
-          property: database
       - key: DB_URL
-        value: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
+        fromDatabase:
+          name: crackplacement-db
+          property: connectionString
       - key: DB_USERNAME
         fromDatabase:
           name: crackplacement-db
@@ -46,12 +36,7 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
-      - key: SPRING_DATASOURCE_URL
-        value: ${DB_URL}
-      - key: SPRING_DATASOURCE_USERNAME
-        value: ${DB_USERNAME}
-      - key: SPRING_DATASOURCE_PASSWORD
-        value: ${DB_PASSWORD}
+
 
 databases:
   - name: crackplacement-db
