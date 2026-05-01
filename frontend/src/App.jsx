@@ -24,6 +24,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const JobRecommendations = lazy(() => import('./pages/JobRecommendations'));
 const ProjectIdeas = lazy(() => import('./pages/ProjectIdeas'));
 const DevInsightsPage = lazy(() => import('./pages/DeveloperDashboard'));
+const BatchTest = lazy(() => import('./pages/BatchTest'));
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -86,6 +87,7 @@ function App() {
             <Route path="/roadmap" element={<P><Roadmap /></P>} />
             <Route path="/revision-scheduler" element={<P><RevisionScheduler /></P>} />
             <Route path="/developer-dashboard" element={<P><DevInsightsPage /></P>} />
+            <Route path="/batch-test" element={<P><BatchTest /></P>} />
             <Route path="/ai" element={<P><AIAssistant /></P>} />
             <Route path="/communication" element={<P><CommunicationLab /></P>} />
             <Route path="/about" element={<P><About /></P>} />
