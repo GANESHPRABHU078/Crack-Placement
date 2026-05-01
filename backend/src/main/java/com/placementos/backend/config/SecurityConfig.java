@@ -68,8 +68,14 @@ public class SecurityConfig {
         org.springframework.boot.web.servlet.FilterRegistrationBean<org.springframework.web.filter.CorsFilter> bean = 
                 new org.springframework.boot.web.servlet.FilterRegistrationBean<>(new org.springframework.web.filter.CorsFilter(source));
         
-        // Ensure CORS filter is executed BEFORE Spring Security
+        // Ensure CORS filter is executed BEFORE Spring Security and also on ERROR dispatches
         bean.setOrder(org.springframework.core.Ordered.HIGHEST_PRECEDENCE);
+        bean.setDispatcherTypes(
+            jakarta.servlet.DispatcherType.REQUEST, 
+            jakarta.servlet.DispatcherType.ERROR, 
+            jakarta.servlet.DispatcherType.ASYNC, 
+            jakarta.servlet.DispatcherType.FORWARD
+        );
         return bean;
     }
 }
