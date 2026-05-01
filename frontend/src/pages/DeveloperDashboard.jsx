@@ -18,6 +18,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, Legend
 } from 'recharts';
+import { motion, AnimatePresence } from 'framer-motion';
 import { developerService } from '../api/developerService';
 import { practiceService } from '../api/practiceService';
 import { useAuth } from '../context/AuthContext';
@@ -160,9 +161,30 @@ const DevInsightsPage = () => {
                 </>
             ) : (
                 <>
-                    <RefreshCcw size={32} className="spin mb16 color-p" />
-                    <div className="fs16 fw600 color-t1">Gathering Insights...</div>
-                    <div className="fs13 color-t3 mt8">This may take a moment while we sync with LeetCode.</div>
+                    <motion.div
+                        animate={{ 
+                            scale: [1, 1.1, 1],
+                            opacity: [0.6, 1, 0.6] 
+                        }}
+                        transition={{ 
+                            duration: 2, 
+                            repeat: Infinity,
+                            ease: "easeInOut" 
+                        }}
+                    >
+                        <RefreshCcw size={48} className="spin mb20 color-p" />
+                    </motion.div>
+                    <motion.div 
+                        className="fs18 fw800 color-t1 glow-text"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        Gathering Your Insights
+                    </motion.div>
+                    <div className="fs14 color-t3 mt8 max-w-sm mx-auto">
+                        We're synchronizing your latest performance data from LeetCode. This usually takes 5-10 seconds.
+                    </div>
                 </>
             )}
         </div>
@@ -204,12 +226,17 @@ const DevInsightsPage = () => {
     ];
 
     return (
-        <div className="p28">
+        <motion.div 
+            className="p28"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+        >
             {/* ── Header ── */}
-            <div className="faic jsb mb24">
+            <div className="faic jsb mb32">
                 <div>
-                    <h1 className="section-title">Developer Dashboard</h1>
-                    <p className="section-sub">Track your LeetCode progress and identify weak areas to improve faster.</p>
+                    <h1 className="section-title fs32 mb4">Developer Dashboard</h1>
+                    <p className="section-sub fs15">Gain deep insights into your problem-solving patterns and technical proficiency.</p>
                 </div>
                 <div className="faic gap12">
                     {profile && (
@@ -222,11 +249,19 @@ const DevInsightsPage = () => {
                             {analysisLoading ? 'Analyzing…' : 'Analyze Weaknesses'}
                         </button>
                     )}
-                    <button className={`btn ${syncing ? 'btn-ghost' : 'btn-primary'} faic gap8`} onClick={handleSync} disabled={syncing}>
+                    <button 
+                        className={`btn ${syncing ? 'btn-ghost' : 'btn-primary'} faic gap8 px20`} 
+                        onClick={handleSync} 
+                        disabled={syncing}
+                        style={{ 
+                            background: syncing ? 'transparent' : 'var(--grad-p)',
+                            boxShadow: syncing ? 'none' : '0 0 15px rgba(168, 85, 247, 0.3)'
+                        }}
+                    >
                         <RefreshCcw size={15} className={syncing ? 'spin' : ''} />
-                        {syncing ? 'Syncing…' : 'Refresh'}
+                        {syncing ? 'Syncing Profile…' : 'Sync Latest'}
                     </button>
-                    <button className="btn btn-ghost" onClick={() => setShowLinkModal(true)}>Update Profile</button>
+                    <button className="btn btn-ghost hover-bg-gray2" onClick={() => setShowLinkModal(true)}>Settings</button>
                 </div>
             </div>
 
@@ -259,29 +294,39 @@ const DevInsightsPage = () => {
             ) : activeTab === 'analysis' && analysis ? (
                 <div>
                     {/* Summary Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-20 mb32">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-24 mb32">
                         {[
-                            { label: 'Weak Topics',      count: analysis.weakTopics?.length   || 0, color: '#ef4444', badge: 'Need Practice' },
-                            { label: 'Improving Topics', count: analysis.mediumTopics?.length || 0, color: '#f59e0b', badge: 'In Progress'    },
-                            { label: 'Strong Topics',    count: analysis.strongTopics?.length || 0, color: '#10b981', badge: 'Mastered'       },
-                        ].map(s => (
-                            <div key={s.label} className="card text-center"
-                                style={{ background: `linear-gradient(135deg,${s.color}12,${s.color}04)` }}>
-                                <div className="fs32 fw900" style={{ color: s.color }}>{s.count}</div>
-                                <div className="fs13 color-t3 mt4">{s.label}</div>
-                                <div className="badge mt12" style={{ background: `${s.color}22`, color: s.color, border: 'none' }}>{s.badge}</div>
-                            </div>
+                            { label: 'Weak Topics',      count: analysis.weakTopics?.length   || 0, color: '#ef4444', badge: 'Need Practice', glow: 'glow-red'    },
+                            { label: 'Improving Topics', count: analysis.mediumTopics?.length || 0, color: '#f59e0b', badge: 'In Progress',  glow: 'glow-orange' },
+                            { label: 'Strong Topics',    count: analysis.strongTopics?.length || 0, color: '#10b981', badge: 'Mastered',     glow: 'glow-green'  },
+                        ].map((s, i) => (
+                            <motion.div 
+                                key={s.label} 
+                                className="glass-card p24 text-center"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                            >
+                                <div className={`fs40 fw900 mb4 ${s.glow}`} style={{ color: s.color }}>{s.count}</div>
+                                <div className="fs13 color-t3 fw600 uppercase tracking-wider mb12">{s.label}</div>
+                                <div className="badge-lg fs11" style={{ background: `${s.color}15`, color: s.color, border: 'none' }}>{s.badge}</div>
+                            </motion.div>
                         ))}
                     </div>
 
                     {/* Topic Bar Chart */}
-                    <div className="card mb32">
-                        <div className="card-hdr mb20">
-                            <div className="card-title faic gap8"><BarChart2 size={18} className="color-p" /> Topic-wise Strength Analysis</div>
-                            <div className="faic gap16 mt12">
+                    <motion.div 
+                        className="glass-card p24 mb32"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <div className="card-hdr mb24">
+                            <div className="card-title fs18 fw800 faic gap10"><BarChart2 size={20} className="glow-blue" /> Strength Analytics</div>
+                            <div className="faic gap20 mt16">
                                 {Object.entries(STRENGTH_COLORS).map(([s, c]) => (
-                                    <div key={s} className="faic gap6 fs12 color-t2">
-                                        <div style={{ width: 10, height: 10, borderRadius: 3, background: c }} /> {s}
+                                    <div key={s} className="faic gap8 fs12 color-t3 fw600 uppercase tracking-tight">
+                                        <div style={{ width: 12, height: 12, borderRadius: 4, background: c }} /> {s}
                                     </div>
                                 ))}
                             </div>
@@ -304,142 +349,177 @@ const DevInsightsPage = () => {
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Weak Highlights + Insights */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb32">
-                        <div className="card">
-                            <div className="card-hdr mb16">
-                                <div className="card-title faic gap8">
-                                    <AlertTriangle size={16} style={{ color: '#ef4444' }} /> Weak Areas — Action Required
+                        <motion.div 
+                            className="glass-card p24"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            <div className="card-hdr mb20">
+                                <div className="card-title fs16 fw800 faic gap10">
+                                    <AlertTriangle size={18} className="glow-red" /> Critical Focus Areas
                                 </div>
                             </div>
-                            <div className="g1 gap10">
+                            <div className="g1 gap12">
                                 {(analysis.weakTopics || []).slice(0, 8).map((topic, i) => {
                                     const t = analysis.topics?.find(x => x.topic === topic);
                                     return (
-                                        <div key={i} className="faic jsb p12 rounded-lg"
-                                            style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                                        <div key={i} className="faic jsb p14 rounded-xl"
+                                            style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)' }}>
                                             <div>
-                                                <div className="fs13 fw700 color-t1">{topic}</div>
-                                                <div className="fs11 color-t4">{t?.solved || 0} / {t?.expected || 0} problems solved</div>
+                                                <div className="fs14 fw700 color-t1">{topic}</div>
+                                                <div className="fs11 color-t3 uppercase tracking-wide mt2">{t?.solved || 0} / {t?.expected || 0} COMPLETED</div>
                                             </div>
-                                            <span className="badge" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'none', fontSize: 11 }}>Weak</span>
+                                            <span className="badge" style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: 'none', fontSize: 10, fontWeight: 700 }}>PRIORITY</span>
                                         </div>
                                     );
                                 })}
                                 {!(analysis.weakTopics?.length) && (
-                                    <div className="p20 text-center color-t4 fs13">No weak topics! You are well-rounded.</div>
+                                    <div className="p32 text-center color-t4 fs14 italic">You have no weak topics. Exceptional!</div>
                                 )}
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="card">
-                            <div className="card-hdr mb16">
-                                <div className="card-title faic gap8"><Zap size={16} className="color-orange" /> AI-Generated Insights</div>
+                        <motion.div 
+                            className="glass-card p24"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                        >
+                            <div className="card-hdr mb20">
+                                <div className="card-title fs16 fw800 faic gap10"><Zap size={18} className="glow-orange" /> AI Strategic Insights</div>
                             </div>
-                            <div className="g1 gap10 p4">
+                            <div className="g1 gap12 p4">
                                 {(analysis.insights || []).map((msg, i) => {
-                                    const isStrong = msg.includes('strong');
-                                    const isWeak = msg.includes('improvement') || msg.includes('Easy');
-                                    const color = isStrong ? '#10b981' : isWeak ? '#ef4444' : '#6366f1';
-                                    const bg = isStrong ? 'rgba(16,185,129,0.07)' : isWeak ? 'rgba(239,68,68,0.07)' : 'rgba(99,102,241,0.07)';
-                                    return (
-                                        <div key={i} className="p14 rounded-lg faic gap12"
-                                            style={{ background: bg, border: `1px solid ${color}22` }}>
-                                            <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
-                                            <span className="fs13 color-t1">{msg}</span>
-                                        </div>
-                                    );
-                                })}
+                                     const isStrong = msg.includes('strong');
+                                     const isWeak = msg.includes('improvement') || msg.includes('Easy');
+                                     const color = isStrong ? 'var(--green)' : isWeak ? 'var(--hard)' : 'var(--blue)';
+                                     const bg = isStrong ? 'rgba(16,185,129,0.05)' : isWeak ? 'rgba(239,68,68,0.05)' : 'rgba(59,130,246,0.05)';
+                                     return (
+                                         <div key={i} className="p14 rounded-xl faic gap12"
+                                             style={{ background: bg, border: `1px solid ${color}15` }}>
+                                             <div className="glow-text" style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                                             <span className="fs13 color-t1 leading-relaxed">{msg}</span>
+                                         </div>
+                                     );
+                                 })}
                             </div>
                             {/* Difficulty bars */}
-                            <div className="mt20 pt16" style={{ borderTop: '1px solid var(--b1)' }}>
-                                <div className="fs12 fw700 color-t2 mb12">Difficulty Distribution</div>
+                            <div className="mt24 pt20" style={{ borderTop: '1px solid var(--b1)' }}>
+                                <div className="fs12 fw700 color-t2 uppercase tracking-wider mb16">Preparation Balance</div>
                                 {[
-                                    { label: 'Easy',   count: analysis.difficultyBreakdown?.easy   || 0, color: '#10b981' },
-                                    { label: 'Medium', count: analysis.difficultyBreakdown?.medium || 0, color: '#f59e0b' },
-                                    { label: 'Hard',   count: analysis.difficultyBreakdown?.hard   || 0, color: '#ef4444' },
+                                    { label: 'Easy',   count: analysis.difficultyBreakdown?.easy   || 0, color: 'var(--green)' },
+                                    { label: 'Medium', count: analysis.difficultyBreakdown?.medium || 0, color: 'var(--med)' },
+                                    { label: 'Hard',   count: analysis.difficultyBreakdown?.hard   || 0, color: 'var(--hard)' },
                                 ].map(d => {
                                     const total = analysis.difficultyBreakdown?.total || 1;
                                     const pct = Math.round((d.count / total) * 100);
                                     return (
-                                        <div key={d.label} className="mb10">
-                                            <div className="faic jsb mb4 fs12">
-                                                <span className="fw600 color-t2">{d.label}</span>
-                                                <span className="color-t3">{d.count} ({pct}%)</span>
+                                        <div key={d.label} className="mb14">
+                                            <div className="faic jsb mb6 fs12">
+                                                <span className="fw700 color-t1">{d.label}</span>
+                                                <span className="color-t3 fw600">{d.count} ({pct}%)</span>
                                             </div>
-                                            <div style={{ height: 7, background: 'var(--bg4)', borderRadius: 10, overflow: 'hidden' }}>
-                                                <div style={{ height: '100%', width: `${pct}%`, background: d.color, borderRadius: 10, transition: 'width 0.8s ease' }} />
+                                            <div style={{ height: 8, background: 'var(--bg4)', borderRadius: 10, overflow: 'hidden' }}>
+                                                <motion.div 
+                                                    style={{ height: '100%', width: `${pct}%`, background: d.color, borderRadius: 10 }}
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${pct}%` }}
+                                                    transition={{ duration: 1, ease: 'easeOut' }}
+                                                />
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
 
                     {/* Recommendations */}
                     {(analysis.recommendations || []).length > 0 && (
-                        <div className="card mb32">
-                            <div className="card-hdr mb20">
-                                <div className="card-title faic gap8"><BookOpen size={16} className="color-blue" /> Recommendations — Improve Now</div>
-                                <p className="fs12 color-t3 mt4">Practice problems curated for your weak areas</p>
+                        <motion.div 
+                            className="glass-card p24 mb32"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6 }}
+                        >
+                            <div className="card-hdr mb24">
+                                <div className="card-title fs18 fw800 faic gap10"><BookOpen size={20} className="glow-blue" /> Targeted Training Modules</div>
+                                <p className="fs13 color-t3 mt4">Handpicked problems to bridge your specific knowledge gaps.</p>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
                                 {analysis.recommendations.map((rec, i) => (
-                                    <div key={i} className="p16 rounded-xl" style={{ background: 'var(--bg2)', border: '1px solid var(--b1)' }}>
-                                        <div className="faic gap8 mb12">
-                                            <span className="badge" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', fontSize: 11 }}>Weak</span>
-                                            <span className="fs13 fw700 color-t1">{rec.topic}</span>
+                                    <motion.div 
+                                        key={i} 
+                                        className="p20 rounded-2xl" 
+                                        style={{ background: 'var(--bg3)', border: '1px solid var(--b1)' }}
+                                        whileHover={{ y: -5, borderColor: 'var(--blue-d)' }}
+                                    >
+                                        <div className="faic gap10 mb16">
+                                            <span className="badge" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', fontSize: 10, fontWeight: 800 }}>WEAKNESS</span>
+                                            <span className="fs15 fw800 color-t1">{rec.topic}</span>
                                         </div>
-                                        <div className="faic gap8">
+                                        <div className="faic gap10">
                                             <a href={rec.leetcode} target="_blank" rel="noopener noreferrer"
-                                               className="btn btn-primary faic gap6"
-                                               style={{ flex: 1, justifyContent: 'center', fontSize: 12, padding: '8px 12px' }}>
-                                                <Code2 size={13} /> LeetCode <ExternalLink size={11} />
+                                               className="btn btn-primary faic gap8"
+                                               style={{ flex: 1, justifyContent: 'center', fontSize: 12, padding: '10px' }}>
+                                                <Code2 size={14} /> LeetCode
                                             </a>
                                             <a href={rec.gfg} target="_blank" rel="noopener noreferrer"
-                                               className="btn btn-outline faic gap6"
-                                               style={{ flex: 1, justifyContent: 'center', fontSize: 12, padding: '8px 12px' }}>
-                                                <BookOpen size={13} /> GFG <ExternalLink size={11} />
+                                               className="btn btn-outline faic gap8"
+                                               style={{ flex: 1, justifyContent: 'center', fontSize: 12, padding: '10px' }}>
+                                                <BookOpen size={14} /> GFG
                                             </a>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     )}
 
                     {/* Full Topic Table */}
-                    <div className="card mb32">
-                        <div className="card-hdr mb16">
-                            <div className="card-title faic gap8"><Target size={16} className="color-t2" /> Complete Topic Breakdown</div>
+                    <motion.div 
+                        className="glass-card p24 mb32"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.7 }}
+                    >
+                        <div className="card-hdr mb24">
+                            <div className="card-title fs16 fw800 faic gap10"><Target size={18} className="color-t2" /> Complete Topic Inventory</div>
                         </div>
                         <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid var(--b1)' }}>
-                                        {['Topic', 'Solved', 'Expected', 'Progress', 'Status'].map(h => (
-                                            <th key={h} style={{ padding: '10px 12px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: 'var(--t3)' }}>{h}</th>
+                                    <tr>
+                                        {['Topic', 'Solved', 'Goal', 'Proficiency', 'Status'].map(h => (
+                                            <th key={h} style={{ padding: '0 16px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {(analysis.topics || []).map((t, i) => (
-                                        <tr key={i} style={{ borderBottom: '1px solid var(--b1)' }}>
-                                            <td style={{ padding: '10px 12px', fontSize: 13, fontWeight: 600, color: 'var(--t1)' }}>{t.topic}</td>
-                                            <td style={{ padding: '10px 12px', fontSize: 13, color: 'var(--t2)' }}>{t.solved}</td>
-                                            <td style={{ padding: '10px 12px', fontSize: 13, color: 'var(--t3)' }}>{t.expected}+</td>
-                                            <td style={{ padding: '10px 12px', minWidth: 120 }}>
-                                                <div style={{ height: 6, background: 'var(--bg4)', borderRadius: 10, overflow: 'hidden' }}>
-                                                    <div style={{ height: '100%', width: `${t.percentage}%`, background: STRENGTH_COLORS[t.strength], borderRadius: 10 }} />
+                                        <tr key={i} className="hover-bg-gray2" style={{ transition: 'all 0.2s' }}>
+                                            <td style={{ padding: '14px 16px', fontSize: 14, fontWeight: 700, color: 'var(--t1)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px 0 0 12px' }}>{t.topic}</td>
+                                            <td style={{ padding: '14px 16px', fontSize: 14, color: 'var(--t2)', background: 'rgba(255,255,255,0.02)' }}>{t.solved}</td>
+                                            <td style={{ padding: '14px 16px', fontSize: 14, color: 'var(--t3)', background: 'rgba(255,255,255,0.02)' }}>{t.expected}+</td>
+                                            <td style={{ padding: '14px 16px', minWidth: 140, background: 'rgba(255,255,255,0.02)' }}>
+                                                <div style={{ height: 6, background: 'var(--bg4)', borderRadius: 10, overflow: 'hidden', width: '100%', maxWidth: 100 }}>
+                                                    <motion.div 
+                                                        style={{ height: '100%', background: STRENGTH_COLORS[t.strength], borderRadius: 10 }}
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${t.percentage}%` }}
+                                                        transition={{ duration: 1, delay: i * 0.05 }}
+                                                    />
                                                 </div>
-                                                <span style={{ fontSize: 10, color: 'var(--t4)' }}>{t.percentage}%</span>
+                                                <span style={{ fontSize: 10, color: 'var(--t4)', fontWeight: 700, marginTop: 4, display: 'block' }}>{t.percentage}%</span>
                                             </td>
-                                            <td style={{ padding: '10px 12px' }}>
-                                                <span className="badge" style={{ background: STRENGTH_BG[t.strength], color: STRENGTH_COLORS[t.strength], border: 'none', fontSize: 11 }}>
-                                                    {t.strength}
+                                            <td style={{ padding: '14px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '0 12px 12px 0' }}>
+                                                <span className="badge" style={{ background: STRENGTH_BG[t.strength], color: STRENGTH_COLORS[t.strength], border: 'none', fontSize: 10, fontWeight: 800, padding: '4px 10px' }}>
+                                                    {t.strength.toUpperCase()}
                                                 </span>
                                             </td>
                                         </tr>
@@ -447,60 +527,69 @@ const DevInsightsPage = () => {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
 
             /* ── Overview Tab ── */
             ) : (
                 <>
                     {/* Stats Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-20 mb32">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-24 mb32">
                         {/* Dev Score */}
-                        <div className="card text-center" style={{ background: 'linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%)' }}>
-                            <div className="faic jcc mb12">
-                                <div className="badge-lg" style={{ background: 'rgba(249,115,22,0.1)', color: 'var(--orange)' }}><Zap size={24} /></div>
+                        <motion.div 
+                            className="glass-card stat-card p24 text-center"
+                            whileHover={{ scale: 1.02 }}
+                        >
+                            <div className="faic jcc mb16">
+                                <div className="badge-lg" style={{ background: 'rgba(249,115,22,0.12)', color: 'var(--orange)', padding: 12 }}><Zap size={28} className="glow-orange" /></div>
                             </div>
-                            <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--t1)' }}>{profile.developerScore}</div>
-                            <div className="color-t3 fs12 mb16">Developer Score</div>
-                            <span className="badge" style={{ background: 'var(--orange)', color: '#fff', border: 'none' }}>{profile.developerLevel}</span>
-                        </div>
+                            <div className="fs40 fw900 glow-orange mb4">{profile.developerScore}</div>
+                            <div className="color-t3 fs13 fw600 mb16 uppercase tracking-wider">Skill Rating</div>
+                            <span className="badge-lg fs12" style={{ background: 'var(--orange)', color: '#fff', border: 'none', padding: '4px 16px' }}>{profile.developerLevel}</span>
+                        </motion.div>
 
                         {/* Platform Mastery */}
-                        <div className="card">
-                            <div className="faic gap12 mb16">
-                                <div className="si-g p6 rounded-lg"><CheckCircle2 size={18} /></div>
-                                <div className="fw800">Platform Mastery</div>
+                        <motion.div 
+                            className="glass-card stat-card p24"
+                            whileHover={{ scale: 1.02 }}
+                        >
+                            <div className="faic gap12 mb20">
+                                <div className="si-g p8 rounded-xl"><CheckCircle2 size={20} className="glow-green" /></div>
+                                <div className="fw800 fs16">Platform Mastery</div>
                             </div>
-                            <div className="g2">
-                                <div><div className="fs20 fw800">{platformStats.solved}</div><div className="fs12 color-t3">Problems</div></div>
-                                <div><div className="fs20 fw800">{platformStats.xp}</div><div className="fs12 color-t3">XP Gained</div></div>
+                            <div className="g2 gap16">
+                                <div><div className="fs28 fw900 glow-green">{platformStats.solved}</div><div className="fs12 color-t3 fw600 uppercase">Solved</div></div>
+                                <div><div className="fs28 fw900 color-t1">{platformStats.xp}</div><div className="fs12 color-t3 fw600 uppercase">XP</div></div>
                             </div>
-                            <div className="mt12 pt12 border-t border-gray-100 fs11 color-t3">
-                                Streak: <span className="color-orange fw700">{platformStats.streak} Days</span>
+                            <div className="mt20 pt16 border-t border-gray-100 fs12 color-t3">
+                                Streak: <span className="glow-orange fw800">{platformStats.streak} Days</span>
                                 {platformStats.total > 0 && (
-                                    <span className="ml8">• <span className="fw700 color-t2">{platformStats.total}</span> total tracked</span>
+                                    <span className="ml8">• <span className="fw800 color-t2">{platformStats.total}</span> tracked</span>
                                 )}
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* LeetCode Pulse */}
-                        <div className="card">
-                            <div className="faic gap12 mb16">
-                                <div className="si-c p6 rounded-lg"><Code2 size={18} /></div>
-                                <div className="fw800">LeetCode Pulse</div>
+                        <motion.div 
+                            className="glass-card stat-card p24"
+                            whileHover={{ scale: 1.02 }}
+                        >
+                            <div className="faic gap12 mb20">
+                                <div className="si-c p8 rounded-xl"><Code2 size={20} className="glow-blue" /></div>
+                                <div className="fw800 fs16">LeetCode Pulse</div>
                             </div>
-                            <div className="g2">
-                                <div><div className="fs20 fw800">{profile.leetcodeTotalSolved}</div><div className="fs12 color-t3">Total Solved</div></div>
-                                <div><div className="fs20 fw800">#{profile.leetcodeRanking?.toLocaleString()}</div><div className="fs12 color-t3">Rank</div></div>
+                            <div className="g2 gap16">
+                                <div><div className="fs28 fw900 glow-blue">{profile.leetcodeTotalSolved}</div><div className="fs12 color-t3 fw600 uppercase">Total</div></div>
+                                <div><div className="fs28 fw900 color-t1">#{profile.leetcodeRanking?.toLocaleString()}</div><div className="fs12 color-t3 fw600 uppercase">Rank</div></div>
                             </div>
-                            <div className="mt12 pt12 border-t border-gray-100 fs11">
-                                <span style={{ color: '#10b981' }} className="fw600">{profile.leetcodeEasySolved} Easy</span>
-                                <span className="color-t4 mx8">·</span>
-                                <span style={{ color: '#f59e0b' }} className="fw600">{profile.leetcodeMediumSolved} Med</span>
-                                <span className="color-t4 mx8">·</span>
-                                <span style={{ color: '#ef4444' }} className="fw600">{profile.leetcodeHardSolved} Hard</span>
+                            <div className="mt20 pt16 border-t border-gray-100 fs12 faic jsb">
+                                <span style={{ color: '#10b981' }} className="fw700">{profile.leetcodeEasySolved} E</span>
+                                <span className="color-t4">·</span>
+                                <span style={{ color: '#f59e0b' }} className="fw700">{profile.leetcodeMediumSolved} M</span>
+                                <span className="color-t4">·</span>
+                                <span style={{ color: '#ef4444' }} className="fw700">{profile.leetcodeHardSolved} H</span>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
 
                     {/* Analyze CTA */}
@@ -521,44 +610,64 @@ const DevInsightsPage = () => {
 
                     {/* Activity + Blueprint */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 mb32">
-                        <div className="card">
-                            <div className="card-hdr faic jsb mb16">
-                                <div className="card-title faic gap8"><History size={18} className="color-blue" /> Recent Platform Activity</div>
+                        <motion.div 
+                            className="glass-card p24"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <div className="card-hdr faic jsb mb20">
+                                <div className="card-title fs16 fw800 faic gap10"><History size={20} className="glow-blue" /> Recent Activity</div>
+                                <div className="fs12 color-t3 fw600 uppercase tracking-widest">Live Feed</div>
                             </div>
-                            <div className="p6">
+                            <div className="g1 gap10">
                                 {platformActivities.length > 0 ? platformActivities.slice(0, 5).map((act, i) => (
-                                    <div key={i} className="faic gap12 p10 hover-bg-gray2 rounded-lg border-b border-gray-100 last:border-0">
-                                        <div className="stat-ico si-g w32 h32"><Target size={14} /></div>
+                                    <motion.div 
+                                        key={i} 
+                                        className="faic gap14 p12 rounded-xl border border-transparent hover-bg-gray2"
+                                        whileHover={{ x: 5, background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.05)' }}
+                                    >
+                                        <div className="stat-ico si-g w36 h36 rounded-xl"><Target size={16} className="glow-green" /></div>
                                         <div className="flex-1">
-                                            <div className="fs13 fw700 color-t1">{act.title}</div>
-                                            <div className="fs11 color-t3">{act.topic?.name} - {act.difficulty}</div>
+                                            <div className="fs14 fw700 color-t1">{act.title}</div>
+                                            <div className="fs11 color-t3 uppercase tracking-wider mt1">{act.topic?.name} • {act.difficulty}</div>
                                         </div>
-                                        <div className="fs11 color-t4">{act.completedAt ? new Date(act.completedAt).toLocaleDateString() : 'Today'}</div>
-                                    </div>
+                                        <div className="fs11 color-t4 fw700">{act.completedAt ? new Date(act.completedAt).toLocaleDateString() : 'TODAY'}</div>
+                                    </motion.div>
                                 )) : (
-                                    <div className="p20 text-center color-t4 fs13">No recent platform activity. Start practicing!</div>
+                                    <div className="p32 text-center color-t4 fs14 italic">No recent activity found.</div>
                                 )}
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="card">
-                            <div className="card-hdr mb16">
-                                <div className="card-title faic gap8"><TrendingUp size={18} className="color-emerald" /> Preparation Blueprint</div>
+                        <motion.div 
+                            className="glass-card p24"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <div className="card-hdr mb20">
+                                <div className="card-title fs16 fw800 faic gap10"><TrendingUp size={20} className="glow-green" /> Preparation Blueprint</div>
                             </div>
-                            <div className="g1 gap16 p12">
+                            <div className="g1 gap20 p8">
                                 {blueprintData.map((skill, idx) => (
                                     <div key={idx}>
-                                        <div className="faic jsb mb6 fs12">
-                                            <span className="fw600 color-t2">{skill.label}</span>
-                                            <span className="fw800 color-t1">{Math.round(skill.value)}%</span>
+                                        <div className="faic jsb mb8 fs12">
+                                            <span className="fw700 color-t2 uppercase tracking-wide">{skill.label}</span>
+                                            <span className="fw800 color-t1 glow-text" style={{ color: skill.color }}>{Math.round(skill.value)}%</span>
                                         </div>
-                                        <div style={{ height: 8, background: 'var(--bg4)', borderRadius: 10, overflow: 'hidden' }}>
-                                            <div style={{ height: '100%', width: `${skill.value}%`, background: skill.color, borderRadius: 10, transition: 'width 1s ease' }} />
+                                        <div style={{ height: 10, background: 'var(--bg4)', borderRadius: 10, overflow: 'hidden', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)' }}>
+                                            <motion.div 
+                                                style={{ height: '100%', background: skill.color, borderRadius: 10, boxShadow: `0 0 10px ${skill.color}44` }}
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${skill.value}%` }}
+                                                transition={{ duration: 1.5, delay: idx * 0.1, ease: 'easeOut' }}
+                                            />
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
 
                     {/* LeetCode Difficulty Breakdown - Real Chart */}
@@ -618,65 +727,92 @@ const DevInsightsPage = () => {
                     </div>
 
                     {/* Weekly Trends */}
-                    <div className="card mb32">
-                        <div className="card-hdr">
-                            <div className="card-title faic gap8"><ArrowUpRight size={18} className="color-blue" /> Weekly Consistency Trends</div>
+                    <motion.div 
+                        className="glass-card p24 mb32"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                    >
+                        <div className="card-hdr mb24 jsb faic">
+                            <div>
+                                <div className="card-title fs18 fw800 faic gap10"><ArrowUpRight size={20} className="glow-orange" /> Consistency Trend</div>
+                                <p className="fs13 color-t3 mt4">Your problem-solving velocity over the last 7 sessions.</p>
+                            </div>
                         </div>
-                        <div style={{ height: 280 }} className="p20">
+                        <div style={{ height: 320 }} className="p12">
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={chartData}>
+                                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="gProblems" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.15} />
-                                            <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="var(--orange)" stopOpacity={0.2} />
+                                            <stop offset="95%" stopColor="var(--orange)" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="gContribs" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
-                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="var(--blue)" stopOpacity={0.2} />
+                                            <stop offset="95%" stopColor="var(--blue)" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--b1)" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--t3)' }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--t3)' }} />
-                                    <Tooltip contentStyle={{ background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: 8 }} />
-                                    <Legend />
-                                    <Area type="monotone" dataKey="problems" name="Problems Solved" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#gProblems)" />
-                                    <Area type="monotone" dataKey="contributions" name="Platform Activity" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#gContribs)" />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--t3)', fontWeight: 600 }} dy={10} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--t3)', fontWeight: 600 }} dx={-10} />
+                                    <Tooltip 
+                                        contentStyle={{ background: 'var(--bg2)', border: '1px solid var(--b1)', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}
+                                        itemStyle={{ fontSize: 12, fontWeight: 700 }}
+                                    />
+                                    <Legend iconType="circle" wrapperStyle={{ paddingTop: 20, fontSize: 12, fontWeight: 600, color: 'var(--t2)' }} />
+                                    <Area type="monotone" dataKey="problems" name="Solved" stroke="var(--orange)" strokeWidth={3} fillOpacity={1} fill="url(#gProblems)" />
+                                    <Area type="monotone" dataKey="contributions" name="Activity %" stroke="var(--blue)" strokeWidth={3} fillOpacity={1} fill="url(#gContribs)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
-                    </div>
+                    </motion.div>
                 </>
             )}
 
             {/* ── Link Modal ── */}
-            {showLinkModal && (
-                <div className="modal-overlay" onClick={() => setShowLinkModal(false)}>
-                    <div className="modal-content" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
-                        <div className="modal-hdr">
-                            <div className="modal-title">Link Your LeetCode Profile</div>
-                            <p className="fs13 color-t3 mt4">Connect your LeetCode account for full topic analytics</p>
-                        </div>
-                        <form onSubmit={handleLink} className="p24">
-                            <div className="mb24">
-                                <label className="fs13 mb8 db fw600">LeetCode Username</label>
-                                <div className="input-wrap">
-                                    <Code2 size={16} style={{ position: 'absolute', left: 12, top: 12 }} className="color-t3" />
-                                    <input type="text" className="input pl36" placeholder="e.g. luser123"
-                                        value={leetcodeUser} onChange={e => setLeetcodeUser(e.target.value)} required />
+            <AnimatePresence>
+                {showLinkModal && (
+                    <motion.div 
+                        className="modal-overlay" 
+                        onClick={() => setShowLinkModal(false)}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div 
+                            className="modal-content glass-card" 
+                            style={{ maxWidth: 420, padding: 0, overflow: 'hidden' }} 
+                            onClick={e => e.stopPropagation()}
+                            initial={{ scale: 0.95, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 20 }}
+                        >
+                            <div className="modal-hdr p24" style={{ background: 'var(--bg3)', borderBottom: '1px solid var(--b1)' }}>
+                                <div className="modal-title fs18 fw800">Connect LeetCode</div>
+                                <p className="fs13 color-t3 mt4">Link your account to see your developer insights</p>
+                            </div>
+                            <form onSubmit={handleLink} className="p24">
+                                <div className="mb24">
+                                    <label className="fs12 mb8 db fw700 uppercase tracking-wide color-t2">LeetCode Username</label>
+                                    <div className="input-wrap">
+                                        <Code2 size={16} style={{ position: 'absolute', left: 12, top: 12 }} className="color-p" />
+                                        <input type="text" className="input pl36" placeholder="e.g. hackercat"
+                                            value={leetcodeUser} onChange={e => setLeetcodeUser(e.target.value)} required 
+                                            style={{ background: 'var(--bg1)', border: '1px solid var(--b1)' }} />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="faic jse gap12">
-                                <button type="button" className="btn btn-ghost" onClick={() => setShowLinkModal(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary" disabled={syncing}>
-                                    {syncing ? 'Connecting…' : 'Connect & Sync'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-        </div>
+                                <div className="faic jse gap12">
+                                    <button type="button" className="btn btn-ghost" onClick={() => setShowLinkModal(false)}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary px24" disabled={syncing}>
+                                        {syncing ? 'Connecting…' : 'Sync Profile'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 };
 

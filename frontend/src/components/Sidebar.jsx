@@ -30,6 +30,7 @@ const Sidebar = () => {
     { icon: Calculator, label: 'Aptitude Quiz', path: '/aptitude' },
     { icon: Map, label: 'Study Roadmap', path: '/roadmap' },
     { icon: History, label: 'Revision Scheduler', path: '/revision-scheduler' },
+    { icon: Award, label: 'Batch Test', path: '/batch-test' },
 
     { label: 'OPPORTUNITIES', type: 'label' },
     { icon: Briefcase, label: 'Jobs & Interns', path: '/jobs' },
