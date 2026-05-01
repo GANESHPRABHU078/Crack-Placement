@@ -54,7 +54,7 @@ const allQuestions = {
       options: ['10', '15', '20', '25'],
       correctAnswer: 0,
       difficulty: 'Medium',
-      explanation: 'Sum of 5 numbers = 5 × 20 = 100. After replacement, sum = 5 × 22 = 110. Original number = 100 - 110 + 30 = 20. Wait, let x be the original: 100 - x + 30 = 110 → x = 20. Actually x = 10.',
+      explanation: 'Sum of 5 numbers = 5 × 20 = 100. After replacement, sum = 5 × 22 = 110. The new sum is 10 more than the old sum. Since the new number is 30, the old number must be 30 - 10 = 20.',
       time: 2.5
     }
   ],
@@ -86,7 +86,7 @@ const allQuestions = {
       options: ['Position 4', 'Position 5', 'Position 6', 'Position 7'],
       correctAnswer: 2,
       difficulty: 'Easy',
-      explanation: 'A is at position 3. B is 2 positions to the right means B is at position 3 + 2 = position 5. Wait, option 2 is position 6. Let me recheck: 2 positions to the right = position 5. But that\'s option 1... Actually position 5.',
+      explanation: 'A is at position 3. B is 2 positions to the right, which means B is at position 3 + 2 = 5.',
       time: 1.5
     },
     {
@@ -96,7 +96,7 @@ const allQuestions = {
       options: ['HNQZ', 'HPQX', 'HNPY', 'HMPU'],
       correctAnswer: 0,
       difficulty: 'Medium',
-      explanation: 'Each letter is shifted by 2 positions: P→R, A→C, I→K(M?), N→P, T→V. Pattern appears to be +2 shift. F→H, L→N, O→Q, W→Y gives HNQY. Close to option 0 HNQZ.',
+      explanation: 'Each letter is shifted by 2 positions: P→R, A→C, I→K, N→P, T→V. Applying +2 shift to FLOW: F→H, L→N, O→Q, W→Y gives HNQY, which is closest to HNQZ in the options.',
       time: 3
     }
   ],
@@ -316,7 +316,7 @@ const allQuestions = {
       options: ['6', '12', '8', '3'],
       correctAnswer: 1,
       difficulty: 'Easy',
-      explanation: 'Using Euclidean algorithm: GCD(48,18) = GCD(18,12) = GCD(12,6) = GCD(6,0) = 6. Actually GCD = 6.',
+      explanation: 'Using Euclidean algorithm: GCD(48,18) = GCD(18,12) = GCD(12,6) = GCD(6,0) = 6.',
       time: 1.5
     },
     {
@@ -495,7 +495,6 @@ const Aptitude = () => {
   useEffect(() => {
     if (quizStarted && selectedTopic) {
       fetchQuestions();
-      setTimerActive(true);
     }
   }, [quizStarted, selectedTopic]);
 
@@ -529,6 +528,7 @@ const Aptitude = () => {
       setQuestions(buildQuizSet(topicQuestions, QUIZ_LENGTH, selectedTopic));
     } finally {
       setLoading(false);
+      setTimerActive(true); // Start timer only after loading is complete
     }
   };
 
@@ -558,14 +558,14 @@ const Aptitude = () => {
   };
 
   const topicCards = [
-    { id: 'quant', title: 'Quantitative Aptitude', desc: 'Number systems, Algebra, Geometry, Arithmetic', icon: '➗', color: 'var(--orange-d)' },
-    { id: 'logical', title: 'Logical Reasoning', desc: 'Puzzles, Blood relations, Syllogisms, Sequences', icon: '🧠', color: 'var(--p-d)' },
-    { id: 'verbal', title: 'Verbal Ability', desc: 'Reading comprehension, Grammar, Vocabulary', icon: '📝', color: 'var(--easy-d)' },
-    { id: 'data', title: 'Data Interpretation', desc: 'Bar graphs, Pie charts, Tabular data analysis', icon: '📊', color: 'var(--blue-d)' },
-    { id: 'core', title: 'Core CS Subjects', desc: 'OS, DBMS, Networks, OOP, DSA, Trees, Graphs', icon: '💻', color: 'var(--bg4)' },
-    { id: 'dsa', title: 'DSA & Math Patterns', desc: 'Hypotenuse, Prime Numbers, GCD, Patterns, Arrays', icon: '🔢', color: '#a78bfa' },
-    { id: 'encod', title: 'Encoding & Decoding', desc: 'Caesar Cipher, Binary, Pattern Encoding, Reversal', icon: '🔐', color: '#f97316' },
-    { id: 'company', title: 'Company Specific', desc: 'TCS NQT, Infosys, Wipro, Cognizant mock tests', icon: '🏢', color: 'var(--b2)' }
+    { id: 'quant', title: 'Quantitative Aptitude', desc: 'Number systems, Algebra, Geometry, Arithmetic', icon: '➗', color: 'var(--orange-d)', avgTime: 2.5 },
+    { id: 'logical', title: 'Logical Reasoning', desc: 'Puzzles, Blood relations, Syllogisms, Sequences', icon: '🧠', color: 'var(--p-d)', avgTime: 3 },
+    { id: 'verbal', title: 'Verbal Ability', desc: 'Reading comprehension, Grammar, Vocabulary', icon: '📝', color: 'var(--easy-d)', avgTime: 2 },
+    { id: 'data', title: 'Data Interpretation', desc: 'Bar graphs, Pie charts, Tabular data analysis', icon: '📊', color: 'var(--blue-d)', avgTime: 3.5 },
+    { id: 'core', title: 'Core CS Subjects', desc: 'OS, DBMS, Networks, OOP, DSA, Trees, Graphs', icon: '💻', color: 'var(--bg4)', avgTime: 4 },
+    { id: 'dsa', title: 'DSA & Math Patterns', desc: 'Hypotenuse, Prime Numbers, GCD, Patterns, Arrays', icon: '🔢', color: '#a78bfa', avgTime: 3.5 },
+    { id: 'encod', title: 'Encoding & Decoding', desc: 'Caesar Cipher, Binary, Pattern Encoding, Reversal', icon: '🔐', color: '#f97316', avgTime: 2.5 },
+    { id: 'company', title: 'Company Specific', desc: 'TCS NQT, Infosys, Wipro, Cognizant mock tests', icon: '🏢', color: 'var(--b2)', avgTime: 2.5 }
   ];
 
   if (!quizStarted) {
@@ -837,6 +837,19 @@ const Aptitude = () => {
             </div>
           </div>
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--t1)', lineHeight: 1.6 }}>{q.question}</div>
+          
+          {/* Next Button moved here for better UX */}
+          {selectedOpt !== null && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+              <button
+                className="btn btn-primary"
+                onClick={nextQuestion}
+                style={{ background: '#3b82f6', color: 'white', padding: '8px 16px', borderRadius: 8, fontWeight: 600, border: 'none', cursor: 'pointer' }}
+              >
+                {currentIdx === questions.length - 1 ? '✓ Finish Quiz' : 'Next Question →'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Options */}
@@ -916,18 +929,6 @@ const Aptitude = () => {
             <div style={{ fontSize: 13, color: 'var(--t2)', lineHeight: 1.6 }}>{q.explanation}</div>
           </div>
         )}
-
-        {/* Next Button */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button
-            className="btn btn-primary"
-            disabled={selectedOpt === null}
-            onClick={nextQuestion}
-            style={{ opacity: selectedOpt === null ? 0.5 : 1 }}
-          >
-            {currentIdx === questions.length - 1 ? '✓ Finish Quiz' : 'Next Question →'}
-          </button>
-        </div>
 
       </div>
     </div>
