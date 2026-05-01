@@ -12,10 +12,20 @@ services:
         value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
       - key: PORT
         value: 8080
-      - key: DB_URL
+      - key: DB_HOST
         fromDatabase:
           name: crackplacement-db
-          property: connectionString
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: crackplacement-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: crackplacement-db
+          property: database
+      - key: DB_URL
+        value: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
       - key: DB_USERNAME
         fromDatabase:
           name: crackplacement-db
