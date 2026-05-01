@@ -44,9 +44,12 @@ const DevInsightsPage = () => {
     const [topicInsights, setTopicInsights] = useState([]);
     const [weeklyTrendData, setWeeklyTrendData] = useState([]);
     const [activeTab, setActiveTab] = useState('overview');
+    const [fetchError, setFetchError] = useState(false);
 
     useEffect(() => {
         if (user?.id) {
+            setLoading(true);
+            setFetchError(false);
             fetchProfile();
             fetchPlatformData();
         }
@@ -96,8 +99,14 @@ const DevInsightsPage = () => {
         try {
             const data = await developerService.getProfile(user.id);
             setProfile(data);
+            setFetchError(false);
         } catch (e) {
-            if (e.response?.status === 404) setShowLinkModal(true);
+            console.error('Profile fetch failed', e);
+            if (e.response?.status === 404) {
+                setShowLinkModal(true);
+            } else {
+                setFetchError(true);
+            }
         } finally {
             setLoading(false);
         }
@@ -139,8 +148,23 @@ const DevInsightsPage = () => {
     };
 
     if (loading) return (
-        <div className="p24 color-t2 faic jcc" style={{ minHeight: 300 }}>
-            <RefreshCcw size={20} className="spin mr8" /> Loading developer insights...
+        <div className="p48 text-center color-t2 faic jcc flex-col" style={{ minHeight: 400 }}>
+            {fetchError ? (
+                <>
+                    <AlertTriangle size={40} className="color-red mb16" />
+                    <h3 className="color-t1">Unable to Load Insights</h3>
+                    <p className="fs14 color-t3 mb24">We couldn't reach the developer service. Please check your connection or try again.</p>
+                    <button className="btn btn-primary" onClick={() => { setFetchError(false); setLoading(true); fetchProfile(); fetchPlatformData(); }}>
+                        <RefreshCcw size={15} className="mr8" /> Retry Now
+                    </button>
+                </>
+            ) : (
+                <>
+                    <RefreshCcw size={32} className="spin mb16 color-p" />
+                    <div className="fs16 fw600 color-t1">Gathering Insights...</div>
+                    <div className="fs13 color-t3 mt8">This may take a moment while we sync with LeetCode.</div>
+                </>
+            )}
         </div>
     );
 
@@ -537,53 +561,57 @@ const DevInsightsPage = () => {
                         </div>
                     </div>
 
-                    {/* LeetCode Difficulty Breakdown - CSS Donut */}
+                    {/* LeetCode Difficulty Breakdown - Real Chart */}
                     <div className="card mb32">
-                        <div className="card-hdr mb20"><div className="card-title">LeetCode Difficulty Breakdown</div></div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-                            {/* CSS Donut Chart */}
-                            <div className="faic jcc" style={{ minHeight: 220 }}>
-                                {(() => {
-                                    const total = (profile.leetcodeEasySolved || 0) + (profile.leetcodeMediumSolved || 0) + (profile.leetcodeHardSolved || 0);
-                                    if (total === 0) return (
-                                        <div className="faic jcc flex-col gap8">
-                                            <div style={{ width: 140, height: 140, borderRadius: '50%', border: '18px solid var(--bg4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                <span className="fs13 color-t4">No data</span>
-                                            </div>
-                                        </div>
-                                    );
-                                    const easy   = Math.round(((profile.leetcodeEasySolved   || 0) / total) * 100);
-                                    const medium = Math.round(((profile.leetcodeMediumSolved || 0) / total) * 100);
-                                    const hard   = 100 - easy - medium;
-                                    const conicStr = `conic-gradient(#10b981 0% ${easy}%, #f59e0b ${easy}% ${easy + medium}%, #ef4444 ${easy + medium}% 100%)`;
-                                    return (
-                                        <div style={{ position: 'relative', width: 160, height: 160 }}>
-                                            <div style={{ width: 160, height: 160, borderRadius: '50%', background: conicStr }} />
-                                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 100, height: 100, borderRadius: '50%', background: 'var(--bg1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                                                <div className="fs22 fw900 color-t1">{total}</div>
-                                                <div className="fs11 color-t4">solved</div>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
+                        <div className="card-hdr mb20">
+                            <div className="card-title faic gap8"><Code2 size={18} className="color-p" /> LeetCode Proficiency</div>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-32">
+                            <div style={{ height: 260 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={leetcodeData}
+                                            innerRadius={70}
+                                            outerRadius={100}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            stroke="none"
+                                        >
+                                            {leetcodeData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip 
+                                            contentStyle={{ background: 'var(--bg1)', border: '1px solid var(--b1)', borderRadius: 8 }}
+                                            formatter={(value) => [value, 'Problems Solved']}
+                                        />
+                                        <Legend verticalAlign="bottom" height={36}/>
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                {/* Center text for Donut */}
+                                <div style={{ position: 'relative', top: -175, textAlign: 'center', pointerEvents: 'none' }}>
+                                    <div className="fs24 fw900 color-t1">{profile.leetcodeTotalSolved || 0}</div>
+                                    <div className="fs11 color-t4">Total Solved</div>
+                                </div>
                             </div>
-                            <div className="faic flex-col jcc gap16 p12">
+                            <div className="faic flex-col jcc gap16">
                                 {[
                                     { name: 'Easy',   count: profile.leetcodeEasySolved   || 0, color: '#10b981' },
                                     { name: 'Medium', count: profile.leetcodeMediumSolved || 0, color: '#f59e0b' },
                                     { name: 'Hard',   count: profile.leetcodeHardSolved   || 0, color: '#ef4444' },
                                 ].map(d => (
-                                    <div key={d.name} className="faic jsb w100">
+                                    <div key={d.name} className="faic jsb w100 p12 rounded-lg" style={{ background: 'var(--bg2)' }}>
                                         <div className="faic gap10">
                                             <div style={{ width: 12, height: 12, borderRadius: 3, background: d.color }} />
-                                            <span className="fs14 fw600 color-t2">{d.name}</span>
+                                            <span className="fs14 fw600 color-t2">{d.name} Problems</span>
                                         </div>
                                         <span className="fs18 fw900 color-t1">{d.count}</span>
                                     </div>
                                 ))}
-                                <div className="faic jsb w100 pt12" style={{ borderTop: '1px solid var(--b1)' }}>
-                                    <span className="fs13 fw600 color-t3">Total Solved</span>
-                                    <span className="fs20 fw900 color-t1">{profile.leetcodeTotalSolved || 0}</span>
+                                <div className="faic jsb w100 pt12 mt8" style={{ borderTop: '2px solid var(--b1)' }}>
+                                    <span className="fs14 fw700 color-t3 uppercase">Platform Total</span>
+                                    <span className="fs24 fw900 color-p">{profile.leetcodeTotalSolved || 0}</span>
                                 </div>
                             </div>
                         </div>
